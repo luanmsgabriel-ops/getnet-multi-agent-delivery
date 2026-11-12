@@ -196,7 +196,11 @@ class ContextService:
                 continue
             if topic=='connectivity' and refs and kind in ('next_step','information'):
                 for ref in refs:
-                    text,src=self._wifi(state,ref);lines.append(state['devices'][ref]['label']+': '+text);sources+=src
+                    text,src=self._wifi(state,ref)
+                    label=state['devices'][ref]['label']
+                    generic=re.fullmatch(r'(?:(?:minha|meu|a|o)\s+)?(?:maquininha|terminal|aparelho)(?:\s+getnet)?',norm(label).strip())
+                    prefix='' if len(state['devices'])==1 and generic else label+': '
+                    lines.append(prefix+text);sources+=src
                 continue
             queries={'commercial':task['quote'], 'advance':'Como funciona antecipação de vendas Getnet?', 'settlement':'Quando recebo vendas de ontem?' if re.search(r'ontem|yesterday',norm(task['quote'])) else 'Meu saldo', 'pix_account':'Preciso de conta bancária para receber vendas via Pix?', 'link':'Posso vender via WhatsApp com Link de Pagamento?', 'link_fee':'Qual a taxa do Link de Pagamento?', 'migration':'Minha conta já foi migrada?', 'installments':'Em quantas parcelas posso vender no crediário?', 'comparison':'Qual a diferença entre Get Clássica e Get Smart? Wi-Fi da Clássica', 'connectivity':'Como configurar Wi-Fi na maquininha Getnet?'}
             query=queries.get(topic,task['quote'])

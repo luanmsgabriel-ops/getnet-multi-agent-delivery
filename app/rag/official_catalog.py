@@ -60,6 +60,12 @@ def product_query(query):
     return None
 
 
+def link_howto_query(query):
+    """Only the broad operation question; prices/eligibility keep attribute selection."""
+    text=normalize(query).strip(' ?.!')
+    return bool(re.fullmatch(r'como (?:funciona|usar|utilizar) (?:o )?link de pagamento(?: (?:da )?getnet)?',text))
+
+
 class OfficialCatalogSearch:
     def __init__(self,fetcher=None):
         from app.rag.fetch import fetch_bounded
@@ -89,6 +95,7 @@ class OfficialCatalogSearch:
                     if not eligible:
                         attempts.append({'url':url,'status':'insufficient_evidence','reason':'requested_attribute_not_supported'});continue
                     selected=eligible[0]['text']
+                elif url==BR_LINK and link_howto_query(query):selected=doc['chunks'][2]
                 else:selected=ranked[0][1]
                 conditions=doc['chunks'][1] if url==BR_LINK else ''
                 snippet=' '.join(dict.fromkeys(x for x in (selected,conditions) if x))

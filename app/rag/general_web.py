@@ -206,6 +206,20 @@ class GeneralWebSearch:
                 return {'status':'insufficient_evidence','results':[],'provider':'scope_policy',
                         'diagnostics':{'scope':'Getnet Brasil'},'retrieved_at':datetime.now(timezone.utc).isoformat()}
             query=policy.message
+        # For this narrow how-to intent, a verified full official section is more
+        # useful than a topical RSS excerpt. Preserve the existing RSS fallback.
+        from .official_catalog import link_howto_query
+        if self.official_only and self.catalog is not None and link_howto_query(query):
+            try:
+                alternate=self.catalog.search(query)
+                from app.service_policy import official_result
+                rows=[r for r in alternate['results'] if official_result(r) and relevant_result(query,r)][:MAX_RESULTS]
+                if rows:
+                    return {'status':'results','results':rows,'provider':alternate['provider'],
+                            'diagnostics':{'catalog':alternate.get('attempts',[]),'rss_status':'not_needed'},
+                            'retrieved_at':alternate['retrieved_at']}
+            except Exception:
+                pass
         failed=False;request_query=query
         try:
             request_query=search_query(query)
