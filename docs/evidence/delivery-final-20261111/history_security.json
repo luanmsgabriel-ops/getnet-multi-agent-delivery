@@ -1,0 +1,8 @@
+{
+  "utc": "2026-11-11T16:19:43.065095+00:00",
+  "reachable_refs": "all local refs",
+  "unique_blobs_scanned": 558,
+  "strong_secret_hits": [],
+  "sensitive_filename_hits": [],
+  "limits": "Pattern scan and tracked filename review; no absolute guarantee. Synthetic canaries are test data. No history rewriting."
+}

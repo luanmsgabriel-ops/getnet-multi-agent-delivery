@@ -1,0 +1,202 @@
+{
+  "baseline_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74",
+  "removed_files": [
+    {
+      "path": "chat.py",
+      "sha256": "d6d8fe00ac1433e82f33e93b88ec0a29dfab864d298d56ac9962287e2ee5ad71",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "app/agent.py",
+      "sha256": "ab9009c7be3678b76c8c7f7a666b4d3fa716d5825ede7a9a8fb768c6303d53da",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "app/memory.py",
+      "sha256": "de28b3bb53a8ed10c27326ace024f1068cbc071caff6da47a71495dff0965aa8",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "app/ritmo.py",
+      "sha256": "a2192bac94dda1053b94f6a6109380776ee1b01bbef7089f7faf279ebe970792",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "app/fila_store.py",
+      "sha256": "c59e1f662a00ee0bbc362162dadbfe3c8ef3162a77afaf10827c1543c1d87355",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "prompts/system_prompt.md",
+      "sha256": "5eed8d0cba51045b2a3439d6da8a45acb685855781b76c0d1c9a4e14c0a7f104",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "app/rag/weather.py",
+      "sha256": "d4ffdc020e4f6f9fa1008b94b02f29e0d81e55e7e1c17f881f5f9c78ec77c763",
+      "reason": "Parser de clima/cotação fora da política; só consumidores em testes exclusivos",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "app/rag/exchange.py",
+      "sha256": "11176181c8dfc3b7a567ba843d68c61396587e116bc7c5d5fa0c189599ab3a83",
+      "reason": "Parser de clima/cotação fora da política; só consumidores em testes exclusivos",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "tests/test_g0.py",
+      "sha256": "337c8a11fe26eb210c36260b6dab0a1d782a71260806f2a3a554e48829355a72",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "tests/test_g0_memory.py",
+      "sha256": "f6d322ee2552e25d3eeae18eac610e347b686bb3b8d4c45f611c0f75477ab914",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "tests/test_g0_persistence.py",
+      "sha256": "7bded9be4e4e7199577d29e1c94b7c18f426d089320a6164dce0a77a36a8f38c",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "tests/test_g0_terminal.py",
+      "sha256": "50850517499e36e39ad0d5e77468d1deee452386838244924287a63138a32602",
+      "reason": "CLI terminal aposentado; nenhuma entrada HTTP/ingestão/verificador o alcança",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/audit_final_docker.py",
+      "sha256": "d918fb80b68b867730968f7f17a7b72199e1e2dd5d8cfafad8b0296f7621a707",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/avaliar_cenarios_originais.py",
+      "sha256": "88756238fdd2282c1c2a0bf00dd2741a69a3f3a5540f0d5f29a9ec463170f2ae",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/avaliar_cenarios_rede_publica.py",
+      "sha256": "fe5ae3cd89d2f65efd8766400360f9a3201fc1c467ca739b5d7ff8f1d8cfe123",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/smoke_avaliacao_http.py",
+      "sha256": "8cdb0a653864b851eb045a72765afc6bd2ac75f5377898d3b44d217ec0e4e068",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/smoke_docker_llm_worker.py",
+      "sha256": "62efeb173eb1a24601d0476f4f99e8420208a167fc7e45e59a705405ed429648",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/smoke_general_web.py",
+      "sha256": "1011c51efb2d9c65c5aebcb64de73af2160fc68691c32c0b71e65baf245da363",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/smoke_http_local.py",
+      "sha256": "996e6345ddeacf5a656a97f35ae6e21eac840fad0d5c8ccef8a3e70cc2dea623",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/validate_policy_v2.py",
+      "sha256": "786a0a2fd1a913af06124a8843d4cf98efb9de97a5546da0422ba587493be250",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/scripts/validate_review_http.py",
+      "sha256": "988b5d2d6973de3f40c6f30b918eb098084a56f8d7e8f1606f02304f83eab5c2",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/placeholders/config.py.txt",
+      "sha256": "671ffe15be5e86add5f9b0fff6eb757613f75973105125ed2272d4c9833f5a08",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    },
+    {
+      "path": "docs/historico/placeholders/whatsapp.py.txt",
+      "sha256": "e2d827c4db45f54c8b280fee2e0eafb2ecdb5dacf2956d4aeedfb446ee301f17",
+      "reason": "Script/placeholder de versão histórica; recuperar por commit, nunca comando vigente",
+      "recover_from_commit": "1f7911d244e0cceda8b1c86ac9515303768f5c74"
+    }
+  ],
+  "retired_test_methods": [
+    "tests/test_g0.py::test_dados_intactos",
+    "tests/test_g0.py::test_paragrafos_e_limite",
+    "tests/test_g0.py::test_vazios",
+    "tests/test_g0.py::test_idempotente",
+    "tests/test_g0.py::test_sucesso",
+    "tests/test_g0.py::test_agrupamento",
+    "tests/test_g0.py::test_contatos_separados",
+    "tests/test_g0.py::test_geracao_falha_preserva_e_retomada",
+    "tests/test_g0.py::test_parcial_sem_regerar_nem_reenviar_confirmada",
+    "tests/test_g0.py::test_nova_mensagem_nao_ultrapassa_falha",
+    "tests/test_g0.py::test_chegada_durante_geracao",
+    "tests/test_g0.py::test_envio_ocorreu_mas_confirmacao_falhou",
+    "tests/test_g0.py::test_resposta_vazia_nao_some",
+    "tests/test_g0.py::test_cancelamento_preserva",
+    "tests/test_g0.py::test_sem_pendencia_nao_reenvia",
+    "tests/test_g0.py::test_intervalos_invalidos",
+    "tests/test_g0_memory.py::test_roundtrip_unicode_e_identificadores",
+    "tests/test_g0_memory.py::test_contatos_diferem_por_maiusculas",
+    "tests/test_g0_memory.py::test_traversal_e_nomes_reservados",
+    "tests/test_g0_memory.py::test_ausente_e_contato_invalido",
+    "tests/test_g0_memory.py::test_corrompido_nao_vira_vazio_nem_sobrescreve",
+    "tests/test_g0_memory.py::test_schema_e_proprietario_invalidos",
+    "tests/test_g0_memory.py::test_legado_bloqueia_sem_ler_nem_migrar",
+    "tests/test_g0_memory.py::test_fronteiras_19_20_21",
+    "tests/test_g0_memory.py::test_limite_20_inicio_usuario",
+    "tests/test_g0_memory.py::test_limite_nao_inicia_resposta_orfa",
+    "tests/test_g0_memory.py::test_falha_replace_preserva_anterior",
+    "tests/test_g0_memory.py::test_falha_fsync_sem_sucesso_falso",
+    "tests/test_g0_memory.py::test_temporario_orfao_nao_e_historico",
+    "tests/test_g0_persistence.py::test_reinicio_apos_falha",
+    "tests/test_g0_persistence.py::test_reinicio_parcial_sem_regenerar",
+    "tests/test_g0_persistence.py::test_repeticao_intencional_preservada",
+    "tests/test_g0_persistence.py::test_segundo_processo_bloqueado",
+    "tests/test_g0_persistence.py::test_checkpoint_corrompido_nao_sobrescrito",
+    "tests/test_g0_persistence.py::test_schema_corrompido_nao_sobrescrito",
+    "tests/test_g0_persistence.py::test_falha_escrita_entrada_nao_aceita",
+    "tests/test_g0_persistence.py::test_falha_checkpoint_antes_envio_nao_envia",
+    "tests/test_g0_persistence.py::test_crash_processo_antes_depois_geracao_envio",
+    "tests/test_g0_persistence.py::test_cancelamento_antes_primeiro_passo",
+    "tests/test_g0_persistence.py::test_lote_invalido_nao_descartado",
+    "tests/test_g0_terminal.py::test_terminal_falha_sem_canario_e_reinicio",
+    "tests/test_live_findings.py::test_terminal_uses_same_no_retry_setup_without_network",
+    "tests/test_weather.py::test_valid",
+    "tests/test_weather.py::test_bad_values",
+    "tests/test_weather.py::test_stale",
+    "tests/test_weather.py::test_excessive",
+    "tests/test_exchange.py::test_reference_date_preserved",
+    "tests/test_exchange.py::test_invalid_dates",
+    "tests/test_exchange.py::test_invalid_numbers",
+    "tests/test_exchange.py::test_entities_blocked",
+    "tests/test_exchange.py::test_size"
+  ],
+  "retired_test_count": 51,
+  "expected_remaining_tests": 822,
+  "preserved_policy_tests": 6,
+  "preserved_tls_tests": 3,
+  "active_runtime_policy": "No modifications to HTTP/RAG/graph/support/context/privacy/connectivity code; removed independent legacy modules only.",
+  "direct_dependency_removed": "python-dotenv only imported by retired terminal; transitive constraint retained."
+}

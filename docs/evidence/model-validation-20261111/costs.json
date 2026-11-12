@@ -1,0 +1,63 @@
+{
+  "rag": {
+    "calls": 10,
+    "cost_usd": "0.0301040",
+    "input_tokens": 11765,
+    "output_tokens": 351,
+    "model": "openai/gpt-6-sol",
+    "successful_http_200": 10,
+    "billed": 10,
+    "http_rows": 14,
+    "rows_with_model": 10
+  },
+  "context": {
+    "calls": 17,
+    "cost_usd": "0.1925825",
+    "input_tokens": 66691,
+    "output_tokens": 2614,
+    "model": "openai/gpt-6-sol",
+    "successful_http_200": 17,
+    "billed": 17,
+    "http_rows": 22,
+    "rows_with_model": 16
+  },
+  "total": {
+    "calls": 27,
+    "cost_usd": "0.2226865",
+    "ledger_spent_or_reserved": "0.2226865",
+    "halted": null,
+    "call_cap": 48,
+    "cost_cap_usd": "1.50",
+    "reserved_outstanding": 0
+  },
+  "secret_canary_absent_from_model_payloads": true,
+  "model_response_finish_reasons": [
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "tool_calls",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop",
+    "stop"
+  ]
+}

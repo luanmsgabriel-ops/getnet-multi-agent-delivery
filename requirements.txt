@@ -1,0 +1,6 @@
+pydantic-ai[openrouter]==2.66.0
+langgraph==1.2.20
+fastapi==0.162.2
+uvicorn==0.54.0
+certifi==2026.10.23
+pypdf==7.0.0

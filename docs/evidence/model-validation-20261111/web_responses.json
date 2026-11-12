@@ -1,0 +1,118 @@
+{
+  "runtime_baseline_commit": "fc3df77f71725f9f19b9f419dd25abe38af474da",
+  "utc": "2026-11-11T17:39:23.737978+00:00",
+  "mode": "HTTP TCP Docker candidate; unchanged application runtime; real public web fetch; no LLM",
+  "health": {
+    "status": "ok",
+    "knowledge": "rag",
+    "environment": "demonstracao_local",
+    "authenticated": false,
+    "web_search_enabled": true,
+    "context_interpreter_enabled": false
+  },
+  "readiness": {
+    "reason": "health_received",
+    "elapsed_seconds": 4.046,
+    "timeout_seconds": 90,
+    "attempts": 16,
+    "last_error_type": "RemoteDisconnected"
+  },
+  "rows": [
+    {
+      "id": "WEB_LINK",
+      "message": "pesquise na web: Como funciona o Link de Pagamento da Getnet Brasil?",
+      "http": 200,
+      "response": {
+        "request_id": "e7010d19-5e2b-48dd-8d31-8e59d514788e",
+        "route": "knowledge",
+        "status": "evidencias",
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nFontes para atendimento Getnet Brasil; os trechos não confirmam regras da sua conta. Confira produto e condições na fonte:\nPaís/escopo: Brasil. Link de Pagamento: venda mais online | Getnet: Ao clicar no link, o cliente é direcionado para o checkout seguro da Getnet, onde poderá: Informar seus dados, inserir endereço (quando necessário), escolher a forma de pagamento e finalizar a compra em poucos passos. Fonte: https://site.getnet.com.br/link-de-pagamento/\nConsulta: 2026-11-11T17:39:20.623134+00:00",
+        "sources": [
+          "https://site.getnet.com.br/link-de-pagamento/"
+        ],
+        "simulated_data": false,
+        "eventos": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 9.215366999910657
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 5266.586232000009
+          }
+        ],
+        "modo": "pesquisa"
+      },
+      "seconds": 5.304,
+      "utc": "2026-11-11T17:39:20.642830+00:00"
+    },
+    {
+      "id": "WEB_ADVANCE",
+      "message": "pesquise na web: Como antecipar vendas pelo app Getnet Brasil?",
+      "http": 200,
+      "response": {
+        "request_id": "3a50cee9-c398-4cee-9655-059669eb2977",
+        "route": "knowledge",
+        "status": "evidencias",
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nFontes para atendimento Getnet Brasil; os trechos não confirmam regras da sua conta. Confira produto e condições na fonte:\nPaís/escopo: Brasil. Como antecipar suas vendas pelo app?: É possível antecipar o recebimento das vendas realizadas no crédito, à vista ou parcelado, por meio do aplicativo Getnet Brasil, disponível para Android e iOS. Passo a passo para antecipar suas vendas pelo APP: 1. Acesse com seu login e senha. 2. Clique no menu Serviços. 3. Selecione Antecipação de Vendas. 4. Na tela vai mostrar o valor disponível para antecipar e suas contas bancárias cadastradas. Escolha qual você deseja receber o valor antecipado. 5. Leia e aceite os termos. 6. Faça simulação da antecipação, conferindo os valores, bandeiras e taxas. Clique em confirmar. 7. Verifique o valor final e clique em Antecipar. 8. Insira sua senha. 9. Pronto sua solicitação foi realizado. Acesse a área de \"Meus Pedidos\" para acompanhar o status da sua solicitação. Lembrando que o valor mínimo para antecipação é de R$50,00. Fonte: https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app/\nConsulta: 2026-11-11T17:39:22.648810+00:00",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app/"
+        ],
+        "simulated_data": false,
+        "eventos": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.6150670000124592
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1999.879344999954
+          }
+        ],
+        "modo": "pesquisa"
+      },
+      "seconds": 2.01,
+      "utc": "2026-11-11T17:39:22.652753+00:00"
+    },
+    {
+      "id": "WEB_TAP",
+      "message": "pesquise na web: Como funciona Get Tap da Getnet Brasil?",
+      "http": 200,
+      "response": {
+        "request_id": "3dae1aaa-2fc1-4bc9-b191-72276b68622b",
+        "route": "knowledge",
+        "status": "sem_evidencia",
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nNão encontrei fonte oficial pertinente suficiente para esse produto ou serviço da Getnet Brasil; não confirmei condições comerciais.",
+        "sources": [],
+        "simulated_data": false,
+        "eventos": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.6071660000088741
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 872.3977550000654
+          }
+        ],
+        "modo": "extrativo"
+      },
+      "seconds": 0.88,
+      "utc": "2026-11-11T17:39:23.533162+00:00"
+    }
+  ],
+  "paid_calls": 0,
+  "cost_usd": 0
+}

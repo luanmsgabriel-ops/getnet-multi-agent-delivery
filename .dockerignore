@@ -1,0 +1,11 @@
+# Allowlist: nao enviar .env, historico ou backups ao build.
+**
+!Dockerfile
+!requirements.txt
+!constraints-tested.txt
+!app/
+!app/**
+!corpus_publico/
+!corpus_publico/*.json
+**/__pycache__/
+**/*.pyc

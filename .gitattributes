@@ -1,0 +1,6 @@
+* text=auto eol=lf
+# Keep the reviewed DCC artifact byte-exact; runtime verifies its SHA-256.
+app/dcc_source.json -text whitespace=cr-at-eol
+
+# Preserve the captured HTML fixture byte-for-byte for its provenance hash.
+tests/fixtures/getnet_duvidas_real.html -text whitespace=cr-at-eol

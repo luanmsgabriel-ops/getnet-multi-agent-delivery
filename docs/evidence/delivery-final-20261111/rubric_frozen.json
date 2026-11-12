@@ -1,0 +1,46 @@
+{
+  "frozen_utc": "2026-11-11T16:18:14.709757+00:00",
+  "official_weights": false,
+  "total": 100,
+  "weights": {
+    "ten_questions": 50,
+    "agents_workflow_tools": 15,
+    "rag_sources_web": 15,
+    "api_docker": 10,
+    "readme_delivery": 10
+  },
+  "question_each": {
+    "interpretation": 1,
+    "grounding": 2,
+    "utility": 1,
+    "transparency": 1
+  },
+  "agents": {
+    "three_roles_communication": 5,
+    "routing_mixed_requests": 5,
+    "two_callable_support_tools": 3,
+    "privacy_traces_failures": 2
+  },
+  "rag": {
+    "ingestion_provenance": 4,
+    "retrieval_grounding": 4,
+    "scoped_external_search": 4,
+    "no_evidence_integrity": 3
+  },
+  "api_docker": {
+    "json_contract": 3,
+    "validation_and_errors": 2,
+    "docker_build_http": 3,
+    "clean_install": 2
+  },
+  "readme": {
+    "prerequisites_config_commands": 4,
+    "architecture_sources_workflow": 3,
+    "limitations_modes_reproduction": 3
+  },
+  "grading": "Points only for verified subcriteria; partial performance can receive fractions with explicit reason. Unverified applicable points shown as interval; do not renormalize. No weights for video/access/optional fourth agent.",
+  "scope_decisions": "Getnet Brasil; climate redirect and currency clarification are accepted according to user. No penalty for choosing this scope.",
+  "support_contract": "Two callable read-only tools with relevant explicitly fictional demonstration data are assessed. Live bank deposits and spontaneous provider incidents are not literal requirements; no automatic deduction or automatic award of former 2.50 NV. Controlled failures can verify handling, not real-provider availability.",
+  "model": "No new paid calls authorized in this round; free extractive runtime, controlled tests and inspection distinguished from historical real calls.",
+  "evaluation_timing": "Evaluate the exact remote main commit only after publication; historical score not carried over."
+}

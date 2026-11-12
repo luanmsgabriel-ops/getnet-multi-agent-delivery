@@ -1,0 +1,45 @@
+{
+  "official": false,
+  "scope": "joint conservative result across both newly executed modes; each question gets the lower demonstrated score, not an average; no double penalty",
+  "weights": {
+    "questions": 50,
+    "agents": 15,
+    "rag": 15,
+    "api_docker": 10,
+    "readme": 10
+  },
+  "scores": {
+    "questions": 49.75,
+    "agents": 14.5,
+    "rag": 14,
+    "api_docker": 10,
+    "readme": 10
+  },
+  "total": 98.25,
+  "questions_rag": 49.75,
+  "questions_context": 50,
+  "deductions": [
+    {
+      "points": 0.25,
+      "where": "questions/O05 RAG",
+      "reason": "Synthetic online status precedes useful connectivity guidance"
+    },
+    {
+      "points": 0.25,
+      "where": "agents/routing-composition CTX02",
+      "reason": "Product corrected in memory but old label displayed"
+    },
+    {
+      "points": 0.25,
+      "where": "agents/routing-composition AFTER_RESET",
+      "reason": "Missing context redirected instead of clarified"
+    },
+    {
+      "points": 1,
+      "where": "rag/external_search WEB_TAP",
+      "reason": "Insufficient discovery despite pertinent official source; safe refusal"
+    }
+  ],
+  "nv": "No applicable points withheld for nonexistent bank integration/spontaneous outage; universal behavior and production readiness not verified",
+  "sources": "dataset_frozen.json before paid run; response IDs and code refs in VALIDACAO_MODELO.md"
+}

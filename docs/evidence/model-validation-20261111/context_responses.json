@@ -1,0 +1,835 @@
+{
+  "mode": "context",
+  "authorization": {
+    "model": "openai/gpt-6-sol",
+    "calls": 48,
+    "cost_cap_usd": "1.50",
+    "rag_max_output": 700,
+    "context_max_output": 2500,
+    "retries": 0,
+    "failover": false
+  },
+  "image_id": "sha256:aaae114072f27b0d8da7a00ac5599bdb8fc1fe4c819f9053a5f0ec4f7a990b8c",
+  "started_utc": "2026-11-11T17:35:39.206203+00:00",
+  "rows": [
+    {
+      "id": "O01",
+      "message": "What's the difference between the Get Clássica and the Get Smart?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nA diferença documentada está na interface e na conexão móvel: a Get Smart tem tela touchscreen e 4G; a Get Clássica tem botões físicos e chip 3G.\n\nO manual da Smart de junho/2025 também informa Wi-Fi e Bluetooth. A comparação usa essa edição e a da Clássica de 2026 (até quatro modelos); a ausência de um recurso no trecho não prova que ele não exista.\n\nQual é o modelo exato que você está considerando?",
+        "sources": [
+          "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+          "https://site.getnet.com.br/wp-content/uploads/2026/06/getnet_12_06-26_Manul_GetClassica_V2.pdf"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.8758260000026894
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 15.130725000005896
+          }
+        ],
+        "seconds": 2.1423714370000084,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:44.397813+00:00",
+      "seconds": 2.1525244999993447,
+      "http_utf8_sha256": "5890b00fcd772d8be42350bc228aee78c0b45232d651ec19d44e764963c479ca",
+      "model_call_indexes": [
+        11
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.010071"
+    },
+    {
+      "id": "O02",
+      "message": "What's the weather forecast in Porto Alegre tomorrow?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nMeu atendimento é dedicado à Getnet Brasil; não atendo esse assunto. Posso ajudar com produtos, serviços ou suporte da Getnet Brasil.",
+        "sources": [],
+        "mode": "scope_policy",
+        "validation": {},
+        "traces": [],
+        "seconds": 0.0014852580000024318,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:44.417346+00:00",
+      "seconds": 0.011305999998512561,
+      "http_utf8_sha256": "32d11f78ba45020de44fe746835733a1a2cc49da0016953e55646d8119f39556",
+      "model_call_indexes": [],
+      "new_model_calls": 0,
+      "cost_usd": "0"
+    },
+    {
+      "id": "O03",
+      "message": "When will the money from yesterday's sales be deposited?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nSIMULACAO: dados sinteticos, sem acesso a conta real. Cenário fictício: data de referência 2026-11-11 (UTC-03); consulta de vendas de 2026-11-10, sem acesso a sua conta real. Venda ficticia de 2026-11-10: R$ 750,00, crédito previsto na fixture em 2026-11-13. Nao e promessa de deposito real nem regra de prazo da Getnet. A agenda informa previsões sintéticas, não comprova liquidação ou depósito realizado.",
+        "sources": [],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.0557829999697788
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": "consultar_recebiveis",
+            "duracao_ms": 0.06231100002196399
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.6977209999945444
+          }
+        ],
+        "seconds": 2.010410847000003,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:46.439908+00:00",
+      "seconds": 2.019284299998617,
+      "http_utf8_sha256": "08d199d7e3097b307004d3561bb6de73ad54fc98d7c5fa7c1ddf6475d75c3258",
+      "model_call_indexes": [
+        12
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0100735"
+    },
+    {
+      "id": "O04",
+      "message": "Do I need a bank account to receive my sales via Pix?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nVocê precisa de uma conta de recebimento elegível, mas não necessariamente de uma conta corrente: a FAQ também admite poupança e conta de pagamento pré-paga entre diferentes bancos. Informe à Getnet uma chave Pix vinculada à conta desejada e confirme com o canal oficial a disponibilidade do provedor de serviços de pagamento (PSP) integrado. Não consultei nem habilitei sua conta.",
+        "sources": [
+          "https://site.getnet.com.br/duvidas/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.8626270000036129
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 6.594767000024149
+          }
+        ],
+        "seconds": 2.3205258490000347,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:48.773725+00:00",
+      "seconds": 2.329969300000812,
+      "http_utf8_sha256": "69963e6a217f3f3c89704a6957fb06956acbd429dc681b739c3568769c87478d",
+      "model_call_indexes": [
+        13
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0101885"
+    },
+    {
+      "id": "O05",
+      "message": "My card machine won't connect to the internet, what should I do?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\ncard machine: Se estiver usando Wi-Fi, na maquininha, abra Wi-Fi na tela principal, selecione Procurar Redes e escolha sua rede. Digite a senha somente no próprio aparelho e confirme; nunca envie a senha nesta conversa. Confira se a rede está funcionando e os dados foram digitados corretamente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-configuracoes/como-configurar-o-wi-fi-na-sua-maquininha-getnet/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 2,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [],
+        "seconds": 4.441032972000016,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:53.228497+00:00",
+      "seconds": 4.450747900000351,
+      "http_utf8_sha256": "57f4e947fdb2b3b386555a3f7fbe1d69f15af1831bff98f179799e615a1f464c",
+      "model_call_indexes": [
+        14,
+        15
+      ],
+      "new_model_calls": 2,
+      "cost_usd": "0.012915"
+    },
+    {
+      "id": "O06",
+      "message": "How does receivables advance (antecipação) work with Getnet?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nA antecipação permite receber antes as vendas no crédito, à vista ou parceladas. Segundo a página consultada, no app Getnet Brasil acesse Serviços e Antecipação de Vendas para consultar o valor disponível e simular valores, bandeiras e taxas antes de decidir.\n\nA fonte informa valor mínimo de R$ 50,00; confira os termos e as condições aplicáveis no próprio app. Não tenho acesso à sua conta para confirmar elegibilidade, taxa ou data de recebimento.\n\nNão solicitei nem confirmei uma antecipação. Não envie dados de autenticação nesta conversa.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.8118179999883068
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 8.745377999957782
+          }
+        ],
+        "seconds": 1.9008665059999998,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:55.147147+00:00",
+      "seconds": 1.913321399999404,
+      "http_utf8_sha256": "eb3c5b34fd0beef3f5463a09cfc819b4865975c520d9eb1608bfa703e49e4b32",
+      "model_call_indexes": [
+        16
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.010206"
+    },
+    {
+      "id": "O07",
+      "message": "What's the euro exchange rate today?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nVocê quer uma cotação de referência ou entender a conversão em uma venda Getnet? Não forneço cotações, mas posso explicar o funcionamento do serviço.",
+        "sources": [],
+        "mode": "scope_policy",
+        "validation": {},
+        "traces": [],
+        "seconds": 0.0024170529999878454,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:55.166906+00:00",
+      "seconds": 0.014196699999956763,
+      "http_utf8_sha256": "f2232f940ef3bce93464ad6307b65f5d9a769dc36f916eb205e9f1c6516e6a1f",
+      "model_call_indexes": [],
+      "new_model_calls": 0,
+      "cost_usd": "0"
+    },
+    {
+      "id": "O08",
+      "message": "My card machine is showing a transaction decline error.",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nSIMULACAO: dados sinteticos, sem acesso a conta real. Nao ha ferramenta de consulta de transacoes reais nesta demonstracao; estado do terminal nao determina motivo de recusa.\n\nSe o status da venda com cartão for “Negada”, a fonte da Getnet o define como não autorizado pelo emissor ou pela bandeira; isso não identifica o motivo específico da recusa.\n\nNão tenho acesso à transação real para confirmar a causa ou regularizar a venda; posso apresentar apenas orientações públicas.\n\nResponda sem dados do cartão, senhas ou códigos de autenticação nesta conversa; use credenciais somente no dispositivo ou canal oficial pertinente.\n\nQual código de erro aparece na maquininha?",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/quais-possiveis-status-das-minhas-vendas/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 2,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.128264999977091
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.40616000001136854
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 7.680321999998796
+          }
+        ],
+        "seconds": 3.6964279110000007,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:35:58.897879+00:00",
+      "seconds": 3.72573519999969,
+      "http_utf8_sha256": "4dd0dc94d2fe024c997b73ff57c9ccc15718e561a1ea503e287a1667b5d81685",
+      "model_call_indexes": [
+        17
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0119085"
+    },
+    {
+      "id": "O09",
+      "message": "How many installments can I split a sale into with the crediário?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nO Crediário anuncia parcelamento em até 48 vezes; o limite efetivo e os juros variam conforme o emissor do cartão. Faça a simulação na maquininha antes da venda para conferir parcelas e encargos com o cliente. Isso não confirma aprovação nem condições para uma transação específica.",
+        "sources": [
+          "https://site.getnet.com.br/crediario/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.355998000008185
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 13.88972899997043
+          }
+        ],
+        "seconds": 2.3610498259999986,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:01.278101+00:00",
+      "seconds": 2.374105299999428,
+      "http_utf8_sha256": "bf8f756ac9bc2037a1bb6ad67696f83e116958feceea3502e8cb8c95873f8d30",
+      "model_call_indexes": [
+        18
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0103035"
+    },
+    {
+      "id": "O10",
+      "message": "Can I sell through WhatsApp using the Payment Link?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nSim: a fonte consultada orienta criar o Link de Pagamento pelo app Getnet Brasil ou Portal do Cliente e compartilhá-lo com o cliente pelo WhatsApp.\n\nIsso é diferente do pagamento integrado ao WhatsApp Business: a página traz um anúncio de descontinuação datado de 15/01/2026, com migração para quem tinha aquele pacote. Esse anúncio não confirma uma migração na sua conta.\n\nNão criei nem enviei um link; confirme a disponibilidade e as condições da sua conta no app ou Portal do Cliente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-whatsapp-business/descontinuacao-whatsapp-business/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.3692980000428179
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 11.43095100002256
+          }
+        ],
+        "seconds": 2.374403916999995,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:03.672417+00:00",
+      "seconds": 2.3877884000012273,
+      "http_utf8_sha256": "61ceb812ffdfc8652817695f7ad17881f6d0afe9fc06fc265690cd73f14f04a3",
+      "model_call_indexes": [
+        19
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0100735"
+    },
+    {
+      "id": "W04",
+      "message": "O manual manda digitar a senha do Wi-Fi na própria maquininha Getnet Brasil. Posso seguir essa orientação?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nPara uma maquininha Getnet Brasil: Se estiver usando Wi-Fi, abra “Wi-Fi” na tela principal, selecione “Procurar Redes” e escolha a sua rede.\n\nDigite a senha da rede somente na própria maquininha e confirme; não envie a senha nesta conversa.\n\nConfira se a rede está funcionando e se os dados foram digitados corretamente; se ainda não conectar, qual mensagem de erro aparece? Nenhuma configuracao ou operacao foi realizada pelo assistente.\n\nNão envie senhas ou códigos de autenticação nesta conversa; use-os somente no dispositivo ou canal oficial pertinente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-configuracoes/como-configurar-o-wi-fi-na-sua-maquininha-getnet/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.6028870000136521
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 6.748976000039875
+          }
+        ],
+        "seconds": 2.983275698,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:06.679040+00:00",
+      "seconds": 2.9981630999991467,
+      "http_utf8_sha256": "8c71192f63befa9b00dd308b7eae0fb8657591173a64df88b923dc81f31711d3",
+      "model_call_indexes": [
+        20
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.012056"
+    },
+    {
+      "id": "W05",
+      "message": "Minha senha do WiFi [SYNTHETIC CANARY REDACTED]. A920 aparece sem rede no Brasil.",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nA920: Se estiver usando Wi-Fi, na maquininha, abra Wi-Fi na tela principal, selecione Procurar Redes e escolha sua rede. Digite a senha somente no próprio aparelho e confirme; nunca envie a senha nesta conversa. Confira se a rede está funcionando e os dados foram digitados corretamente.\n\nNão envie senhas ou códigos de autenticação nesta conversa; use-os somente no dispositivo ou canal oficial pertinente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-configuracoes/como-configurar-o-wi-fi-na-sua-maquininha-getnet/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 4,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [],
+        "seconds": 3.204927227999974,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:09.905732+00:00",
+      "seconds": 3.219310899999982,
+      "http_utf8_sha256": "312b4b8e5b913d7b8eb126add6d878187a9afa5bff8ce8d91fd6ee15ae1b4f67",
+      "model_call_indexes": [
+        21
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0119835"
+    },
+    {
+      "id": "MIXED",
+      "message": "Quando recebo as vendas de ontem? Como funciona a antecipação de recebíveis?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nSIMULACAO: dados sinteticos, sem acesso a conta real. Cenário fictício: data de referência 2026-11-11 (UTC-03); consulta de vendas de 2026-11-10, sem acesso a sua conta real. Venda ficticia de 2026-11-10: R$ 750,00, crédito previsto na fixture em 2026-11-13. Nao e promessa de deposito real nem regra de prazo da Getnet. A agenda informa previsões sintéticas, não comprova liquidação ou depósito realizado.\n\nA antecipação permite receber antes as vendas no crédito, à vista ou parceladas. Segundo a página consultada, no app Getnet Brasil acesse Serviços e Antecipação de Vendas para consultar o valor disponível e simular valores, bandeiras e taxas antes de decidir.\n\nA fonte informa valor mínimo de R$ 50,00; confira os termos e as condições aplicáveis no próprio app. Não tenho acesso à sua conta para confirmar elegibilidade, taxa ou data de recebimento.\n\nNão solicitei nem confirmei uma antecipação. Não envie dados de autenticação nesta conversa.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.7159819999742467
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": "consultar_recebiveis",
+            "duracao_ms": 0.06990800000039599
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.5455620000134331
+          },
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.6258720000005269
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 6.985500999974192
+          }
+        ],
+        "seconds": 2.1163541700000223,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:12.042888+00:00",
+      "seconds": 2.1286567999995896,
+      "http_utf8_sha256": "a0035d95c86c52348959c14a33d51d7279cb9caa56f6100bf48a1b1e7e7bf047",
+      "model_call_indexes": [
+        22
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0111635"
+    },
+    {
+      "id": "NO_EVIDENCE",
+      "message": "Qual é a tarifa exata negociada para minha Get Smart no contrato 999999?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nNão consigo confirmar taxa solicitado(a) nas fontes disponíveis. Consulte a oferta vigente no canal oficial Getnet; nenhum valor ou condição individual foi confirmado. Não consigo confirmar a taxa ou o preço aplicável nas fontes pertinentes; consulte a oferta vigente no canal oficial Getnet.",
+        "sources": [],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.977212000009331
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 5.556137000041872
+          }
+        ],
+        "seconds": 3.251971760999993,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:15.333961+00:00",
+      "seconds": 3.2838831000008213,
+      "http_utf8_sha256": "d1728d6ab013458384df6acb7ac193f511dcaf8fc1fe904ce0ceda35a393bfe5",
+      "model_call_indexes": [
+        23
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.011201"
+    },
+    {
+      "id": "CTX01",
+      "message": "Minha loja em Recife fica no Brasil. A maquininha A920 do caixa azul está sem Wi-Fi.",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nA920 do caixa azul: Se estiver usando Wi-Fi, na maquininha, abra Wi-Fi na tela principal, selecione Procurar Redes e escolha sua rede. Digite a senha somente no próprio aparelho e confirme; nunca envie a senha nesta conversa. Confira se a rede está funcionando e os dados foram digitados corretamente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-configuracoes/como-configurar-o-wi-fi-na-sua-maquininha-getnet/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 4,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [],
+        "seconds": 4.015004102999967,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:19.383560+00:00",
+      "seconds": 4.038403200000175,
+      "http_utf8_sha256": "29ab410fad559b7d51346d6dc62a7696f9f388ad2355afb85fd5d409d18378af",
+      "model_call_indexes": [
+        24
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.013876"
+    },
+    {
+      "id": "CTX02",
+      "message": "Corrigindo: ela é uma Get Smart. O problema continua no caixa azul.",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nA920 do caixa azul: Se estiver usando Wi-Fi, na maquininha, abra Wi-Fi na tela principal, selecione Procurar Redes e escolha sua rede. Digite a senha somente no próprio aparelho e confirme; nunca envie a senha nesta conversa. Confira se a rede está funcionando e os dados foram digitados corretamente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-configuracoes/como-configurar-o-wi-fi-na-sua-maquininha-getnet/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 2,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [],
+        "seconds": 3.358149695999998,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:22.775116+00:00",
+      "seconds": 3.3815518999999767,
+      "http_utf8_sha256": "6f46943b71d748b0c80e900c893add293b74d054570b3835e957e10d9a213c3b",
+      "model_call_indexes": [
+        25
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0152235"
+    },
+    {
+      "id": "CTX03",
+      "message": "A internet voltou nesse caixa. Agora a venda no cartão aparece negada, código 05.",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nSe o status da venda com cartão for “Negada”, a fonte da Getnet o define como não autorizado pelo emissor ou pela bandeira; isso não identifica o motivo específico da recusa.\n\nVocê informou o código 05. Não tenho evidência suficiente para confirmar seu significado.\n\nNão tenho acesso à transação real para confirmar a causa ou regularizar a venda; posso apresentar apenas orientações públicas.\n\nSe persistir, consulte o canal oficial com esse código.\n\nResponda sem dados do cartão, senhas ou códigos de autenticação nesta conversa; use credenciais somente no dispositivo ou canal oficial pertinente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/quais-possiveis-status-das-minhas-vendas/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 3,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.283879999959936
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.2078689999839298
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 22.695073999955184
+          }
+        ],
+        "seconds": 3.3563338650000105,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:26.165598+00:00",
+      "seconds": 3.3819667999996454,
+      "http_utf8_sha256": "953c742a3b8956f54f60fbcc5f4f3b7f386899bc387ab21f1cedc61b3b1a9fef",
+      "model_call_indexes": [
+        26
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.0165835"
+    },
+    {
+      "id": "CTX04",
+      "message": "O que devo fazer com esse erro agora?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nSe o status da venda com cartão for “Negada”, a fonte da Getnet o define como não autorizado pelo emissor ou pela bandeira; isso não identifica o motivo específico da recusa.\n\nVocê informou o código 05. Não tenho evidência suficiente para confirmar seu significado.\n\nNão tenho acesso à transação real para confirmar a causa ou regularizar a venda; posso apresentar apenas orientações públicas.\n\nSe persistir, consulte o canal oficial com esse código.\n\nResponda sem dados do cartão, senhas ou códigos de autenticação nesta conversa; use credenciais somente no dispositivo ou canal oficial pertinente.",
+        "sources": [
+          "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/quais-possiveis-status-das-minhas-vendas/"
+        ],
+        "mode": "semantic_interpretation_reviewed_response",
+        "validation": {
+          "accepted_events": 0,
+          "rejected": [],
+          "pending": 0
+        },
+        "traces": [
+          {
+            "agente": "router",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 1.475371999958952
+          },
+          {
+            "agente": "support",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 0.3414399999996931
+          },
+          {
+            "agente": "knowledge",
+            "status": "ok",
+            "ferramenta": null,
+            "duracao_ms": 8.160954999993919
+          }
+        ],
+        "seconds": 2.137202849999994,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:28.359295+00:00",
+      "seconds": 2.1754313000001275,
+      "http_utf8_sha256": "a1912eb0fbe0a3096696f70032749ae50317050da0661f70081ac51719b8fccd",
+      "model_call_indexes": [
+        27
+      ],
+      "new_model_calls": 1,
+      "cost_usd": "0.014756"
+    },
+    {
+      "id": "ISOLATION",
+      "message": "Qual o erro desta maquininha?",
+      "http": 403,
+      "response": {
+        "detail": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet. Sessão indisponível para este identificador sintético."
+      },
+      "utc": "2026-11-11T17:36:28.402747+00:00",
+      "seconds": 0.034023799998976756,
+      "http_utf8_sha256": "bf066e2ce66cbca599baf703310f6e8f55a1df9f369b31c790515e7162aac10b",
+      "model_call_indexes": [],
+      "new_model_calls": 0,
+      "cost_usd": "0"
+    },
+    {
+      "id": "BLANK",
+      "message": "   ",
+      "http": 422,
+      "response": {
+        "detail": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet. Entrada invalida: use message (1-4000) e user_id sintetico (1-64)."
+      },
+      "utc": "2026-11-11T17:36:28.453268+00:00",
+      "seconds": 0.041308699999717646,
+      "http_utf8_sha256": "e6cc59bb39e1efb4148d588d83a0f8c6526753bbc672a48ee875a255ec88617f",
+      "model_call_indexes": [],
+      "new_model_calls": 0,
+      "cost_usd": "0"
+    },
+    {
+      "id": "RESET",
+      "message": "reset",
+      "http": 200,
+      "response": {
+        "reset": true,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:28.497080+00:00",
+      "seconds": 0.03327979999994568,
+      "http_utf8_sha256": "fd5e3eaa9165b3c0f417cc8ba3d040bd6578c95830b6282e9e0dcc6203d823fa",
+      "model_call_indexes": [],
+      "new_model_calls": 0,
+      "cost_usd": "0"
+    },
+    {
+      "id": "AFTER_RESET",
+      "message": "Qual era o erro de antes?",
+      "http": 200,
+      "response": {
+        "answer": "Sou um assistente de IA criado para demonstração de atendimento Getnet Brasil; este não é um canal oficial da Getnet.\n\nMeu atendimento é dedicado à Getnet Brasil; não atendo esse assunto. Posso ajudar com produtos, serviços ou suporte da Getnet Brasil.",
+        "sources": [],
+        "mode": "scope_policy",
+        "validation": {},
+        "traces": [],
+        "seconds": 0.001472873000011532,
+        "documents_received": 0,
+        "external_documents_actionable": false,
+        "authenticated": false,
+        "synthetic_only": true
+      },
+      "utc": "2026-11-11T17:36:28.526727+00:00",
+      "seconds": 0.020022700000481564,
+      "http_utf8_sha256": "c67673bf64334b2c1ef28d4b14bbd47712029ee5dce66735d6e6c02ac1958ab3",
+      "model_call_indexes": [],
+      "new_model_calls": 0,
+      "cost_usd": "0"
+    }
+  ],
+  "harness": "HTTP cost/UTF8 observation only; production app code unmodified",
+  "health": {
+    "status": "ok",
+    "knowledge": "rag",
+    "environment": "demonstracao_local",
+    "authenticated": false,
+    "web_search_enabled": false,
+    "context_interpreter_enabled": true
+  },
+  "global_spent_or_reserved": "0.2226865",
+  "completed": true,
+  "finished_utc": "2026-11-11T17:36:31.474859+00:00",
+  "code_baseline_commit": "fc3df77f71725f9f19b9f419dd25abe38af474da",
+  "code_unchanged": true
+}
