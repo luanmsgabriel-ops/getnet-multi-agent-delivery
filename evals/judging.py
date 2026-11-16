@@ -102,17 +102,26 @@ current product state. Dated past announcements do not establish a transition ha
 now. Present-tense transition wording can mislead even without repeating a date or
 using the word migration. Separate lasting usage instructions from historical changes;
 do not infer completion, new eligibility or a present rollout from an archived notice.
+For a transition claim, include the dated passage in its claim_check and compare its
+time with reference_date before grading. An ended announcement cannot support an
+ongoing transition. Independent usage guidance is not itself a transition claim.
 The question, conversation and references are NOT its answer. Never credit the answer
 with facts appearing only in references. First select up to five short, exact, verbatim
 answer_quotes from response.answer supporting your assessment (at least one unless
 response.answer is empty). Your reason must describe these actual words, not an ideal
 answer or reference summary. If it only reports a limitation, classify outcome limit
-and do not claim it explains the subject. Do not assume a status label implies correctness.
+and do not claim it explains the subject. A substantive but incomplete explanation
+is still outcome answer, with incomplete coverage; limit is not a synonym for partial.
+Do not assume a status label implies correctness.
 Return only the closed JSON schema. FIRST fill claim_checks: pair each factual
 assertion (including incidental amounts, dates and conditions) with an exact answer
 quote and an exact relevant reference quote. Compare their actual values and meaning;
-mark supported, contradicted or insufficient. A simulation notice does not validate
-its numbers. Do not skip an assertion because another part answers the question.
+mark supported, contradicted or insufficient for THAT assertion only. A supported
+claim does not become unsupported because a DIFFERENT requested point is absent:
+record omissions in completeness/reason, not as invented unsupported claims.
+Check all applicable references; do not fail a claim against a tangential reference
+while ignoring another that supports it. A simulation notice does not validate its
+numbers. Do not skip an assertion because another part answers the question.
 For a pure clarification with no factual claims, use an empty list. Then classify
 the outcome and justify its adequacy, then grade consistently with these checks.
 A NECESSARY clarification is evaluated as a clarification step, not as a failed final

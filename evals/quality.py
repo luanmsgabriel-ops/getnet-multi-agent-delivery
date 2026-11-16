@@ -122,7 +122,9 @@ def quality_report(records,*,planned_cases=40,planned_replicates=3):
    v=checked.verdict.model_dump();per['assessed']+=1
    for d in DIMENSIONS:per['dimensions'][d][v[d]]+=1
    for d in DIMENSIONS:dimensions[d][v[d]]+=1
-   patterns[r['case_id']].append(tuple(v[d] for d in DIMENSIONS))
+   # Outcome is observable behavior: equal grades with answer/clarify/limit
+   # variation are not a stable verdict. Agreement still does not prove quality.
+   patterns[r['case_id']].append((v['outcome'], *(v[d] for d in DIMENSIONS)))
    if r.get('effects_verified') is True:workflow+=1
   if len({r['case_id'] for r in rows})>planned_cases:raise ValueError('More cases than planned')
   replicated=[p for p in patterns.values() if len(p)==planned_replicates]

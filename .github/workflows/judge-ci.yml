@@ -1,0 +1,33 @@
+name: Judge CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: judge-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  offline-judge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Build existing application image
+        run: docker build --tag getnet-judge-ci .
+      - name: Run focused judge contracts without network or credentials
+        run: |
+          docker run --rm --network none --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,noexec,size=128m \
+            --cap-drop ALL --security-opt no-new-privileges \
+            --mount type=bind,source="$GITHUB_WORKSPACE",target=/evaluation,readonly \
+            -e GETNET_ALLOW_MODEL_NETWORK=0 \
+            getnet-judge-ci python -B /evaluation/scripts/check_judge_ci.py
