@@ -45,7 +45,11 @@ def validate_policy(policy):
   ceiling=Decimal(policy['uncertain_ceiling'])
   if not ceiling.is_finite() or ceiling<Decimal('.02'):raise ValueError('Invalid uncertainty ceiling')
  elif version==2:
-  if set(policy)!=common|{'models'} or policy['models']!={'openai/gpt-5-mini':'0.02','google/gemini-2.5-flash-lite':'0.01'}:raise ValueError('Invalid authorized model envelope')
+  original={'openai/gpt-5-mini':'0.02','google/gemini-2.5-flash-lite':'0.01'}
+  # Existing ledgers keep their original policy. The alternative judge requires
+  # an explicit, journaled policy change; it never inherits another model's ID.
+  alternative={**original,'openai/gpt-4.1-mini':'0.01'}
+  if set(policy)!=common|{'models'} or policy['models'] not in (original,alternative):raise ValueError('Invalid authorized model envelope')
   call_limit=1599;cost_limit=Decimal('27.10');ceiling=policy['models']
  else:raise ValueError('Unsupported policy version')
  if type(policy['global_max_calls']) is not int or not 1<=policy['global_max_calls']<=call_limit:raise ValueError('Global call cap')

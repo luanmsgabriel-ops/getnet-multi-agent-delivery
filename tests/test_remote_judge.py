@@ -17,10 +17,11 @@ class RemoteJudgeTest(unittest.TestCase):
     return httpx.Response(200,json={'usage':{'cost':'.0001'},'choices':[{'finish_reason':'stop','message':{'content':'{}'}}]})
    judge=RemoteJudge(key='SYNTHETIC_TEST_KEY',budget=budget,transport=httpx.MockTransport(handler))
    self.assertEqual(judge.decide('public rubric',{'question':'public'}, {'type':'object','properties':{},'additionalProperties':False}),{})
-   self.assertEqual(bodies[0]['model'],'google/gemini-2.5-flash-lite')
-   self.assertEqual(bodies[0]['provider']['only'],['Google AI Studio']);self.assertFalse(bodies[0]['provider']['allow_fallbacks'])
+   self.assertEqual(bodies[0]['model'],'openai/gpt-4.1-mini')
+   self.assertEqual(bodies[0]['provider']['only'],['OpenAI']);self.assertFalse(bodies[0]['provider']['allow_fallbacks'])
    self.assertEqual(bodies[0]['max_tokens'],2500)
-   self.assertEqual(bodies[0]['reasoning'],{'max_tokens':1024,'exclude':True})
+   self.assertNotIn('reasoning',bodies[0])
+   self.assertEqual(bodies[0]['provider']['max_price'],{'prompt':0.4,'completion':1.6})
    with budget.db() as db:self.assertEqual(db.execute('SELECT status FROM calls').fetchone()[0],'billed')
  def test_oversize_payload_stops_before_reservation(self):
   with tempfile.TemporaryDirectory() as tmp:

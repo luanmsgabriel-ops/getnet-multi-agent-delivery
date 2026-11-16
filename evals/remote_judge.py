@@ -12,8 +12,8 @@ class RemoteJudge(SupervisorClient):
     mode='independent_model_judge'
     requires_answer_quotes=True
     def __init__(self,*,key,budget,transport=None):
-        super().__init__(key=key,model='google/gemini-2.5-flash-lite',
-            prices={'prompt':'0.0000001','completion':'0.0000004'},budget=budget,
+        super().__init__(key=key,model='openai/gpt-4.1-mini',
+            prices={'prompt':'0.0000004','completion':'0.0000016'},budget=budget,
             max_output=2500,transport=transport)
     def decide(self, system, payload, schema, *, timeout=60, deadline=None):
         # Compact wire IDs avoid multiplying long hash enums in the provider's
@@ -39,8 +39,8 @@ class RemoteJudge(SupervisorClient):
         body = {'model': self.model, 'messages': [{'role':'system','content':system},
             {'role':'user','content':json.dumps(payload,ensure_ascii=False)}],
             'response_format': {'type':'json_schema','json_schema':{'name':'blind_judgment','strict':True,'schema':strict_schema(schema)}},
-            'max_tokens':self.max_output, 'reasoning':{'max_tokens':1024,'exclude':True},
-            'provider':{'only':['Google AI Studio'],'allow_fallbacks':False,'require_parameters':True,
+            'max_tokens':self.max_output,
+            'provider':{'only':['OpenAI'],'allow_fallbacks':False,'require_parameters':True,
                 'max_price':{k:float(self.prices[v]*1_000_000) for k,v in (('prompt','prompt'),('completion','completion'))}}}
         encoded = json.dumps(body,ensure_ascii=False,separators=(',',':')).encode('utf-8')
         if len(encoded)>80000 or timeout<=0: raise ModelUnavailable('Request limit')
