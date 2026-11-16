@@ -122,7 +122,14 @@ class SupervisorClient:
                 transport=self.transport or httpx.AsyncHTTPTransport(retries=0)) as client:
             async with client.stream('POST', 'https://openrouter.ai/api/v1/chat/completions',
                     headers={'Authorization': 'Bearer '+self.key, 'Content-Type': 'application/json'}, content=body) as response:
-                if response.status_code != 200: raise ModelUnavailable('Provider unavailable')
+                if response.status_code != 200:
+                    # Keep the HTTP fact, never provider bodies/headers or guesses
+                    # about quota/balance. The caller retains the uncertain reserve.
+                    emit_event('provider_http_error', stage='model',
+                               outcome='limited' if response.status_code == 429 else 'unavailable',
+                               http_status=response.status_code,
+                               mode='controlled' if isinstance(self.transport,httpx.MockTransport) else 'remote')
+                    raise ModelUnavailable('Provider unavailable')
                 raw = bytearray()
                 async for chunk in response.aiter_bytes():
                     raw.extend(chunk)

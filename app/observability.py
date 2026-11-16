@@ -56,14 +56,14 @@ def _write(record):
         return False
 
 EVENTS = frozenset(('stage_result','work_late','model_call','budget_reservation',
- 'budget_reconciliation','tool_call','retrieval','execution_completed'))
+ 'budget_reconciliation','tool_call','retrieval','execution_completed','provider_http_error'))
 
 def capture_context():
     """Capture before thread creation; use the returned context.run(function)."""
     return contextvars.copy_context()
 
 def emit_event(event, *, stage=None, outcome=None, duration_ms=0, count=None,
-               cost_usd=None, cost_state=None, mode=None):
+               cost_usd=None, cost_state=None, mode=None, http_status=None):
     """Closed metadata only; explicit correlation copying for worker threads.
 
     Unknown costs carry no amount. Reservations are NOT confirmed spend.
@@ -77,13 +77,18 @@ def emit_event(event, *, stage=None, outcome=None, duration_ms=0, count=None,
     if count is not None and (type(count) is not int or not 0 <= count <= 1000000):return False
     if mode not in (None,'controlled','remote'):return False
     if event in ('model_call','budget_reservation','budget_reconciliation') and mode is None:return False
+    if event=='provider_http_error':
+        if (stage!='model' or mode is None or type(http_status) is not int
+            or not 100 <= http_status <= 599 or http_status==200):return False
+    elif http_status is not None:return False
     if cost_state not in (None,'confirmed','reserved','unknown'):return False
     if cost_state in (None,'unknown') and cost_usd is not None:return False
     if cost_state in ('confirmed','reserved') and (type(cost_usd) not in (float,int)
         or not math.isfinite(cost_usd) or not 0 <= cost_usd <= 1000000):return False
     return _write(dict(schema_version=1,event=event,request_id=current_request_id(),
                        stage=stage,outcome=outcome,duration_ms=round(duration_ms,3),
-                       count=count,cost_usd=cost_usd,cost_state=cost_state,mode=mode))
+                       count=count,cost_usd=cost_usd,cost_state=cost_state,mode=mode,
+                       **({'http_status':http_status} if http_status is not None else {})))
 
 class ObservabilityMiddleware:
     def __init__(self, app):self.app=app
