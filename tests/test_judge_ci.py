@@ -14,7 +14,10 @@ class JudgeSemanticsContract(unittest.TestCase):
         for rule in ['omissions in completeness/reason',
                      'still outcome answer', 'include the dated passage',
                      'Independent usage guidance is not itself a transition claim',
-                     'while ignoring another that supports it']:
+                     'while ignoring another that supports it',
+                     'Never insert ellipses, paraphrase',
+                     'claim_checks MUST be []',
+                     'whether the question is useful or unnecessary']:
             self.assertIn(rule, policy)
 
     def test_grounded_partial_answer_is_not_rewritten_to_limit_or_failure(self):
@@ -26,6 +29,43 @@ class JudgeSemanticsContract(unittest.TestCase):
         self.assertEqual(result.verdict.completeness, 'partial')
         self.assertEqual(result.verdict.groundedness, 'pass')
         # This is prescribed evaluator output, not automatic semantic approval.
+
+    def test_short_contiguous_quote_is_valid_without_full_reference(self):
+        packet = helpers.BlindJudging().packet()
+        packet['references'][0]['text'] = 'Desligue o aparelho. Use pano seco. Aguarde antes de ligar.'
+        raw = helpers.verdict(answer_quotes=['Use pano seco.'], claim_checks=[{
+            'answer_quote': 'Use pano seco.', 'evidence_id': 'e1',
+            'reference_quote': 'Use pano seco.', 'assessment': 'supported'}])
+        self.assertEqual(judge(packet, helpers.Script(raw)).status, 'assessed')
+
+    def test_summarized_joined_or_invented_quotes_remain_invalid(self):
+        packet = helpers.BlindJudging().packet()
+        packet['references'][0]['text'] = 'Desligue o aparelho. Use pano seco. Aguarde antes de ligar.'
+        for quote in ['Desligue o aparelho... Aguarde antes de ligar.',
+                      'Desligue o aparelho. Aguarde antes de ligar.',
+                      'Limpe com um pano seco.', 'Use  pano seco.']:
+            with self.subTest(quote=quote):
+                raw = helpers.verdict(answer_quotes=['Use pano seco.'], claim_checks=[{
+                    'answer_quote': 'Use pano seco.', 'evidence_id': 'e1',
+                    'reference_quote': quote, 'assessment': 'supported'}])
+                result = judge(packet, helpers.Script(raw))
+                self.assertEqual(result.error_code, 'invalid_verdict')
+                self.assertIsNone(result.verdict)
+
+    def test_pure_questions_allow_empty_checks_without_rewriting_adequacy(self):
+        packet = helpers.BlindJudging().packet()
+        packet['response']['answer'] = 'Qual modelo?'
+        for adequacy in ['pass', 'partial', 'fail']:
+            with self.subTest(adequacy=adequacy):
+                raw = helpers.verdict(outcome='clarify', answer_quotes=['Qual modelo?'],
+                    claim_checks=[], groundedness='not_assessable', citations=[],
+                    relevance=adequacy, usefulness=adequacy)
+                result = judge(packet, helpers.Script(raw))
+                self.assertEqual(result.status, 'assessed')
+                self.assertEqual(result.verdict.claim_checks, [])
+                self.assertEqual(result.verdict.groundedness, 'not_assessable')
+                self.assertEqual(result.verdict.usefulness, adequacy)
+                # Prescribed outputs prove no semantic classification by this test.
 
 class JudgeStabilityAccounting(unittest.TestCase):
     def row(self, replicate, **changes):

@@ -113,17 +113,22 @@ answer or reference summary. If it only reports a limitation, classify outcome l
 and do not claim it explains the subject. A substantive but incomplete explanation
 is still outcome answer, with incomplete coverage; limit is not a synonym for partial.
 Do not assume a status label implies correctness.
-Return only the closed JSON schema. FIRST fill claim_checks: pair each factual
-assertion (including incidental amounts, dates and conditions) with an exact answer
-quote and an exact relevant reference quote. Compare their actual values and meaning;
+Return only the closed JSON schema. FIRST identify factual assertions, including
+incidental amounts, dates and conditions. For each, fill claim_checks with literal
+substrings copied from the answer and its relevant reference. Use short contiguous
+quotes, preserving punctuation and whitespace. Never insert ellipses, paraphrase,
+translate or join separated passages. Put summaries only in reason. Verify each
+quote occurs exactly in its source before returning. Compare values and meaning;
 mark supported, contradicted or insufficient for THAT assertion only. A supported
 claim does not become unsupported because a DIFFERENT requested point is absent:
 record omissions in completeness/reason, not as invented unsupported claims.
 Check all applicable references; do not fail a claim against a tangential reference
 while ignoring another that supports it. A simulation notice does not validate its
 numbers. Do not skip an assertion because another part answers the question.
-For a pure clarification with no factual claims, use an empty list. Then classify
-the outcome and justify its adequacy, then grade consistently with these checks.
+For a pure question with no factual assertions, claim_checks MUST be [] and
+groundedness MUST be not_assessable, whether the question is useful or unnecessary.
+Do not compare requests for input to unrelated instructions as unsupported claims.
+Then classify the outcome and grade whether that input is actually needed.
 A NECESSARY clarification is evaluated as a clarification step, not as a failed final
 answer: correctness is pass if the missing-input question is appropriate and adds no
 false claim; relevance is pass if that input is material; completeness is pass if it
@@ -145,11 +150,9 @@ for a how/why question about a phenomenon or transformation, the answer must exp
 the causal mechanism. Merely naming outcomes, benefits or input materials does not
 explain how the transformation occurs. An operational how-to request can instead be
 answered by applicable procedural steps; do not impose unasked causal explanations.
-groundedness: assess the factual product/service assertions actually made. If the
-response ONLY asks for missing input and makes no such assertion, groundedness is
-not_assessable, even when reference documents were supplied; it is not fail for
-failing to quote an instruction it did not give. If it adds factual assertions,
-check all of them against references. An unsupported fact cannot become pass merely
+groundedness: assess only factual assertions actually made, not absent instructions.
+A question without assertions has no facts to ground; penalize unnecessary
+clarification in relevance/usefulness, not groundedness. An unsupported fact cannot become pass merely
 because the question is useful. Usefulness is relevant help within the service_context
 and the observed outcome, not a requirement that every turn resolve the entire case.
 Use pass/partial/fail/not_assessable, never numerical grades. Lack of evidence does not
