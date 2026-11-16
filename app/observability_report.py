@@ -15,6 +15,7 @@ STOP_REASONS = frozenset(('deadline','step_limit','tool_limit','model_timeout','
 COMMON = {'schema_version','event','request_id','duration_ms'}
 HTTP = COMMON | {'route','method','http_status','termination'}
 STAGE = COMMON | {'stage','outcome','count','cost_usd','cost_state','mode'}
+PROVIDER_ERROR = STAGE | {'http_status'}
 
 def _number(value, maximum):
     return type(value) in (int,float) and math.isfinite(value) and 0 <= value <= maximum
@@ -32,7 +33,12 @@ def valid_record(r):
                 and r['method'] in ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS','other')
                 and (r['http_status'] is None or type(r['http_status']) is int and 100<=r['http_status']<=599)
                 and r['termination'] in ('completed','disconnected','incomplete','cancelled','error'))
-    if not isinstance(event,str) or event not in EVENTS or set(r)!=STAGE:return False
+    if not isinstance(event,str) or event not in EVENTS:return False
+    if event == 'provider_http_error':
+        if (set(r)!=PROVIDER_ERROR or r.get('stage')!='model' or r.get('mode') is None
+            or type(r.get('http_status')) is not int
+            or not 100<=r['http_status']<=599 or r['http_status']==200):return False
+    elif set(r)!=STAGE:return False
     return (r['mode'] in (None,'controlled','remote')
             and (event not in ('model_call','budget_reservation','budget_reconciliation') or r['mode'] is not None)
             and (r['cost_state'] not in (None,'unknown') or r['cost_usd'] is None)
@@ -62,7 +68,7 @@ def aggregate_file(path):
     """
     path=Path(path)
     if not path.is_file() or path.stat().st_size>MAX_FILE_BYTES:raise ValueError('Input unavailable or over limit')
-    counts=Counter();http=Counter();functional=Counter();stages=Counter();outcomes=Counter();terminations=Counter()
+    counts=Counter();http=Counter();provider_http=Counter();functional=Counter();stages=Counter();outcomes=Counter();terminations=Counter()
     functional_by_stage=defaultdict(Counter);tool_by_stage=defaultdict(Counter);stops=Counter()
     durations=defaultdict(list);costs=defaultdict(Counter);confirmed=defaultdict(lambda:Decimal(0));reserved=defaultdict(lambda:Decimal(0))
     seen_http=set();seen_ids=set();http_ids=set();lines=invalid=truncated=oversized=duplicates=consumed=uncorrelated=0;bounded=False
@@ -98,6 +104,7 @@ def aggregate_file(path):
                 http[str(r['http_status']) if r['http_status'] is not None else 'unknown']+=1
                 terminations[r['termination']]+=1
             else:
+                if event=='provider_http_error':provider_http[str(r['http_status'])]+=1
                 stages[r['stage']]+=1;outcomes[r['outcome']]+=1
                 if event=='execution_completed':
                     functional[r['outcome']]+=1
@@ -125,6 +132,7 @@ def aggregate_file(path):
             'bounded_stop':bounded,'incomplete':bool(rejected or bounded or uncorrelated or seen_ids-http_ids or any(k!='completed' and v for k,v in terminations.items())),
             'uncorrelated_records':uncorrelated,'orphan_correlations':len(seen_ids-http_ids),'producer_dropped_records':None,'capture_completeness':'unknown'},
         'http':{'requests':counts['http_request'],'statuses':dict(http),'terminations':dict(terminations)},
+        'provider_http_errors':{'records':counts['provider_http_error'],'statuses':dict(provider_http)},
         'functional_outcomes':dict(functional),
         'functional_outcomes_by_stage':{k:dict(v) for k,v in sorted(functional_by_stage.items())},
         'tool_calls_by_stage':{k:dict(v) for k,v in sorted(tool_by_stage.items())},'stop_reasons':dict(stops),'event_counts':dict(counts),'stage_counts':dict(stages),'stage_outcomes':dict(outcomes),

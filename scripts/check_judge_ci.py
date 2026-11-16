@@ -8,7 +8,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT/'tests')]
 MODULES = ['test_eval_judging', 'test_remote_judge',
-           'test_focal_evaluation.FocalEvaluation', 'test_judge_ci', 'test_structured_judge_wire']
+           'test_focal_evaluation.FocalEvaluation', 'test_judge_ci', 'test_structured_judge_wire', 'test_provider_error_reporting', 'test_execution_observations']
 
 def main():
     os.environ['GETNET_ALLOW_MODEL_NETWORK'] = '0'

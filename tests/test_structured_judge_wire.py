@@ -104,3 +104,43 @@ class Structural(unittest.TestCase):
   self.v['claim_checks'].append(dict(answer_quote='a2',evidence_id='e1',reference_quote='e1s1',assessment='insufficient'))
   v=restore(self.v,state)
   self.assertEqual(v['correctness'],'partial');self.assertEqual(v['groundedness'],'partial')
+
+class EmptyReferenceContract(unittest.TestCase):
+ setUp=Structural.setUp
+ def empty(self):
+  p=copy.deepcopy(self.p);p['references']=[]
+  return prepare('policy',p,QuotedVerdict.model_json_schema())
+ def test_no_source_sentinel_cannot_be_selected(self):
+  policy,wire,schema,state=self.empty()
+  for name in ['claim_checks','citations','temporal_checks']:self.assertEqual(schema['properties'][name]['maxItems'],0)
+  self.assertEqual(schema['properties']['segment_audit']['properties']['a1']['properties']['evidence_segments']['maxItems'],0)
+ def test_no_refs_question_restores_without_inventing_evidence(self):
+  _,_,_,state=self.empty();v=copy.deepcopy(self.v)
+  v['segment_audit']['a1'].update(kind='question',assessment='not_factual',evidence_segments=[])
+  v.update(outcome='clarify',has_factual_claims=False,claim_checks=[],citations=[],groundedness='not_assessable')
+  self.assertEqual(restore(v,state)['groundedness'],'not_assessable')
+ def test_unreferenced_fact_cannot_pass(self):
+  _,_,_,state=self.empty();v=copy.deepcopy(self.v);v['segment_audit']['a1']['evidence_segments']=[];v.update(claim_checks=[],citations=[])
+  with self.assertRaises(ValueError):restore(v,state)
+  v['segment_audit']['a1']['assessment']='insufficient';v['groundedness']='not_assessable'
+  self.assertEqual(restore(v,state)['correctness'],'not_assessable')
+ def test_sentinel_is_rejected_even_if_transport_ignores_schema(self):
+  _,_,_,state=self.empty();v=copy.deepcopy(self.v);v['segment_audit']['a1']['evidence_segments']=['__none__']
+  with self.assertRaises(ValueError):restore(v,state)
+ def test_policy_distinguishes_process_and_visible_act(self):
+  from evals.structured_judge_wire import POLICY
+  self.assertIn('process_description',POLICY);self.assertIn('not from what should happen next',POLICY)
+  self.assertIn('product promise hidden inside a disclaimer remains a product claim',POLICY)
+class ScopeBoundary(unittest.TestCase):
+ def test_scope_policy_targets_visible_claims_not_source_extras(self):
+  from app.rag.grounding import VERIFY_POLICY
+  for phrase in ['EXCLUSIVAMENTE o texto das claims','sua mera presença na fonte NUNCA','scope_issue deve citar literalmente','realmente anuncia evento atual']:
+   self.assertIn(phrase,VERIFY_POLICY)
+
+class CitationMarkers(unittest.TestCase):
+ def test_repeated_source_has_one_marker_without_mutating_evidence(self):
+  from app.rag.grounding import citation_markers
+  refs=['a','a','b'];self.assertEqual(citation_markers(refs,['a','b']),'[1][2]');self.assertEqual(refs,['a','a','b'])
+ def test_different_sources_preserve_order_and_indices(self):
+  from app.rag.grounding import citation_markers
+  self.assertEqual(citation_markers(['b','a'],['a','b']),'[2][1]')
