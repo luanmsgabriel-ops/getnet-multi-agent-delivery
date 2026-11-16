@@ -6,7 +6,7 @@ No retries, credentials, environment configuration or implicit transport.
 """
 import re
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 RUBRIC_VERSION = 'blind-public-v2'
 Category = Literal['pass', 'partial', 'fail', 'not_assessable']
@@ -41,12 +41,20 @@ class Packet(Closed):
 
 class ClaimCheck(Closed):
     answer_quote: str = Field(min_length=1, max_length=1000)
-    evidence_id: str = Field(min_length=1, max_length=100)
-    reference_quote: str = Field(min_length=1, max_length=1000)
+    evidence_id: str | None = Field(min_length=1, max_length=100)
+    reference_quote: str | None = Field(min_length=1, max_length=1000)
     assessment: Literal['supported', 'contradicted', 'insufficient']
 
+    @model_validator(mode='after')
+    def paired_missing_evidence(self):
+        missing_id = self.evidence_id is None
+        missing_quote = self.reference_quote is None
+        if missing_id != missing_quote or (missing_id and self.assessment != 'insufficient'):
+            raise ValueError('null evidence requires paired insufficient assessment')
+        return self
+
 class Verdict(Closed):
-    claim_checks: list[ClaimCheck] = Field(default_factory=list, max_length=12)
+    claim_checks: list[ClaimCheck] = Field(default_factory=list, max_length=192)
     # Establish the visible outcome and its short evidence-based explanation
     # before grading dimensions; no hidden reasoning or extra model call.
     outcome: Literal['answer', 'clarify', 'refuse', 'limit']
@@ -337,11 +345,13 @@ def validate_verdict(packet, raw, *, require_answer_quotes=False):
         _public_text(v.reason)
         references = {ref.evidence_id: ref for ref in p.references}
         for check in v.claim_checks:
-            ref = references.get(check.evidence_id)
-            if (not check.answer_quote.strip() or not check.reference_quote.strip()
-                or check.answer_quote not in p.response.answer or ref is None
-                or check.reference_quote not in ref.text):
-                raise ValueError('invalid claim evidence quote')
+            if not check.answer_quote.strip() or check.answer_quote not in p.response.answer:
+                raise ValueError('invalid visible claim quote')
+            if check.evidence_id is not None:
+                ref = references.get(check.evidence_id)
+                if (not check.reference_quote.strip() or ref is None
+                    or check.reference_quote not in ref.text):
+                    raise ValueError('invalid claim evidence quote')
             if check.assessment == 'contradicted' and (
                     v.correctness == 'pass' or v.groundedness == 'pass'):
                 raise ValueError('contradiction cannot receive pass')
@@ -355,3 +365,5 @@ def validate_verdict(packet, raw, *, require_answer_quotes=False):
         return JudgeResult(status='assessed', verdict=v)
     except Exception:
         return JudgeResult(status='inconclusive', error_code='invalid_verdict')
+
+SYSTEM += ' For an actual factual assertion lacking a relevant source, retain its literal answer_quote and use assessment=insufficient with evidence_id=null and reference_quote=null together. Never invent a source or substitute an unrelated one. Supported and contradicted require actual supplied evidence. Insufficient cannot receive groundedness=pass.'

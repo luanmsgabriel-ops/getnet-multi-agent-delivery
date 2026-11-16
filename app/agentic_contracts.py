@@ -12,6 +12,8 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True, frozen=True)
 
 class Goal(StrictModel):
+    current_request_quote: str | None = Field(default=None, min_length=1, max_length=1000,
+        description='Para uma continuacao reformulada, copie TODO o pedido atual literalmente e indique context_turn_id. O servidor ignora request interpretado e executa somente historico literal + esta ancora. Nos demais casos use null.')
     context_turn_id: str | None = Field(default=None, pattern=r'^t_[a-f0-9]{16,32}$')
     id: str = Field(pattern=r'^g[1-4]$')
     request: str = Field(min_length=1, max_length=1000, description="Trecho literal contíguo, sem reconstruir prefixos. Para partes documentais relacionadas, mantenha o pedido integral; não copie o prefixo de produto para uma oração diferente.")

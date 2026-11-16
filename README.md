@@ -124,7 +124,7 @@ GETNET_AUTH_MODE=demo GETNET_CONTEXT_DB=/tmp/getnet-tests/state.db PYTHONPATH=.:
 
 No PowerShell, defina também GETNET_AUTH_MODE=demo e GETNET_CONTEXT_DB fora do checkout. Use: `$env:PYTHONPATH='.;tests'` e o mesmo comando Python. A suíte histórica completa contém testes de interfaces anteriores; não use seu volume como nota de qualidade. A publicação de testes não implica CI aprovado.
 
-**Juiz independente opcional:** `evals/judging.py` monta um pacote cego com pergunta, resposta visível, conversa permitida e referências independentes. O contrato exclui resposta esperada, nota anterior e identidade do gerador. `judge(packet)` sem transporte retorna inconclusivo e não faz rede. `evals/remote_judge.py` fornece `RemoteJudge`, adaptador explícito para `openai/gpt-5-mini` via OpenRouter, com chave e ledger fornecidos pelo chamador, sem fallback ou retry. Não roda ao iniciar o servidor.
+**Juiz opcional em chamada separada:** `evals/judging.py` monta um pacote cego com pergunta, resposta visível, conversa permitida e referências independentes. O contrato exclui resposta esperada, nota anterior e identidade do gerador. Chamadas separadas não comprovam independência de família de modelo ou revisão humana; a proveniência informa essa limitação explicitamente. `judge(packet)` sem transporte retorna inconclusivo e não faz rede. `evals/remote_judge.py` fornece `RemoteJudge`, adaptador explícito para `openai/gpt-5-mini` via OpenRouter, com chave e ledger fornecidos pelo chamador, sem fallback ou retry. Não roda ao iniciar o servidor.
 
 Para uma avaliação autorizada, monte o pacote com `make_packet(case, response, references, opaque_id=...)`, construa `RemoteJudge(key=..., budget=...)` e chame `judge(packet, transport=adaptador)`. Referências devem ser verificadas separadamente, não copiadas cegamente das citações da resposta. O adaptador tem preços/modelo fixados no código: revise disponibilidade e valores antes de nova utilização real. Não envie dados pessoais ou segredos ao juiz.
 
@@ -141,3 +141,12 @@ O juiz classifica correção, relevância, completude, fundamentação e utilida
 ChatGPT apoiou planejamento e discussão de arquitetura; Codex apoiou implementação e testes. Esse apoio ao desenvolvimento é distinto do uso de LLM pela aplicação e não substitui revisão dos resultados.
 
 O catálogo estático em evals/ mantém 40 casos e referências para reprodutibilidade; sua presença não dispara execuções nem amplia a rodada autorizada das dez perguntas. `python scripts/evaluate_quality.py validate` valida esse catálogo offline, sem coletar respostas ou pontuar o modelo.
+
+## Operação e manutenção focal
+
+- `RUNBOOK.md` descreve consulta offline de desvios, limites e ações manuais. Não é um monitor hospedado nem remediação automática.
+- `MAINTENANCE.md` identifica caminhos ativos e critérios para reduzir duplicação sem apagar histórico ou cobertura.
+- `evals/exposure_registry.json` registra quais casos já foram vistos; casos sem comprovação não são apresentados como holdout inédito.
+- `python scripts/check_judge_ci.py` executa a suíte focal offline, sem chamadas pagas. Os testes de memória usam decisões controladas e não certificam estabilidade de um modelo real.
+- O juiz mantém citações literais e permite declarar uma afirmação sem suporte sem fabricar uma fonte. Isso continua impedindo aprovação de fundamentação; não transforma insuficiência em evidência positiva.
+- Avaliações reais revelaram variabilidade, falsos descontos e limites de saída em respostas longas. As correções de contrato não demonstram que todos esses problemas semânticos foram resolvidos.

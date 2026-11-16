@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "purpose": "Exposure disclosure, not certification of unseen evaluation data.",
+  "cases": [
+    {
+      "case_id": "O01",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O02",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O03",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O04",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O05",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O06",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O07",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O08",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O09",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "O10",
+      "declared_split": "original",
+      "exposure_status": "known_original",
+      "basis": "Published original challenge question"
+    },
+    {
+      "case_id": "R01",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R02",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R03",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R04",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R05",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R06",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R07",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R08",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R09",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "R10",
+      "declared_split": "regression",
+      "exposure_status": "known_regression",
+      "basis": "Versioned known regression case"
+    },
+    {
+      "case_id": "H01",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H02",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H03",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H04",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H05",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H06",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H07",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H08",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H09",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H10",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H11",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H12",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H13",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H14",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H15",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H16",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H17",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H18",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H19",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    },
+    {
+      "case_id": "H20",
+      "declared_split": "holdout",
+      "exposure_status": "not_verified_unseen",
+      "basis": "Published in repository; historical exposure not fully reconstructed. Never claim this label proves blindness."
+    }
+  ]
+}

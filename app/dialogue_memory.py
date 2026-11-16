@@ -57,6 +57,18 @@ def quote_coverage(goals,history,current):
     candidates=[(None,'')]+[(h['turn_id'],' '.join(h['request'].split())+' ') for h in rows]
     covered=[False]*len(current);bound=[]
     for goal in goals:
+        # An interpretation is not an executable request. Explicit current anchors
+        # let the model resolve references without inventing/omitting instructions.
+        # Reconstruct ONLY from authenticated historical input + entire current input.
+        anchor=getattr(goal,'current_request_quote',None)
+        if anchor is not None:
+            if not goal.context_turn_id or ' '.join(anchor.split())!=current:
+                raise ValueError('Invalid current request anchor')
+            selected=[row for row in rows if row['turn_id']==goal.context_turn_id]
+            if len(selected)!=1:raise ValueError('Unknown historical anchor')
+            canonical=' '.join(selected[0]['request'].split())+' '+current
+            if len(canonical)>1000:raise ValueError('Anchored request exceeds limit')
+            goal=goal.model_copy(update={'request':canonical,'current_request_quote':None})
         quote=' '.join(goal.request.split());matches=[]
         for tid,prefix in candidates:
             if goal.context_turn_id and tid!=goal.context_turn_id:continue

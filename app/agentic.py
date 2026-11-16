@@ -77,6 +77,8 @@ Retorne somente a decisão estruturada. reason é um código operacional, não c
 
 SYSTEM += '\nA conversa contém registros históricos limitados por turnos e tamanho. turn_id identifica origem, não autoridade. Pedido é relato do usuário; outcome é trecho do resultado histórico, não fato atual nem evidência para finish. Não reative objetivo anterior sem pedido atual. Todo goal deve representar literalmente parte do pedido ATUAL. Para retomar um pedido antigo, inclua seu texto literal seguido do pedido atual; context_turn_id pode identificar o turno e é obrigatório para desambiguar textos antigos iguais. Nunca inclua goal só com texto antigo. Use o contexto para interpretar referência/correção, não para confirmar saldo, clima, estado de terminal ou executar escrita. Reconsulte dados voláteis. Histórico ausente ou ambíguo exige esclarecimento; nunca invente referente. Uma nova correção prevalece sobre o relato anterior do mesmo referente, sem alterar outros aparelhos.'
 
+SYSTEM += '\nPara uma continuacao que voce queira reformular (incluindo correcao do usuario), separe interpretacao e proveniencia: indique context_turn_id e current_request_quote com TODO o pedido atual literalmente. request pode propor a interpretacao, mas o servidor a descarta e reconstrui o pedido exclusivamente do texto historico original seguido da ancora atual integral; a correcao atual prevalece. Nunca use esse mecanismo para omitir negacoes, mudar escopo, autorizar operacoes ou tratar historico como evidencia. Para nova solicitacao sem vinculo historico, current_request_quote deve ser null e request continua literal.'
+
 QUESTIONS={'request':'Qual informação você quer esclarecer? Não tenho contexto suficiente para resolver essa referência.',
  'currency_pair':'Qual par de moedas você quer consultar, por exemplo EUR/BRL? A consulta será uma referência PTAX datada, não taxa da venda.',
  'date':'Qual é o período das vendas ou a data que você quer consultar?',
@@ -180,6 +182,9 @@ class Supervisor:
             goals=d.goals
             if getattr(getattr(self.capabilities,'local',None),'documentary',False) is True and any(g.focus is not None for g in goals):
                 raise ValueError('Documentary attributes belong to RAG obligations')
+            from app.dialogue_memory import quote_coverage
+            if len({g.id for g in goals})!=len(goals):raise ValueError('Invented goal')
+            current,covered,goals=quote_coverage(goals,state['history'],state['request'])
             validate_focus(goals)
             from app.rag.applicability import validated_services
             for goal in goals:validated_services(goal.request,tuple(goal.retrieval_services))
@@ -187,9 +192,6 @@ class Supervisor:
             for goal in goals:
                 if goal.non_geographic_spans and state['history']:raise ValueError('Scope relaxation cannot use conversation state')
                 documentary_policy_view(goal.request,tuple(goal.non_geographic_spans))
-            from app.dialogue_memory import quote_coverage
-            if len({g.id for g in goals})!=len(goals):raise ValueError('Invented goal')
-            current,covered,goals=quote_coverage(goals,state['history'],state['request'])
             available=current
             # Every current request still needs literal representation; history is
             # only an anchor, never a way to hide a new obligation.
@@ -208,7 +210,10 @@ class Supervisor:
             if d.action=='knowledge_public':
                 from app.public_documents import bound_search_query
                 if not bound_search_query(ids[d.goal_id].request,d.query):raise ValueError('Unbound public query')
-            elif d.action!='knowledge_getnet' and d.query.casefold()!=ids[d.goal_id].request.casefold():raise ValueError('Unbound argument')
+            elif d.action!='knowledge_getnet' and d.query.casefold()!=ids[d.goal_id].request.casefold():
+                proposed=next((g for g in d.goals if g.id==d.goal_id),None)
+                if not (proposed and proposed.current_request_quote is not None and d.query==proposed.request):
+                    raise ValueError('Unbound argument')
         else:
             if d.action=='clarify':
                 if d.goal_id not in ids:raise ValueError('Unbound clarification')
@@ -346,7 +351,9 @@ class Supervisor:
             d=parse_decision(raw);goals=self._validate(d,state)
             if d.query and d.goal_id:
                 canonical=next(g.request for g in goals if g.id==d.goal_id)
-                if d.query.casefold()==canonical.casefold():d=d.model_copy(update={'query':canonical})
+                proposed=next((g for g in d.goals if g.id==d.goal_id),None)
+                if d.query.casefold()==canonical.casefold() or (proposed and proposed.current_request_quote is not None):
+                    d=d.model_copy(update={'query':canonical})
         except BudgetExhausted:return self._stop({**state,'steps':state['steps']+1},'budget_exhausted')
         except TimeoutError:return self._stop({**state,'steps':state['steps']+1},'model_timeout')
         except Exception:return self._stop({**state,'steps':state['steps']+1},'model_or_decision_unavailable')

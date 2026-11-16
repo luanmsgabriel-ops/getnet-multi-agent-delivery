@@ -9,12 +9,16 @@ from app.context_client import strict_schema
 from app.observability import emit_event
 
 class RemoteJudge(SupervisorClient):
-    mode='independent_model_judge'
+    mode='separate_model_judge'
     requires_answer_quotes=True
     def __init__(self,*,key,budget,transport=None):
         super().__init__(key=key,model='openai/gpt-5-mini',
             prices={'prompt':'0.00000025','completion':'0.000002'},budget=budget,
             max_output=3500,transport=transport)
+    def provenance(self, generator_model=None):
+        from evals.judge_evidence import evaluator_identity
+        return evaluator_identity(generator_model, self.model)
+
     def decide(self, system, payload, schema, *, timeout=60, deadline=None):
         from evals.structured_judge_wire import prepare,restore
         system,payload,schema,wire_state=prepare(system,payload,schema)

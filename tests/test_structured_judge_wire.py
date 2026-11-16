@@ -47,7 +47,8 @@ class Structural(unittest.TestCase):
   self.assertTrue(all(t in text and len(t)<=900 for t in segments(text)))
  def test_schema_act_first_and_quotes_enum(self):
   self.assertEqual(next(iter(self.s['properties'])),'segment_audit')
-  self.assertEqual(self.s['$defs']['ClaimCheck']['properties']['reference_quote']['enum'],list(self.state[2]))
+  self.assertNotIn('ClaimCheck',self.s.get('$defs',{}))
+  self.assertEqual(self.s['properties']['segment_audit']['properties']['a1']['properties']['evidence_segments']['items']['enum'],list(self.state[2]))
  def test_claim_contradiction_still_rejected(self):
   self.v['claim_checks'][0]['assessment']='contradicted'
   self.assertEqual(validate_verdict(self.p,restore(self.v,self.state)).status,'inconclusive')
@@ -112,7 +113,7 @@ class EmptyReferenceContract(unittest.TestCase):
   return prepare('policy',p,QuotedVerdict.model_json_schema())
  def test_no_source_sentinel_cannot_be_selected(self):
   policy,wire,schema,state=self.empty()
-  for name in ['claim_checks','citations','temporal_checks']:self.assertEqual(schema['properties'][name]['maxItems'],0)
+  for name in ['citations','temporal_checks']:self.assertEqual(schema['properties'][name]['maxItems'],0)
   self.assertEqual(schema['properties']['segment_audit']['properties']['a1']['properties']['evidence_segments']['maxItems'],0)
  def test_no_refs_question_restores_without_inventing_evidence(self):
   _,_,_,state=self.empty();v=copy.deepcopy(self.v)
