@@ -2,6 +2,10 @@
 
 API FastAPI para atendimento demonstrativo sobre produtos Getnet Brasil, consultas sintéticas de suporte e perguntas públicas. A aplicação não é um canal oficial da Getnet e não realiza operações financeiras.
 
+## Vídeo de apresentação
+
+[Assista ao vídeo de apresentação do projeto](https://drive.google.com/file/d/1SN1bn2YHrocRcfwGjcGXhKVZynGo3XQJ/view).
+
 ## Arquitetura atual
 
 ```text
