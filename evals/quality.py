@@ -37,7 +37,9 @@ def catalog(root):
   if not o.get('criteria') or not all(isinstance(x,str) and x for x in o['criteria']):raise ValueError('Missing criteria')
   if not o.get('acceptable_outcomes') or not set(o['acceptable_outcomes'])<={'answer','clarify','refuse','limit'}:raise ValueError('Invalid expected outcome')
   if type(o.get('needs_live_reference')) is not bool:raise ValueError('Missing live-reference annotation')
-  for g in o.get('evidence_groups',[]):
+  supplemental=o.get('supplemental_references',[])
+  if not isinstance(supplemental,list):raise ValueError('Invalid supplemental references')
+  for g in [*o.get('evidence_groups',[]), *([[r] for r in supplemental])]:
    if not g or any(set(x)!={'source','ordinal'} or not isinstance(x['source'],str) or not x['source'].startswith('https://') or type(x['ordinal']) is not int or x['ordinal']<0 for x in g):raise ValueError('Invalid evidence group')
  return data,gold
 
@@ -49,7 +51,9 @@ def source_references(root,oracle):
  for path in sorted((root/'corpus_publico').glob('*.json')):
   doc=load_snapshot(path,SOURCES);docs.setdefault(doc['final_url'],[]).append(doc)
  refs=[];seen=set()
- for group in oracle['evidence_groups']:
+ # Supplemental context is available to the blind judge, not an additional
+ # required retrieval group or a new answer obligation.
+ for group in [*oracle['evidence_groups'], oracle.get('supplemental_references',[])]:
   for ref in group:
    choices=docs.get(ref['source'],[]);ordinal=ref['ordinal']
    matches=[d for d in choices if ordinal<len(d.get('chunks',[])) and d.get('reviewed') is True]

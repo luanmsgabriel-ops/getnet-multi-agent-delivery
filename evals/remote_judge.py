@@ -14,13 +14,15 @@ class RemoteJudge(SupervisorClient):
     def __init__(self,*,key,budget,transport=None):
         super().__init__(key=key,model='openai/gpt-4.1-mini',
             prices={'prompt':'0.0000004','completion':'0.0000016'},budget=budget,
-            max_output=2500,transport=transport)
+            max_output=2000,transport=transport)
     def decide(self, system, payload, schema, *, timeout=60, deadline=None):
         # Compact wire IDs avoid multiplying long hash enums in the provider's
         # constrained decoder. Canonical hashes and strict local validation stay.
         payload=copy.deepcopy(payload);schema=copy.deepcopy(schema)
         aliases={f'e{i+1}':ref['evidence_id'] for i,ref in enumerate(payload.get('references',[]))}
         for ref,alias in zip(payload.get('references',[]),aliases):ref['evidence_id']=alias
+        checks=schema.get('$defs',{}).get('ClaimCheck',{}).get('properties',{})
+        if aliases and 'evidence_id' in checks:checks['evidence_id']['enum']=list(aliases)
         citations=schema.get('properties',{}).get('citations')
         if citations is not None:
             citations['maxItems']=min(citations.get('maxItems',20),len(aliases))
@@ -37,7 +39,7 @@ class RemoteJudge(SupervisorClient):
             quote_field['maxItems']=min(5,len(quotes))
             system+='\nWire format: answer_quotes must select IDs from answer_quote_choices, which contain only exact visible response paragraphs. Do not quote reference text. The caller restores the selected visible text before validation.'
         body = {'model': self.model, 'messages': [{'role':'system','content':system},
-            {'role':'user','content':json.dumps(payload,ensure_ascii=False)}],
+            {'role':'user','content':json.dumps(payload,ensure_ascii=False,separators=(',',':'))}],
             'response_format': {'type':'json_schema','json_schema':{'name':'blind_judgment','strict':True,'schema':strict_schema(schema)}},
             'max_tokens':self.max_output,
             'provider':{'only':['OpenAI'],'allow_fallbacks':False,'require_parameters':True,
@@ -78,6 +80,11 @@ class RemoteJudge(SupervisorClient):
             decision=json.loads(choice['message']['content'])
             if isinstance(decision,dict) and isinstance(decision.get('citations'),list):
                 decision['citations']=[aliases.get(value,value) for value in decision['citations']]
+            if isinstance(decision,dict) and isinstance(decision.get('claim_checks'),list):
+                for check in decision['claim_checks']:
+                    if isinstance(check,dict):
+                        value=check.get('evidence_id')
+                        check['evidence_id']=aliases.get(value,value)
             if isinstance(decision,dict) and isinstance(decision.get('answer_quotes'),list):
                 decision['answer_quotes']=[quotes.get(value,value) for value in decision['answer_quotes']]
             outcome='ok'
