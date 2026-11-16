@@ -17,13 +17,13 @@ class RemoteJudgeTest(unittest.TestCase):
     return httpx.Response(200,json={'usage':{'cost':'.0001'},'choices':[{'finish_reason':'stop','message':{'content':'{}'}}]})
    judge=RemoteJudge(key='SYNTHETIC_TEST_KEY',budget=budget,transport=httpx.MockTransport(handler))
    self.assertEqual(judge.decide('public rubric',{'question':'public'}, {'type':'object','properties':{},'additionalProperties':False}),{})
-   self.assertEqual(bodies[0]['model'],'openai/gpt-4.1-mini')
+   self.assertEqual(bodies[0]['model'],'openai/gpt-5-mini')
    self.assertEqual(bodies[0]['provider']['only'],['OpenAI']);self.assertFalse(bodies[0]['provider']['allow_fallbacks'])
-   self.assertEqual(bodies[0]['max_tokens'],2000)
+   self.assertEqual(bodies[0]['max_tokens'],3500)
    # Compact nested JSON changes whitespace only, keeping the reservation bound.
    self.assertEqual(bodies[0]['messages'][1]['content'],'{"question":"public"}')
-   self.assertNotIn('reasoning',bodies[0])
-   self.assertEqual(bodies[0]['provider']['max_price'],{'prompt':0.4,'completion':1.6})
+   self.assertEqual(bodies[0]['reasoning'],{'effort':'low'})
+   self.assertEqual(bodies[0]['provider']['max_price'],{'prompt':0.25,'completion':2.0})
    with budget.db() as db:self.assertEqual(db.execute('SELECT status FROM calls').fetchone()[0],'billed')
  def test_oversize_payload_stops_before_reservation(self):
   with tempfile.TemporaryDirectory() as tmp:
@@ -49,7 +49,9 @@ class CompactReferenceTransport(unittest.TestCase):
     self.assertEqual(body['response_format']['json_schema']['schema']['properties']['answer_quotes']['items']['enum'],['a1'])
     verdict={k:'pass' for k in ['correctness','relevance','completeness','groundedness','usefulness']}
     verdict.update(outcome='answer',reason='Texto controlado.',citations=['e2'],answer_quotes=['a1'],
-                   claim_checks=[{'answer_quote':'Use pano seco.','reference_quote':'Use pano seco.',
+                   segment_audit={'a1':{'kind':'product_claim','assessment':'supported','evidence_segments':['e2s1'],'temporal_scope':'none'}},
+                   input_need='not_requested',has_factual_claims=True,coverage=[],temporal_checks=[],
+                   claim_checks=[{'answer_quote':'a1','reference_quote':'e2s1',
                                   'evidence_id':'e2','assessment':'supported'}])
     return httpx.Response(200,json={'usage':{'cost':'.0001'},'choices':[{'finish_reason':'stop','message':{'content':json.dumps(verdict)}}]})
    result=judge(packet,RemoteJudge(key='SYNTHETIC',budget=budget,transport=httpx.MockTransport(handler)))
