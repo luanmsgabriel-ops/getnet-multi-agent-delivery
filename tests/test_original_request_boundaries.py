@@ -80,4 +80,32 @@ class OriginalRequestBoundaries(unittest.TestCase):
   self.assertEqual(result.agentic.stop,'finish')
   self.assertEqual(result.agentic.coverage[0].status,'answered')
   self.assertNotIn('cliente1988',str(script.payloads))
+ def test_final_connect_error_preserves_useful_answer_without_retry(self):
+  import json,tempfile
+  from pathlib import Path
+  import httpx
+  from app.agentic import Supervisor
+  from app.agentic_client import Budget,SupervisorClient
+  from test_agentic import FakeCapabilities,consult
+  q='Do I need a bank account to receive my sales via Pix?'
+  requests=[]
+  async def transport(request):
+   requests.append(request)
+   if len(requests)==1:
+    return httpx.Response(200,json={'usage':{'cost':.001},'choices':[{'finish_reason':'stop','message':{'content':json.dumps(consult(query=q))}}]})
+   raise httpx.ConnectError('private transport detail',request=request)
+  with tempfile.TemporaryDirectory() as folder:
+   budget=Budget(Path(folder)/'budget.db',initialize=True,max_calls=3,max_cost='.50')
+   client=SupervisorClient(key='SYNTHETIC',model='synthetic',prices={'prompt':'.00000025','completion':'.000002'},budget=budget,transport=httpx.MockTransport(transport))
+   caps=FakeCapabilities(text='A chave Pix deve estar vinculada à conta de recebimento.')
+   result=Supervisor(client,caps).executar({'message':q,'user_id':'cliente1988'})
+   self.assertEqual(len(requests),2)
+   self.assertEqual(len(caps.calls),1)
+   self.assertEqual(result.agentic.stop,'model_or_decision_unavailable')
+   self.assertNotEqual(result.agentic.coverage[0].status,'answered')
+   self.assertIn('A chave Pix deve estar vinculada',result.answer)
+   self.assertNotIn('private transport detail',result.answer)
+   self.assertNotEqual(result.status,'evidencias')
+   with budget.db() as db:
+    self.assertEqual(db.execute('SELECT status FROM calls ORDER BY id').fetchall(),[('billed',),('reserved',)])
 if __name__=='__main__':unittest.main()
