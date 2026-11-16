@@ -4,3 +4,8 @@ fastapi==0.162.2
 uvicorn==0.54.0
 certifi==2026.10.23
 pypdf==7.0.0
+python-dotenv==1.2.4
+tzdata==2026.6
+Pint==0.26.2
+flexcache==0.3
+flexparser==0.4

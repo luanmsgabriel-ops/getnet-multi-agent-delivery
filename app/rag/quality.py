@@ -14,6 +14,28 @@ CONCEPTS = (
 COUNTRIES = set('brazil brasil mexico chile argentina uruguay uruguai colombia spain espanha portugal japan japao germany alemanha canada peru australia'.split())
 
 
+
+def product_identities(text):
+    text=normalize(text)
+    text=re.sub(r"\b(?:nao (?:descreve|cobre|se aplica(?: a)?|documenta)|does not (?:describe|cover|apply to)|not applicable to)\b[^.!?;\n]*",' ',text)
+    return set(re.findall(r'\b(?:get\s*)?(smart|classica|a920|dx8000)\b',text))
+
+def product_scope_conflict(question, candidate):
+    """Reject explicit product conflicts, not a universal sufficiency proof.
+
+    Titles restrict a document's named product. Exclusion/disclaimer mentions
+    never supply positive identity. Unknown/generic scope still goes through
+    the existing relevance rules, including the reviewed conditional procedure.
+    No equivalence between hardware identifiers and marketing names is inferred.
+    """
+    requested=product_identities(question)
+    if not requested:return False
+    title=product_identities(candidate.get('title',''))
+    if title and not requested & title:return True
+    positive=title | product_identities(candidate.get('text',''))
+    return bool(positive and not requested & positive)
+
+
 def predicate_supported(question, candidate):
     """Cobertura limitada do predicado no corpo; título/data não provam atributos.
 
@@ -66,11 +88,12 @@ def relevant_candidates(question, candidates):
     words=set(re.findall(r'\w+',normalize(question)))
     if excluded:
         candidates=[c for c in candidates if not (excluded & set(re.findall(r'\w+',normalize(c.get('title','')+' '+c['text']))))]
-    candidates=[c for c in candidates if predicate_supported(question,c)]
+    candidates=[c for c in candidates if not product_scope_conflict(question,c) and predicate_supported(question,c)]
     from app.intents import request_facts
     facts=request_facts(question);entities=facts.entities
     if entities:
         def compatible(c):
+            if product_scope_conflict(question,c):return False
             if entities & set(re.findall(r'\w+',normalize(c.get('title','')+' '+c['text']))):return True
             # The separately reviewed Brazilian Wi-Fi procedure is generic to a
             # machine, conditional on Wi-Fi; its exact body may omit product names.

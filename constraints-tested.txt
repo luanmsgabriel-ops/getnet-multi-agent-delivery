@@ -112,3 +112,6 @@ websockets==17.4
 wrapt==2.5.2
 xxhash==4.0.2
 zstandard==0.25.0
+Pint==0.26.2
+flexcache==0.3
+flexparser==0.4

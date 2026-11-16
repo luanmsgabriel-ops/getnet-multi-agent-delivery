@@ -51,8 +51,50 @@ BANK_RELATION = re.compile(r'\b(?:conta|account)\s+(?:(?:corrente|bancaria|bank|
 NUMBER_CONTEXT = re.compile(r'\b(?:em|in|at)\s+(?:\d+(?:[.,]\d+)?\s*(?:%|por cento|percent)(?=\W|$)|(?:ate\s+)?(?:\d+|um|uma|dois|duas|tres|one|two|three)\s+(?:dias?|horas?|minutos?|days?|hours?|minutes?)\b)')
 
 
-def unsupported_location(text):
+# General complement classes. These are lexical scope hints, not a geographic
+# classifier or authorization to execute the described operation.
+COMPLEMENT_HEADS = (
+    r'manua(?:l|is)|manuals?|documentos?|documents?|documentacao|documentation|'
+    r'fontes?|sources?|tutoriais|tutorial|guides?|guias?|paginas?|pages?|'
+    r'orientacao|orientacoes|guidance|instructions?|instrucoes|nomenclatura|terminologia|'
+    r'secao|secoes|sections?|capitulos?|chapters?|tabelas?|tables?|figuras?|figures?|'
+    r'simulacao|simulacoes|simulations?|transacao|transacoes|transactions?|'
+    r'operacao|operacoes|operations?|pre[- ]?autorizacao|pre[- ]?authorization|'
+    r'configuracao|configuracoes|settings|impressao|printing|comprovantes?|receipts?|'
+    r'modo|modes?|memoria|memory|casos?|cases?|situacao|situacoes|situations?|'
+    r'condicao|condicoes|conditions?|momentos?|moments?|pratica|practice|'
+    r'relacao|relation|geral|general|ingles|english|portugues|portuguese|'
+    r'modelos?|models?|aparelhos?|devices?|maquininhas?|terminais|terminal|'
+    r'dias?|days?|horas?|hours?|minutos?|minutes?|segundos?|seconds?|'
+    r'semanas?|weeks?|mes|meses|months?|anos?|years?|prazos?|periodos?|periods?|'
+    r'milimetros?|millimet(?:er|re)s?|centimetros?|centimet(?:er|re)s?|'
+    r'reais|dolares|euros|brl|usd|eur'
+)
+COMPLEMENT_DETERMINERS = (
+    r'o|a|os|as|um|uma|uns|umas|the|my|your|meu|minha|meus|minhas|seu|sua|seus|suas|'
+    r'algum|alguma|alguns|algumas|qualquer|quaisquer|todo|toda|todos|todas|cada|qual|quais|que|'
+    r'outro|outra|outros|outras|mesmo|mesma|mesmos|mesmas|proprio|propria|'
+    r'any|every|each|all|another|other|same|which|what|own|'
+    r'\d+(?:[.,]\d+)?|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|doze|'
+    r'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve'
+)
+NON_GEOGRAPHIC_COMPLEMENT = re.compile(
+    r'\b(?:no|na|nos|nas|em|in|at)\s+'
+    r'(?:(?:'+COMPLEMENT_DETERMINERS+r')\s+){0,4}'
+    r'(?:'+COMPLEMENT_HEADS+r')\b')
+COMPOUND_PRODUCT_COMPLEMENT = re.compile(
+    r'\b(?:no|na|em|in|at)\s+(?:(?:o|a|the)\s+)?'
+    r'(?:conversor de moedas|currency converter)(?:\s+getnet)?\b')
+# A complete year is temporal, not an arbitrary numeric place name. A following
+# word prevents partial consumption of an unknown named locale ("em 2026land").
+TEMPORAL_YEAR = re.compile(r'\b(?:em|in)\s+(?:19|20)\d{2}\b')
+
+
+def unsupported_location(text, *, measurement_checked=False):
     """Abstém em locais/complementos incertos; não é um reconhecedor geográfico universal."""
+    from app.rag.measurement_scope import mask_measurement_complements
+    # Callers that already masked the original spelling must not reparse folded SI symbols.
+    text=normalize(text if measurement_checked else mask_measurement_complements(text))
     # "No máximo" pode vir antes, dentro ou depois da pergunta quantitativa.
     # Só o reconhece como advérbio quando há a construção de parcelas inteira;
     # não libera "máximo" como nome de local nem remove outros complementos.
@@ -67,6 +109,15 @@ def unsupported_location(text):
     text = NUMBER_CONTEXT.sub(' ', text)
     text = re.sub(r'\b(?:em|in)\s+(?:quanto tempo|quantos dias|quantas horas|qual prazo|qual data|how many days|how many hours)\b',' ',text)
     text = DEVICE_LOCATIVE.sub(' ', text)
+    # Preposition + determiner/quantifier + a known non-geographic head.
+    # Recognize the noun phrase, not the determiner alone: "em qualquer
+    # cidade" remains unresolved, while "em qualquer transacao" is operational.
+    # Only this complement is consumed; a later "em Lisboa" remains visible.
+    text = NON_GEOGRAPHIC_COMPLEMENT.sub(' ',text)
+    text = COMPOUND_PRODUCT_COMPLEMENT.sub(' ',text)
+    text = TEMPORAL_YEAR.sub(' ',text)
+    # O nome comercial composto é um dispositivo, não um país chamado "Get".
+    text = re.sub(r'\b(?:no|na|em|in|at)\s+(?:the\s+)?get\s+(?:smart|classica)\b', ' ', text)
     return any(m.group(1) not in LOCAL_CONTEXTS for m in LOCATIVE.finditer(text))
 
 def foreign_terms(message):
@@ -81,8 +132,9 @@ def retrieval_plan(message):
     from app.brazil_scope import market_of
     market=market_of(message)
     if market.value in ('OUT','UNKNOWN'):return None,message
-    text=re.sub(r'\bwi[- ]fi\b','wifi',normalize(re.sub(r'\bnós\b','we',message,flags=re.I)))
+    from app.rag.measurement_scope import mask_measurement_complements
+    text=re.sub(r'\bwi[- ]fi\b','wifi',normalize(mask_measurement_complements(re.sub(r'\bnós\b','we',message,flags=re.I))))
     # Quantidades e passos operacionais não são nomes de país.
     text=re.sub(r'\b(?:cartao|card|cliente|customer)\s+(?:de|do|da|from|no|in)\s+\w+','',text)
-    if market.value!='BR' and unsupported_location(text):return None,message
+    if market.value!='BR' and unsupported_location(text, measurement_checked=True):return None,message
     return 'BR',message

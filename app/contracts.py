@@ -1,9 +1,13 @@
 """Contratos da orquestração G1; nenhuma identidade aqui autentica clientes."""
 from typing import Literal
 from app.response_notices import Notice
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from app.agentic_contracts import RunInfo
+from app.rag.grounding import GroundedClaim
+from pydantic import BaseModel, ConfigDict, Field, field_validator, PrivateAttr
 
 class Entrada(BaseModel):
+    # Server-only metadata, never accepted from JSON or serialized to a provider.
+    _principal: object = PrivateAttr(default=None)
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     message: str = Field(min_length=1, max_length=4000)
     user_id: str = Field(min_length=1, max_length=64, pattern=r"^[a-zA-Z0-9_-]+$")
@@ -14,6 +18,15 @@ class Entrada(BaseModel):
         if not value.strip():
             raise ValueError("Mensagem vazia")
         return value
+
+def bind_input(data, principal=None):
+    value=Entrada.model_validate(data)
+    if principal is not None:
+        from app.support import Principal
+        if not isinstance(principal,Principal) or value.user_id!=principal.subject:raise PermissionError('Identity mismatch')
+        value=value.model_copy()
+        value._principal=principal
+    return value
 
 class Plano(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
@@ -26,11 +39,13 @@ class ToolTrace(BaseModel):
     duracao_ms: float = Field(ge=0, allow_inf_nan=False)
 
 class RespostaEspecialista(BaseModel):
+    evidence_coverage: Literal['not_assessed', 'partial', 'supported'] | None = None
+    grounding: list[GroundedClaim] = Field(default_factory=list,max_length=20)
     presentation: list[str | Notice] = Field(default_factory=list, exclude=True)
     model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
     texto: str = Field(min_length=1, max_length=4000)
     status: Literal["simulado", "indisponivel", "evidencias", "sem_evidencia", "recusado", "limitado"] = "simulado"
-    limitation_code: Literal["web_disabled", "source_unavailable", "unknown_demo_identity"] | None = None
+    limitation_code: Literal["generation_unavailable", "source_insufficient", "answer_rejected_with_sufficient_source", "answer_rejected", "budget_exhausted", "web_disabled", "source_unavailable", "unknown_demo_identity", "tool_permission_denied", "tool_invalid_result", "tool_timeout", "tool_provider_failure"] | None = None
     fontes: list[str] = Field(default_factory=list, max_length=3)
     tool_traces: list[ToolTrace] = Field(default_factory=list, max_length=2)
     modo: Literal["demonstracao", "extrativo", "gerado", "pesquisa"] = "demonstracao"
@@ -49,6 +64,11 @@ class Evento(BaseModel):
     duracao_ms: float
 
 class Saida(BaseModel):
+    # Internal proposal metadata; confirmation tokens never enter the model.
+    demo_ticket_topic: Literal['conectividade','recebiveis','terminal'] | None = Field(default=None,exclude=True)
+    evidence_coverage: Literal['not_assessed', 'partial', 'supported'] | None = None
+    grounding: list[GroundedClaim] = Field(default_factory=list,max_length=30)
+    agentic: RunInfo | None = None
     presentation: list[str | Notice] = Field(default_factory=list, exclude=True)
     request_id: str
     route: Literal["knowledge", "support", "support_knowledge", "clarify"]

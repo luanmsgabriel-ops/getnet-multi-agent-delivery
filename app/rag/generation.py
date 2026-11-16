@@ -45,8 +45,8 @@ class PydanticGenerator:
         os.environ.setdefault('PYDANTIC_AI_NO_BANNER', '1')
         from pydantic_ai import Agent
         from pydantic_ai.models.test import TestModel
-        if not allow_network and not isinstance(model,TestModel):
-            raise ValueError('Modelo real exige habilitacao explicita e orcamento autorizado')
+        if not isinstance(model,TestModel):
+            raise ValueError('Legacy real generation disabled; use budgeted supervisor')
         from app.llm import model_without_sdk_retries
         self.agent=Agent(model_without_sdk_retries(model),output_type=SourceSelection,instructions=POLICY,retries=0)
     def generate(self,question,evidence):

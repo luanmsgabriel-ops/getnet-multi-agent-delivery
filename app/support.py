@@ -51,11 +51,13 @@ class RecebiveisResult(BaseModel):
     simulated: Literal[True]
     currency: Literal['BRL']
     total_centavos: int = Field(ge=0,le=1_000_000_000_000)
-    reference_date: date | None = None
-    schedule: list[SettlementRow] = Field(default_factory=list,max_length=20)
+    # This adapter returns a complete dated synthetic schedule, never an aggregate.
+    tenant: Literal['loja_ficticia_A','loja_ficticia_B']
+    reference_date: date
+    schedule: list[SettlementRow] = Field(max_length=20)
     @model_validator(mode='after')
     def consistent(self):
-        if self.schedule and (self.reference_date is None or sum(r.amount_centavos for r in self.schedule)!=self.total_centavos):
+        if sum(r.amount_centavos for r in self.schedule)!=self.total_centavos:
             raise ValueError('Agenda inconsistente')
         return self
 
@@ -81,11 +83,38 @@ class SyntheticTools:
         reference = self.today()  # Uma leitura por consulta, inclusive na virada do dia.
         if type(reference) is not date:
             raise ValueError('Data de simulacao invalida')
-        return {'simulated': True, 'currency': 'BRL', 'total_centavos': _RECEBIVEIS[self.principal.tenant], 'reference_date':reference,'schedule':[{'sale_date':reference+timedelta(days=sold),'expected_date':reference+timedelta(days=expected),'amount_centavos':amount} for sold,expected,amount in _SCHEDULE[self.principal.tenant]]}
+        return {'simulated': True, 'tenant': self.principal.tenant, 'currency': 'BRL', 'total_centavos': _RECEBIVEIS[self.principal.tenant], 'reference_date':reference,'schedule':[{'sale_date':reference+timedelta(days=sold),'expected_date':reference+timedelta(days=expected),'amount_centavos':amount} for sold,expected,amount in _SCHEDULE[self.principal.tenant]]}
     def consultar_terminal(self):
         self._authorize('terminal:read')
         terminal,status = _TERMINAIS[self.principal.tenant]
         return {'simulated': True, 'terminal_id': terminal, 'status': status}
+
+def read_support_tool(tools, principal, name):
+    """One read, server scope first, then strict schema and owner validation.
+
+    The tenant label catches adapter mix-ups; it is NOT authentication or
+    independent proof that a malicious provider returned the right account.
+    """
+    from app.tool_errors import ToolFailure, tool_failure
+    scopes={'consultar_recebiveis':'recebiveis:read','consultar_terminal':'terminal:read'}
+    try: bound_principal=tools.principal
+    except Exception: raise ToolFailure('tool_invalid_result') from None
+    if (name not in scopes or bound_principal != principal or
+        principal.tenant not in _TERMINAIS or scopes[name] not in principal.scopes):
+        raise ToolFailure('tool_permission_denied')
+    try:
+        raw=getattr(tools,name)()
+    except Exception as error:
+        raise tool_failure(error) from None
+    try:
+        schema=RecebiveisResult if name=='consultar_recebiveis' else TerminalResult
+        data=schema.model_validate(raw).model_dump()
+    except (ValueError,TypeError):
+        raise ToolFailure('tool_invalid_result') from None
+    owner_matches=(data['tenant']==principal.tenant if name=='consultar_recebiveis'
+                   else data['terminal_id']==_TERMINAIS[principal.tenant][0])
+    if not owner_matches: raise ToolFailure('tool_permission_denied')
+    return data
 
 def _receivable_period_lines(data, query):
     """Filtra somente a agenda sintética validada, no campo temporal pedido."""
@@ -142,6 +171,7 @@ class SupportSintetico:
         # Nenhuma consulta aceita conta/tenant/terminal informado pelo interlocutor.
         if any(word in text for word in ('outra conta','outro cliente','loja_ficticia_', 'demo-b', 'demo_b', 'troque o tenant')):
             return RespostaEspecialista(texto='Nao posso consultar dados de outra conta.',status='recusado')
+        from app.tool_errors import ToolFailure
         lines=[]
         response_status="simulado"
         traces=[]
@@ -149,11 +179,7 @@ class SupportSintetico:
             started=perf_counter()
             status='falha'
             try:
-                result=getattr(self.tools,name)()
-                schema=RecebiveisResult if name=='consultar_recebiveis' else TerminalResult
-                result=schema.model_validate(result).model_dump()
-                if name=='consultar_terminal' and result['terminal_id'] != _TERMINAIS[self.principal.tenant][0]:
-                    raise PermissionError('Resultado nao pertence ao contexto')
+                result=read_support_tool(self.tools,self.principal,name)
                 status='ok'
                 return result
             finally:
@@ -184,8 +210,13 @@ class SupportSintetico:
             if not decline and intent.terminal:
                 data=call('consultar_terminal')
                 lines.append(f"Terminal ficticio {data['terminal_id']}: {data['status']}.")
-        except PermissionError:
-            return RespostaEspecialista(texto='Consulta nao autorizada neste contexto.',status='recusado',tool_traces=traces)
+        except ToolFailure as error:
+            # Fail closed on permission errors. For a later independent failure,
+            # keep already validated facts, without marking the failed tool OK.
+            prior=lines if not error.blocked and any(t.status=='ok' for t in traces) else []
+            text=('SIMULACAO: dados sinteticos, sem acesso a conta real. '+' '.join(prior)+' ' if prior else '')+str(error)
+            return RespostaEspecialista(texto=text,status='recusado' if error.blocked else 'limitado' if prior else 'indisponivel',
+                limitation_code=error.code,tool_traces=traces)
         except Exception:
             return RespostaEspecialista(texto='Consulta indisponivel. Nenhuma operacao foi confirmada.',status='indisponivel',tool_traces=traces)
         if not lines:
@@ -200,8 +231,9 @@ class SupportCatalogoDemo:
     loja fictícia. Outros IDs nunca selecionam tenant nem executam ferramentas.
     SupportSintetico continua vinculado a um único Principal imutável.
     """
-    def __init__(self, *, today=None):
+    def __init__(self, *, today=None, allow_demo=None):
         self.today = today
+        self.allow_demo=allow_demo
         self._principals=MappingProxyType({
             'demo_A': DEMO_PRINCIPAL,
             'cliente1988': Principal('cliente1988', DEMO_PRINCIPAL.tenant, DEMO_PRINCIPAL.scopes),
@@ -213,7 +245,7 @@ class SupportCatalogoDemo:
         # Security denial is distinct from a missing demonstration identity.
         if any(word in text for word in ('outra conta','outro cliente','loja_ficticia_', 'demo-b', 'demo_b', 'troque o tenant')):
             return RespostaEspecialista(texto='Não posso consultar dados de outra conta.',status='recusado')
-        principal=self._principals.get(entrada.user_id)
+        principal=resolve_principal(entrada.user_id,entrada._principal,allow_demo=self.allow_demo)
         if principal is not None:
             return SupportSintetico(principal=principal, today=self.today).responder(entrada,contexto)
         from app.intents import public_technical_only
@@ -223,3 +255,14 @@ class SupportCatalogoDemo:
                 texto=TECHNICAL_LIMIT, presentation=[Notice('technical')],
                 status='simulado')
         return RespostaEspecialista(texto='Não tenho acesso à sua conta para consultar vendas ou recebimentos. Nenhuma consulta foi realizada. Confira a agenda de recebimentos no app Getnet Brasil ou Portal do Cliente; não consigo confirmar uma data de depósito real.',status='recusado',limitation_code='unknown_demo_identity')
+
+
+def resolve_principal(owner, principal=None, *, allow_demo=None):
+    """No privilege reconstruction when an authenticated binding is present or required."""
+    if principal is not None:
+        if not isinstance(principal,Principal) or principal.subject!=owner:raise PermissionError('Identity mismatch')
+        return principal
+    import os
+    if allow_demo is None:allow_demo=os.environ.get('GETNET_AUTH_MODE','required')=='demo'
+    if not allow_demo:return None
+    return SupportCatalogoDemo()._principals.get(owner)

@@ -25,7 +25,13 @@ ATTRIBUTES = {
 
 def requested_attributes(text):
     plain=normalize(text)
-    return tuple(name for name,pattern in ATTRIBUTES.items() if re.search(pattern,plain))
+    attributes=[name for name,pattern in ATTRIBUTES.items() if re.search(pattern,plain)]
+    # Conceito de antecipação não implica perguntar uma data de liquidação.
+    advance=bool(re.search(r'\b(?:antecipacao|antecipar|advance|advancement)\b',plain))
+    timing=bool(re.search(r'\b(?:quando|prazo|prazos|data|datas|dias|horas|when|how long|deadline|days|hours)\b|em quanto tempo',plain))
+    financial=bool(re.search(r'\b(?:receb\w*|deposit\w*|vendas?|sales|settlement|payments?|pagamentos?|dinheiro|money|link|cobranca|charges?)\b',plain))
+    if 'settlement' in attributes and ((advance and not timing) or not financial):attributes.remove('settlement')
+    return tuple(attributes)
 
 def financial_request(text):
     """Objeto financeiro + pergunta/consulta, sem transformar assunto solto em ação."""
@@ -65,6 +71,8 @@ def grounded_attribute_limit(question,candidates):
     if 'eligibility' in attrs and re.search(r'crediario',normalize(question)) and re.search(r'cartao|card',normalize(question)):
         if not re.search(r'cartao.{0,60}credito|credit card|cartao de credito',corpus):
             limits.append('O trecho sobre limite de parcelas não esclarece o requisito de cartão solicitado; confirme a elegibilidade no canal oficial antes de oferecer a venda.')
+    from app.rag.coverage import numeric_limits
+    limits.extend(numeric_limits(question,candidates))
     return tuple(limits)
 
 

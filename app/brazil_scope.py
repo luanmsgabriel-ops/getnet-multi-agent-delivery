@@ -32,7 +32,7 @@ class Market:
     value: str  # BR, OUT, UNKNOWN, NONE
     countries: tuple[str,...] = ()
 
-def market_of(message):
+def _routing_text(message):
     # Preserve the subject pronoun before accent folding: nós is not locative nos.
     text=normalize(re.sub(r'\bnós\b','we',message,flags=re.I))
     # A quotation/hypothesis is not a declaration of the establishment's location.
@@ -40,6 +40,11 @@ def market_of(message):
         text=re.sub(r"['\"][^'\"]*['\"]",'',text)
     # The nationality/location of a customer/card is not the establishment market.
     text=re.sub(r'\b(?:clientes?|customers?|cartoes|cartao|cards?|turistas?)\s+(?:(?:e|is|sao|are)\s+)?(?:estrangeiros?|internacionais?|foreign|international)\b',' cliente estrangeiro ',text)
+
+    return text
+
+def market_of(message):
+    text=_routing_text(message)
     ignored=[]
     for m in COUNTRIES.finditer(text):
         before=text[max(0,m.start()-55):m.start()]
@@ -72,8 +77,10 @@ def market_of(message):
     if GLOBAL_REQUEST.search(text) and not re.search(r'\b(?:cartao|cartoes|card|cards|cliente|customer|dcc|conversao|conversion)\b',text):
         return Market('OUT')
     from app.rag.scope import unsupported_location
-    geographic=re.sub(r'\bpesquise na web\s*:', '',text)
-    if unsupported_location(geographic) and (BUSINESS.search(geographic) or re.fullmatch(r'(?:em|no|na|in|at)\s+\w+',geographic)):return Market('UNKNOWN')
+    from app.rag.measurement_scope import mask_measurement_complements
+    # Explicit-country policy above always wins. A measurement is not a BR fact.
+    geographic=re.sub(r'\bpesquise na web\s*:', '',_routing_text(mask_measurement_complements(message)))
+    if unsupported_location(geographic, measurement_checked=True) and (BUSINESS.search(geographic) or re.fullmatch(r'(?:em|no|na|in|at)\s+\w+',geographic)):return Market('UNKNOWN')
     return Market('NONE')
 
 def clauses(message):

@@ -74,6 +74,26 @@ def propositions(message):
         result.append(Proposition(part, decline, modality, action, connectivity))
     return tuple(result)
 
+
+def conceptual_decline(message):
+    """A status mentioned in a definition is not a reported incident.
+
+    Strong conceptual markers only; a concrete owned/reported event wins.
+    This does not change tool permission or the meaning of an actual decline.
+    """
+    text=canonical(message)
+    if not DECLINE.search(text) or not PAYMENT.search(text):return False
+    concept=re.search(r'\b(?:significa|significado|definicao|conceito|diferenca|diferencas|distincao|'
+                      r'comparacao|compare|comparar|implica|equivale|sinonimo|'
+                      r'mean|means|meaning|definition|difference|implies|imply|equivalent|'
+                      r'o que e|what is|explique|explain)\b',text)
+    incident=re.search(r'\b(?:meu|minha|my|our)\b.{0,50}\b(?:cartao|pix|transacao|pagamento|'
+                       r'maquininha|terminal|transaction|payment|card)\b',text)
+    incident=incident or re.search(r'\b(?:recebi|aconteceu|ocorreu|apareceu|mostrou|recebeu|'
+                                  r'happened|received|showing|shows|rejected today|'
+                                  r'codigo de erro|error code)\b',text)
+    return bool(concept and not incident)
+
 def knowledge_tasks(message, *, support_answered=False):
     """Plano público limitado; cada tarefa é respondida ou recebe limitação.
 
@@ -130,7 +150,7 @@ def knowledge_tasks(message, *, support_answered=False):
         tasks.append(('action', 'Transfira valores.'))
     if facts.account_migration:
         tasks.append(('migration', 'Minha conta já foi migrada?'))
-    modalities = dict.fromkeys(p.modality for p in parts if p.decline)
+    modalities = dict.fromkeys(p.modality for p in parts if p.decline) if not conceptual_decline(message) else {}
     for modality in modalities:
         subject = {'pix':'Pix','card':'cartão',None:'transação'}[modality]
         code = f' Código {facts.error_code}.' if facts.error_code else ''

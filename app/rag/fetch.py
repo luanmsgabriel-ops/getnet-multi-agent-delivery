@@ -20,6 +20,8 @@ SOURCES = (
  'https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf',
  'https://site.getnet.com.br/wp-content/uploads/2026/06/getnet_12_06-26_Manul_GetClassica_V2.pdf',
  'https://site.getnet.com.br/duvidas/',
+ 'https://site.getnet.com.br/conversor-de-moedas-getnet-disponivel-agora-no-tef/',
+ 'https://site.getnet.com.br/quando-vale-a-pena-antecipar-as-suas-vendas-no-cartao/',
 )
 
 class PinnedHTTPS(http.client.HTTPSConnection):

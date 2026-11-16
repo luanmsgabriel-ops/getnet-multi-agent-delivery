@@ -28,15 +28,64 @@ class ServicePlan:
 def reply(text, *, source=None, status='limitado', limitation_code=None):
     return RespostaEspecialista(texto=str(text), presentation=list(text.parts) if isinstance(text,AnswerText) else [], status=status, limitation_code=limitation_code, fontes=[source] if source else [], modo='extrativo')
 
-# Artefato editorial versionado: a URL isolada não comprova fundamento.
-DCC_EVIDENCE_SHA256='09a43ba888ef92b284e08a8129a362c25d82f0bc53c0b666791dd9246fd8a409'
+# Snapshot literal reviewed independently from the historical editorial summary.
+DCC_EVIDENCE_SHA256='1cac981f9243b1c7a2ec2f8ea00ab212181c22b8d94e6f66ab611dee18fa30f7'
+DCC_SNAPSHOT='1e01cc91c615970f7402a475a8cca52dee9d1d080fc9e784c3c61c8e53dccfc7.json'
+
 def dcc_available():
     from pathlib import Path
     import hashlib
-    try:return hashlib.sha256(Path(__file__).with_name('dcc_source.json').read_bytes()).hexdigest()==DCC_EVIDENCE_SHA256
+    path=Path(__file__).resolve().parent.parent/'corpus_publico'/DCC_SNAPSHOT
+    try:return hashlib.sha256(path.read_bytes()).hexdigest()==DCC_EVIDENCE_SHA256
     except OSError:return False
 
-def currency_reply(message):
+
+def dcc_retrieved(message, *, general_context=False, local=None):
+    """Normal local retrieval, never a product answer embedded in policy code."""
+    if getattr(local,'documentary',False):
+        # Reuse the configured adapter and exact predicate; no hidden fallback.
+        from app.contracts import Entrada
+        return local._single(Entrada(message=message,user_id='public_query'),())
+    from pathlib import Path
+    from app.rag.core import Index,load_snapshot
+    from app.rag.fetch import SOURCES
+    from app.knowledge import KnowledgeRag
+    from app.contracts import Entrada
+    path=Path(__file__).resolve().parent.parent/'corpus_publico'/DCC_SNAPSHOT
+    try:
+        document=load_snapshot(path,SOURCES)
+        # Acronym expansion changes query vocabulary, not the requested predicate.
+        query=re.sub(r'\bdcc\b','Conversor de Moedas',message,flags=re.I)
+        index=Index([document])
+        local=KnowledgeRag(index,reviewed_presentations=False)
+        result=local._single(Entrada(message=query,user_id='public_query'),())
+        # A particular card is never verified by a public article. If its long
+        # individual wording cannot retrieve, show separately labelled general
+        # context, retaining limited status instead of claiming that card works.
+        if general_context and not result.fontes:
+            result=local._single(Entrada(message='Conversor de Moedas Getnet',user_id='public_query'),())
+            if result.fontes:result=result.model_copy(update={'status':'limitado'})
+        if not result.fontes:return result
+        from app.rag.core import evidence_text
+        from app.rag.grounding import literal_claims,retained_claims
+        from app.rag.quality import relevant_candidates
+        # One complete complementary block, chosen from ranked retrieval, not
+        # a canned answer. General product context is labelled, never promoted
+        # to confirmation of an unsupported predicate or individual condition.
+        rows=relevant_candidates('Conversor de Moedas Getnet',index.search('Conversor de Moedas Getnet')['candidates'])
+        extra=next((c for c in rows if c['text'] not in result.texto),None)
+        if extra is not None:
+            addition='\n\nContexto geral complementar da fonte; não confirma condição individual:\n'+evidence_text(extra)+'\nFonte: '+extra['source']+'\nCaptura: '+extra['captured_at']
+            if len(result.texto+addition)<=3500:
+                text=result.texto+addition
+                result=result.model_copy(update={'texto':text,'presentation':[],
+                    'grounding':retained_claims([*result.grounding,*literal_claims([extra])],text,result.fontes)})
+        return result
+    except (OSError,ValueError,KeyError):
+        return reply('Não consegui recuperar a fonte literal de conversão nesta execução; não confirmei as condições.',status='sem_evidencia')
+
+
+def currency_reply(message, *, local=None, defer_retrieval=False):
     text = normalize(message)
     foreign_card_brl=bool(re.search(r'\b(?:cartao|card)\b',text) and re.search(r'\b(?:emitido|issued|estrangeiro|international|internacional)\b',text) and re.search(r'\b(?:reais|brl)\b',text) and re.search(r'\b(?:cobrar|pagar|charge|pay)\b',text))
     if not CURRENCY.search(text) and not foreign_card_brl:
@@ -50,11 +99,19 @@ def currency_reply(message):
         market=market_of(message)
         if market.value=='OUT':return reply(REDIRECT)
         if market.value=='UNKNOWN':return reply(CLARIFY_BR)
+        if defer_retrieval and getattr(local,'documentary',False):return None
         qualification=('Não consigo confirmar a aceitação nem a moeda de cobrança desse cartão específico com a evidência disponível. A informação revisada abaixo é sobre DCC; não garante aprovação da venda. ' if foreign_card_brl else '')
-        return reply(qualification+'No Brasil, o Conversor de Moedas Getnet (DCC) permite que clientes com cartões internacionais elegíveis Visa e Mastercard, em débito ou crédito à vista, escolham pagar na moeda de origem. A taxa é apresentada na operação antes da confirmação; o estabelecimento recebe em reais, conforme as condições contratadas. No TEF, consulte a disponibilidade com sua tefhouse. Não forneço cotação ou cálculo de conversão; uma referência externa não é a taxa da sua transação. Fonte oficial: '+DCC_SOURCE, source=DCC_SOURCE, status='evidencias')
+        result=dcc_retrieved(message,general_context=foreign_card_brl,local=local)
+        if result.status=='sem_evidencia' and re.search(r'\b(?:margem|spread|percentual|percentage|markup)\b',text):
+            qualification+='Não confirmei a taxa, margem ou percentual de conversão solicitado nas fontes recuperadas; nenhum valor foi inferido. '
+        notice='No Brasil, a fonte pública não confirma condições, elegibilidade ou aprovação de uma venda individual. Nenhuma cotação ou operação foi executada. '
+        updates={'texto':qualification+notice+result.texto,'presentation':[]}
+        if foreign_card_brl and getattr(local,'documentary',False) and result.fontes:
+            updates.update(status='limitado',evidence_coverage='partial')
+        return result.model_copy(update=updates)
     return reply(CLARIFY)
 
-def service_plan(message, *, state=None):
+def service_plan(message, *, state=None, local=None):
     """Particiona obrigações de atendimento antes de consultar fontes ou ferramentas."""
     from app.knowledge import KnowledgeRag
     from app.brazil_scope import scoped_parts, market_of, BUSINESS, CONTINUATION, OUTSIDE
@@ -63,6 +120,10 @@ def service_plan(message, *, state=None):
         return ServicePlan('',(reply('Para consultar as fontes, envie uma pergunta com ate 2000 caracteres. Sua entrada nao foi truncada.'),))
     if KnowledgeRag._suspicious(message):
         return ServicePlan('',(reply('Não sigo instruções para alterar regras ou revelar credenciais. Posso ajudar com produtos, serviços e suporte da Getnet Brasil.',status='recusado'),))
+    if state is not None:
+        from app.context_reference import reference_clarification
+        missing=reference_clarification(message,state)
+        if missing:return ServicePlan('',(reply(missing),))
     # Never strip a sensitive clause to make an explicit search eligible.
     if re.search(r'\bpesquise na web\s*:',message,re.I):
         from app.rag.web_search import validate_query
@@ -94,7 +155,7 @@ def service_plan(message, *, state=None):
             replies.append(reply('Posso continuar com o atendimento Getnet Brasil, mas os detalhes do problema não foram recuperados. Qual problema esse aparelho apresenta?'));continue
         if not (state and state.get('devices')) and re.search(r'\b(?:qual|what|which|record\w*|lembr\w*)\b',plain) and re.search(r'\b(?:informei|relatei|disse|told|reported|registrad\w*|recorded)\b',plain) and CONTINUATION.search(plain):
             replies.append(reply('Não tenho esses relatos recuperados neste atendimento. Qual aparelho e problema da Getnet Brasil você quer retomar?'));continue
-        currency=currency_reply(part)
+        currency=currency_reply(part,local=local,defer_retrieval=bool(getattr(local,'documentary',False)))
         if currency:
             replies.append(currency);continue
         financial=financial_request(part)

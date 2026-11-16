@@ -1,13 +1,18 @@
 """Candidata enxuta: contexto separado do plano de atendimento e do núcleo existente."""
 from pathlib import Path
 from copy import deepcopy
+from contextvars import ContextVar
+from app.rag.grounding import retained_claims,aggregate_coverage
+_GROUNDING=ContextVar("retrieved_grounding",default=None)
+_COVERAGE=ContextVar("retrieved_coverage",default=None)
 from datetime import date
 import hashlib,json,re,time,os
-from app.context_state import apply_turn,summary,clean_message,norm,CONTROL
-from app.context_store import Store,Conflict
+from app.context_state import apply_turn,summary,clean_message,norm,CONTROL,display_label
+from app.context_store import Store,Conflict,Capacity,Unavailable
 from app.context_contract import Turn
 from app.response_notices import Notice, compose_notices, response_parts
-from app.contracts import Entrada
+from app.contracts import Entrada,bind_input
+from app.access_store import AccessError
 from app.knowledge import KnowledgeRag,KnowledgeDispatch
 from app.orchestration import Orquestrador
 from app.support import SupportCatalogoDemo, simulation_date
@@ -47,20 +52,21 @@ class ContextService:
     def reset(self,principal,session):self.store.reset(principal,session)
     def public(self,dados):
         entrada=Entrada.model_validate(dados);message=entrada.message;principal=entrada.user_id
+        if getattr(self,'require_principal',False) and entrada._principal is None:raise PermissionError('Missing server identity')
         safe,redacted=clean_message(message)
         from app.service_policy import service_plan
-        policy=service_plan(safe)
+        policy=service_plan(safe,local=self.local)
         # Orchestrator handles policy replies; fallback must never reintroduce excluded clauses.
         scoped=policy.message
-        result=self.core.executar({'message':safe[:4000],'user_id':principal})
+        result=self.core.executar(entrada.model_copy(update={'message':safe[:4000]}))
         from app.intents import request_facts
         facts=request_facts(scoped)
         from app.rag.scope import retrieval_plan
         market,_=retrieval_plan(scoped) if scoped else (None,scoped)
         # Technical instructions do not require a registered synthetic account.
         if scoped and market=='BR' and not policy.replies and result.status in ('recusado','limitado') and not result.sources and not facts.unsupported_action and (facts.connectivity or facts.decline) and not re.search(r'saldo|recebiveis|outra conta|outro cliente',norm(message)) and not CONTROL.search(message):
-            public=self.local.responder(Entrada(message=safe,user_id=principal),())
-            result=result.model_copy(update={'answer':public.texto,'sources':public.fontes,'status':public.status})
+            public=self.local.responder(entrada.model_copy(update={'message':safe}),())
+            result=result.model_copy(update={'answer':public.texto,'sources':public.fontes,'status':public.status,'evidence_coverage':public.evidence_coverage,'grounding':public.grounding})
         allowed_link=LINK
         if facts.fee and facts.entities==frozenset({'link'}) and any(source!=allowed_link for source in result.sources):
             result=result.model_copy(update={'answer':'Não tenho evidência pertinente suficiente para confirmar a taxa do Link aplicável à sua conta. Não consultei sua conta nem contratei serviços.','sources':[],'status':'sem_evidencia'})
@@ -75,8 +81,13 @@ class ContextService:
             answer=compose_notices(*parts)
             result=result.model_copy(update={'answer':str(answer),'presentation':list(answer.parts)})
         return result
-    def _core(self,message,principal):
-        result=self.public({'message':message,'user_id':principal})
+    def _core(self,message,principal,access_principal=None):
+        if getattr(self,"require_principal",False) and access_principal is None:raise PermissionError("Missing server identity")
+        result=self.public(bind_input({'message':message,'user_id':principal},access_principal))
+        collector=_GROUNDING.get()
+        if collector is not None:collector.extend(result.grounding)
+        coverage=_COVERAGE.get()
+        if coverage is not None:coverage.append(result)
         return compose_notices(*response_parts(result)),result.sources,[e.model_dump() for e in result.eventos]
     def _fact(self,state,ref,field,subject='device'):
         active=state.get('active_incidents',{}).get(ref+'|'+subject) or (state.get('active_incidents',{}).get(ref) if subject=='device' else None)
@@ -121,7 +132,7 @@ class ContextService:
                 return text,[WIFI,CLASSICA]
             text+=' Não recuperei o manual da edição da Clássica para confirmar detalhes específicos desse modelo.'
         return text,[WIFI]
-    def _plan(self,state,message,principal):
+    def _plan(self,state,message,principal,access_principal=None):
         lines=[];sources=[];traces=[]
         requests=state['requests']
         for task in requests:
@@ -192,12 +203,12 @@ class ContextService:
                 if norm(country) not in ('brasil','brazil','br'):
                     lines.append(f'A fonte disponível descreve a conversão de venda Getnet no Brasil. Não tenho fonte pertinente para confirmar que a mesma regra se aplica em {country}; não vou transferir condições brasileiras para esse mercado.');sources.append(DCC_SOURCE)
                 else:
-                    text,src,tr=self._core('Como funciona o DCC em uma venda Getnet no Brasil?',principal);lines.append(text);sources+=src;traces+=tr
+                    text,src,tr=self._core(task['quote'] if getattr(self.local,'documentary',False) else 'Como funciona o DCC em uma venda Getnet no Brasil?',principal,**({'access_principal':access_principal} if access_principal is not None else {}));lines.append(text);sources+=src;traces+=tr
                 continue
             if topic=='connectivity' and refs and kind in ('next_step','information'):
                 for ref in refs:
                     text,src=self._wifi(state,ref)
-                    label=state['devices'][ref]['label']
+                    label=display_label(state,ref)
                     generic=re.fullmatch(r'(?:(?:minha|meu|a|o)\s+)?(?:maquininha|terminal|aparelho)(?:\s+getnet)?',norm(label).strip())
                     prefix='' if len(state['devices'])==1 and generic else label+': '
                     lines.append(prefix+text);sources+=src
@@ -219,7 +230,7 @@ class ContextService:
                 query='Consulte minhas vendas de '+task['quote']
             if norm(country) not in ('brasil','brazil','br'):
                 query+=' no '+country
-            text,src,tr=self._core(query,principal);lines.append(text);sources+=src;traces+=tr
+            text,src,tr=self._core(query,principal,**({"access_principal":access_principal} if access_principal is not None else {}));lines.append(text);sources+=src;traces+=tr
             if norm(country) not in ('brasil','brazil','br') and not src:
                 lines.append(f'Não confirmei uma orientação aplicável a {country}. Conteúdo brasileiro não comprova procedimentos, taxas ou condições desse mercado; preciso de uma fonte pertinente ao país para confirmar.')
         if state['pending']:
@@ -231,23 +242,55 @@ class ContextService:
             if any(x['reason']=='entity_ambiguous' for x in state['pending']) and not (sources and not state['devices']):
                 lines.append('Mantive sem atribuir a aparelho: '+', '.join(LABELS[x] for x in fields)+'. A qual aparelho se refere essa informação?')
         return compose_notices(*dict.fromkeys(lines)),list(dict.fromkeys(sources)),traces
-    def step(self,principal,session,message,documents=(),*,today=None,proposal=None):
-        start=time.perf_counter();version,before=self.store.read(principal,session)
+    def step(self,principal,session,message,documents=(),*,today=None,proposal=None,access_principal=None,authorize_write=None):
+        collector=[];token=_GROUNDING.set(collector)
+        coverage=[];coverage_token=_COVERAGE.set(coverage)
+        try:
+            result=self._step(principal,session,message,documents,today=today,proposal=proposal,access_principal=access_principal,authorize_write=authorize_write)
+            result['grounding']=[c.model_dump() for c in retained_claims(collector,result['answer'],result['sources'])]
+            result['grounding_scope']='retrieved_claims_only'
+            result['evidence_coverage']=aggregate_coverage(coverage)
+            return result
+        finally:
+            _GROUNDING.reset(token)
+            _COVERAGE.reset(coverage_token)
+    def _step(self,principal,session,message,documents=(),*,today=None,proposal=None,access_principal=None,authorize_write=None):
+        if getattr(self,"require_principal",False) and access_principal is None:raise PermissionError("Missing server identity")
+        def commit(state):
+            nonlocal expected
+            if authorize_write:authorize_write()
+            self.store.commit(principal,session,expected,state)
+            expected+=1
+        def checked(result):
+            if hasattr(self.store,"assert_version"):self.store.assert_version(principal,session,expected)
+            return result
+        start=time.perf_counter();version,before=self.store.read(principal,session);expected=version
         original_before=deepcopy(before)
         safe,redacted=clean_message(message)
+        from app.context_reference import reference_clarification
+        missing=reference_clarification(safe,before)
+        if missing:
+            return checked({'answer':DISCLOSURE+'\n\n'+missing,'sources':[],'mode':'reference_clarification','state':before,'validation':{},'traces':[],'seconds':time.perf_counter()-start,'documents_received':len(documents),'external_documents_actionable':False})
+        from app.context_reference import dependent_reference,DEGRADED_REFERENCE
+        if proposal is None and self.interpreter is None and dependent_reference(safe):
+            return checked({'answer':DISCLOSURE+'\n\n'+DEGRADED_REFERENCE,'sources':[],'mode':'reference_degraded','state':before,'validation':{},'traces':[],'seconds':time.perf_counter()-start,'documents_received':len(documents),'external_documents_actionable':False})
         from app.service_policy import service_plan
         from app.brazil_scope import scoped_parts, market_of, remember_boundary
-        policy=service_plan(safe,state=before)
+        policy=service_plan(safe,state=before,local=self.local)
+        collector=_GROUNDING.get()
+        if collector is not None:collector.extend(c for r in policy.replies for c in r.grounding)
+        coverage=_COVERAGE.get()
+        if coverage is not None:coverage.extend(policy.replies)
         restricted=before
         for part,_ in scoped_parts(safe,state=before):
             market=market_of(part)
             if market.value!='NONE':restricted=remember_boundary(restricted,part,market.value,allow_global=not bool(policy.message) or not policy.replies)
         if not policy.message:
-            self.store.commit(principal,session,version,restricted)
+            commit(restricted)
             answer=compose_notices(*(p for r in policy.replies for p in response_parts(r)),credentials=redacted)
-            return {'answer':DISCLOSURE+'\n\n'+answer,'sources':list(dict.fromkeys(source for r in policy.replies for source in r.fontes)), 'mode':'scope_policy',
+            return checked({'answer':DISCLOSURE+'\n\n'+answer,'sources':list(dict.fromkeys(source for r in policy.replies for source in r.fontes)), 'mode':'scope_policy',
                     'state':restricted,'validation':{},'traces':[],'seconds':time.perf_counter()-start,
-                    'documents_received':len(documents),'external_documents_actionable':False}
+                    'documents_received':len(documents),'external_documents_actionable':False})
         safe=policy.message
         before=restricted
         # Attachments never enter interpreter or memory. Only server-reviewed evidence serves answers.
@@ -256,10 +299,10 @@ class ContextService:
                 if self.interpreter is None:raise RuntimeError('No semantic interpreter configured')
                 proposal=self.interpreter.interpret(safe,before,str(today or simulation_date()))
             after,validation=apply_turn(before,proposal,safe,review=getattr(self.interpreter,'last_review',None) if self.interpreter else None)
-            answer,sources,traces=self._plan(after,safe,principal)
+            answer,sources,traces=self._plan(after,safe,principal,access_principal)
             # A intenção é memória útil; texto de comando do turno não é memória futura.
             after['requests']=[{**task,'quote':''} for task in after['requests']]
-            self.store.commit(principal,session,version,after)
+            commit(after)
             corrections=[e for e in after['events'][len(before['events']):] if e['kind']=='device' and e['data'].get('before')]
             if corrections:answer=compose_notices('Vínculos corrigidos: '+', '.join(e['data']['after']['label']+' — '+e['data']['after']['store'] for e in corrections)+'.',answer)
             changed_certainty=[e for e in after['events'][len(before['events']):] if e['kind']=='uncertain' or (e['kind']=='fact' and e['data'].get('before') and e['data']['after']['status'] in ('unknown','uncertain','retracted'))]
@@ -272,9 +315,12 @@ class ContextService:
                     updates.append(label+' não confirmado'+('; a confirmação anterior foi retirada' if confirmed else '; permaneceu sem confirmação direta'))
                 answer=compose_notices('Atualizei a certeza dos relatos: '+', '.join(dict.fromkeys(updates))+'. Os demais relatos permanecem conforme registrados.',answer)
             mode='semantic_interpretation_reviewed_response'
-        except (PermissionError,Conflict):raise
+        except (PermissionError,Conflict,Capacity,Unavailable,AccessError):raise
         except Exception as exc:
             # Preserve state; answer self-contained public questions from the existing core.
+            from app.context_reference import dependent_reference,DEGRADED_REFERENCE
+            if dependent_reference(safe):
+                return checked({'answer':DISCLOSURE+'\n\n'+DEGRADED_REFERENCE,'sources':[],'mode':'reference_degraded','state':original_before,'validation':{'error':type(exc).__name__},'traces':[],'seconds':time.perf_counter()-start,'documents_received':len(documents),'external_documents_actionable':False})
             fallback=safe
             # A source/model failure never resets the previous market to Brazil.
             from app.rag.scope import FOREIGN
@@ -292,13 +338,13 @@ class ContextService:
                     else:fallback=None
             if fallback is None:
                 answer='O país aplicável ficou sem confirmação. Em qual país está o aparelho ou serviço?';sources=[];traces=[]
-            else:answer,sources,traces=self._core(fallback,principal)
+            else:answer,sources,traces=self._core(fallback,principal,**({"access_principal":access_principal} if access_principal is not None else {}))
             after=before;validation={'error':type(exc).__name__};mode='fallback_extractive'
-            if after!=original_before:self.store.commit(principal,session,version,after)
+            if after!=original_before:commit(after)
             answer=compose_notices('Não consegui atualizar o contexto nesta tentativa.',answer)
         if policy.replies:
             answer=compose_notices(answer,*(p for r in policy.replies for p in response_parts(r)))
             sources=list(dict.fromkeys(sources+[source for r in policy.replies for source in r.fontes]))
         credential=redacted or bool(re.search(r'senha|password|autenticacao|otp|codigo sms',norm(message)))
         answer=compose_notices(answer,credentials=credential)
-        return {'answer':DISCLOSURE+'\n\n'+answer,'sources':sources,'mode':mode,'state':after,'validation':validation,'traces':traces,'seconds':time.perf_counter()-start,'documents_received':len(documents),'external_documents_actionable':False}
+        return checked({'answer':DISCLOSURE+'\n\n'+answer,'sources':sources,'mode':mode,'state':after,'validation':validation,'traces':traces,'seconds':time.perf_counter()-start,'documents_received':len(documents),'external_documents_actionable':False})

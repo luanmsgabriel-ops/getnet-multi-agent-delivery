@@ -181,13 +181,19 @@ def load_snapshot(path, allowed_urls):
     payload = json.dumps(data, ensure_ascii=False, sort_keys=True).encode('utf-8')
     if sha256(payload).hexdigest() != envelope['sha256']: raise ValueError('Integridade divergente')
     required = {'version','requested_url','final_url','captured_at','raw_sha256','title','chunks','market','reviewed'}
-    if set(data) != required or type(data['version']) is not int or data['version'] != 1: raise ValueError('Schema invalido')
+    version=data.get('version')
+    if type(version) is not int or version not in (1,2): raise ValueError('Schema invalido')
+    if version == 2: required.add('chunk_titles')
+    if set(data) != required: raise ValueError('Schema invalido')
     if data['requested_url'] not in allowed_urls or data['final_url'] not in allowed_urls:
         raise ValueError('Origem nao aprovada')
     if not isinstance(data['title'], str) or not 1 <= len(data['title']) <= 500: raise ValueError('Titulo invalido')
     if not isinstance(data['chunks'],list) or not data['chunks'] or len(data['chunks']) > MAX_CHUNKS:
         raise ValueError('Fragmentos invalidos')
     if any(not isinstance(c,str) or not 1 <= len(c) <= 1200 for c in data['chunks']): raise ValueError('Fragmento invalido')
+    if version == 2 and (not isinstance(data['chunk_titles'],list) or len(data['chunk_titles']) != len(data['chunks'])
+                         or any(not isinstance(t,str) or not 1 <= len(t) <= 500 for t in data['chunk_titles'])):
+        raise ValueError('Titulos de fragmentos invalidos')
     if not isinstance(data['raw_sha256'],str) or not re.fullmatch(r'[0-9a-f]{64}',data['raw_sha256']): raise ValueError('Hash invalido')
     date = datetime.fromisoformat(data['captured_at'])
     if date.tzinfo is None or date > datetime.now(timezone.utc): raise ValueError('Captura invalida')
@@ -196,7 +202,9 @@ def load_snapshot(path, allowed_urls):
 
 
 class Index:
-    def __init__(self, documents):
+    def __init__(self, documents, *, ranker='idf'):
+        if ranker not in ('idf', 'idf_scope', 'bm25', 'hybrid'): raise ValueError('Ranker invalido')
+        self.ranker = ranker
         if len(documents) > 100: raise ValueError('Corpus excessivo')
         self.entries, total = [], 0
         seen = set()
@@ -207,14 +215,23 @@ class Index:
             if not doc['reviewed']: raise ValueError('Fonte precisa de revisao explicita')
             expected_market = document_market(doc['final_url'])
             if doc['market'] != expected_market: raise ValueError('Mercado incoerente com origem')
-            fingerprint = (doc['final_url'], tuple(doc['chunks']))
+            fingerprint = (doc['final_url'], tuple(doc['chunks']), tuple(doc.get('chunk_titles',[])))
             if fingerprint in fingerprints: continue
             fingerprints.add(fingerprint)
+            if doc.get('version',1)==2:
+                titles=doc.get('chunk_titles')
+                if not isinstance(titles,list) or len(titles)!=len(doc['chunks']) or any(not isinstance(t,str) or not 1<=len(t)<=500 for t in titles):
+                    raise ValueError('Titulos de fragmentos invalidos')
+            else: titles=[doc['title']]*len(doc['chunks'])
             for i, text in enumerate(doc['chunks']):
-                total += len(text)+len(doc['title'])
+                title=titles[i]
+                total += len(text)+len(title)
                 if total > MAX_CORPUS_CHARS or len(self.entries) >= MAX_CHUNKS: raise ValueError('Orcamento corpus excedido')
-                self.entries.append(dict(text=text, source=doc['final_url'], title=doc['title'],
-                                         captured_at=doc['captured_at'], market=doc['market'], ordinal=i))
+                self.entries.append(dict(text=text, source=doc['final_url'], title=title,
+                                         captured_at=doc['captured_at'], market=doc['market'], ordinal=i,
+                                         raw_sha256=doc.get('raw_sha256'), reviewed=doc['reviewed'],
+                                         text_sha256=sha256(text.encode('utf-8')).hexdigest(),
+                                         evidence_id=sha256((doc['final_url']+'\n'+title+'\n'+str(i)+'\n'+text).encode('utf-8')).hexdigest()))
         self.terms = []
         for entry in self.entries:
             terms_ = tokens(entry['title']+' '+entry['text'])
@@ -227,17 +244,24 @@ class Index:
             self.terms.append(terms_)
         counts = Counter(t for terms_ in self.terms for t in terms_)
         self.idf = {t:math.log(1+len(self.terms)/(1+n)) for t,n in counts.items()}
+        from .ranking import BM25
+        self.bm25 = BM25(self.entries) if ranker == 'bm25' else None
+        self._known = {(e['source'],e['title'],e['text'],e['ordinal']):e for e in self.entries}
+        from .ranking import Hybrid
+        self.hybrid = Hybrid(self.entries) if ranker == 'hybrid' else None
 
     def search(self, query, *, market='BR'):
         if not isinstance(query,str) or not 1 <= len(query) <= MAX_QUERY or not query.strip(): raise ValueError('Consulta 1-2000 caracteres nao vazios')
         if market not in ('BR','GLOBAL'): raise ValueError('Mercado invalido')
         if not self.entries: return dict(status='unavailable', candidates=[])
         if not any(e['market']==market for e in self.entries): return dict(status='insufficient_evidence', candidates=[])
+        if self.ranker == 'hybrid':return self.rerank(query,self.entries,market=market)
         q, ranked = query_tokens(query), []
         anchors = subject_tokens(query)
-        from .quality import predicate_supported
-        for entry, terms_ in zip(self.entries,self.terms):
+        from .quality import predicate_supported, product_scope_conflict
+        for number, (entry, terms_) in enumerate(zip(self.entries,self.terms)):
             if entry['market'] != market: continue
+            if self.ranker != 'idf' and product_scope_conflict(query, entry): continue
             code = re.search(r'ADQ\s+(\d+)[- ](\d+)', entry['title'], re.I)
             if code and not {'adq',code[1],code[2]}.issubset(q): continue
             overlap = q & terms_
@@ -249,9 +273,33 @@ class Index:
             body_terms = query_tokens(entry['text'])
             topic_in_body = not news or not anchors or len(anchors & body_terms)/len(anchors) >= 0.5
             if q and coverage >= 0.5 and topic_in_body and years <= terms_ and predicate_supported(query, entry):
-                ranked.append((sum(self.idf[t] for t in sorted(overlap)),entry))
+                score = (self.bm25.score(number, q) if self.ranker == 'bm25'
+                         else sum(self.idf[t] for t in sorted(overlap)))
+                ranked.append((score,entry,coverage))
         ranked.sort(key=lambda item:(-item[0],item[1]['source'],item[1]['ordinal']))
-        return dict(status='candidates' if ranked else 'insufficient_evidence', candidates=[e for _,e in ranked[:3]])
+        return dict(status='candidates' if ranked else 'insufficient_evidence', candidates=[dict(e, retrieval={'ranker':self.ranker,'score':round(score,8),'coverage':round(coverage,8)})
+                                                                                              for score,e,coverage in ranked[:3]])
+
+    def rerank(self, query, candidates, *, market='BR', limit=3):
+        """One rerank of literal/canonical union; never promotes external rows.
+
+        Returns search's contract. Scores express lexical relevance, not factual
+        entailment. Full original chunks and their scoped titles stay together.
+        """
+        if not isinstance(query,str) or not query.strip() or len(query)>MAX_QUERY:raise ValueError('Consulta invalida')
+        if market not in ('BR','GLOBAL') or type(limit) is not int or not 1<=limit<=3:raise ValueError('Limite invalido')
+        if not isinstance(candidates,list) or len(candidates)>MAX_CHUNKS:raise ValueError('Candidatos invalidos')
+        from .ranking import Hybrid
+        engine=self.hybrid or Hybrid(self.entries)
+        known=[];seen=set()
+        for row in candidates:
+            if not isinstance(row,dict):continue
+            key=(row.get('source'),row.get('title'),row.get('text'),row.get('ordinal'))
+            if not all(isinstance(v,str) for v in key[:3]) or type(key[3]) is not int:continue
+            if key in self._known and key not in seen:
+                known.append(self._known[key]);seen.add(key)
+        ranked=engine.rank(query,known,market=market,limit=limit)
+        return {'status':'candidates' if ranked else ('unavailable' if not self.entries else 'insufficient_evidence'),'candidates':ranked}
 
     def answer_extractive(self, query, *, market='BR'):
         """Baseline sem LLM: evidencia citada, nao simula compreensao/verificacao factual."""

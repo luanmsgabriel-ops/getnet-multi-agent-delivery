@@ -11,7 +11,9 @@ def strict_schema(value):
     if result.get('type')=='object':result.update(required=list(result.get('properties',{})),additionalProperties=False)
     return result
 class ModelClient:
-    def __init__(self,ledger,api_key,prices,*,model='openai/gpt-6-luna',max_calls=50,max_cost='0.25',max_output=2500):
+    def __init__(self,ledger,api_key,prices,*,model='openai/gpt-6-luna',max_calls=50,max_cost='0.25',max_output=2500,transport=None):
+        if not isinstance(transport,httpx.MockTransport):raise ValueError('Legacy real context model disabled; use budgeted supervisor')
+        self.transport=transport
         self.path=Path(ledger);self.api_key=api_key;self.model=model;self.prices=prices;self.max_calls=max_calls;self.max_cost=Decimal(max_cost);self.max_output=max_output
     def complete(self,system,payload,schema):
         self.path.parent.mkdir(parents=True,exist_ok=True)
@@ -36,7 +38,7 @@ class ModelClient:
             tmp=self.path.with_suffix('.tmp');tmp.write_text(json.dumps(ledger,ensure_ascii=False,indent=2),encoding='utf-8');os.replace(tmp,self.path)
         save();start=time.perf_counter()
         try:
-            with httpx.Client(timeout=60,transport=httpx.HTTPTransport(retries=0)) as client:
+            with httpx.Client(timeout=60,transport=self.transport,trust_env=False,follow_redirects=False) as client:
                 res=client.post('https://openrouter.ai/api/v1/chat/completions',headers={'Authorization':'Bearer '+self.api_key,'Content-Type':'application/json'},content=encoded)
             row['http_status']=res.status_code
             if res.status_code!=200:raise RuntimeError('Provider HTTP failure; no response body logged')

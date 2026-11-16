@@ -12,8 +12,10 @@ class KnowledgeDemo:
 
 class KnowledgeRag:
     """Adaptador opt-in: recuperacao extrativa publica, sem LLM/rede no atendimento."""
-    def __init__(self, index):
+    def __init__(self, index, *, reviewed_presentations=True, synthesizer=None):
         self.index = index
+        self.reviewed_presentations = reviewed_presentations
+        self.synthesizer = synthesizer
 
     def _retrieve(self, message):
         from app.rag.scope import retrieval_plan
@@ -23,11 +25,16 @@ class KnowledgeRag:
             return {'status':'insufficient_evidence','candidates':[]}
         if market == 'BR':
             from app.rag.planning import retrieve_brazil
-            return retrieve_brazil(self.index, message)
+            planned=retrieve_brazil(self.index, message, preserve_question=not self.reviewed_presentations)
+            if self.reviewed_presentations:return planned
+            # Literal wording and legacy expansion complement one another.
+            # Rank once against the original question, never its rewritten facts.
+            literal=self.index.search(message,market='BR')
+            return self.index.rerank(message,literal['candidates']+planned['candidates'],market='BR')
         return {'status':'insufficient_evidence','candidates':[]}
 
     @classmethod
-    def from_directory(cls, directory):
+    def from_directory(cls, directory, *, reviewed_presentations=True, synthesizer=None):
         from pathlib import Path
         from app.rag.core import Index, load_snapshot
         from app.rag.fetch import SOURCES
@@ -35,7 +42,15 @@ class KnowledgeRag:
         files = sorted(Path(directory).glob('*.json'))
         if len(files) > 100:
             raise ValueError('Corpus acima do limite')
-        return cls(Index([load_snapshot(path, SOURCES) for path in files]))
+        documents=[load_snapshot(path,SOURCES) for path in files]
+        if reviewed_presentations:
+            # Legacy presentations are bound to the original reviewed pages.
+            # Additional schema-2 pages belong to the canonical evidence flow,
+            # not an implicit expansion of the old editorial proof boundary.
+            documents=[dict(doc,version=1,chunks=[text for title,text in zip(doc['chunk_titles'],doc['chunks']) if title==doc['title']])
+                       if doc.get('version')==2 else doc for doc in documents]
+        return cls(Index(documents,ranker='idf' if reviewed_presentations else 'hybrid'),
+                   reviewed_presentations=reviewed_presentations, synthesizer=synthesizer)
 
     @staticmethod
     def _suspicious(text):
@@ -77,7 +92,7 @@ class KnowledgeRag:
                 scoped_query=query
                 r=KnowledgeRag._single(self,Entrada(message=scoped_query,user_id=entrada.user_id),())
             responses.append((labels[kind],r))
-        lines=[];sources=[];statuses=[]
+        lines=[];sources=[];statuses=[];grounding=[]
         for number,(label,r) in enumerate(responses):
             combined=list(dict.fromkeys(sources+r.fontes))
             line=label+': '+r.texto
@@ -86,20 +101,20 @@ class KnowledgeRag:
                 line=label+': As evidências excedem o limite desta resposta. Envie essa parte separadamente; não confirmei seu resultado.'
                 statuses.append('limitado')
             else:
-                sources=combined;statuses.append(r.status)
+                sources=combined;statuses.append(r.status);grounding.extend(r.grounding)
             lines.append(line)
         priority=('recusado','indisponivel','limitado','sem_evidencia','evidencias','simulado')
-        return RespostaEspecialista(texto='\n\n'.join(lines),fontes=sources,
+        return RespostaEspecialista(texto='\n\n'.join(lines),fontes=sources,grounding=grounding,
                                     status=next(s for s in priority if s in statuses),modo='extrativo')
 
-    def _single(self, entrada, contexto):
+    def _single(self, entrada, contexto, *, deadline=None):
         from app.rag.core import MAX_QUERY, evidence_text
         from app.brazil_scope import market_of, REDIRECT_BR, CLARIFY_BR
         market=market_of(entrada.message)
         if market.value in ('OUT','UNKNOWN'):
             return RespostaEspecialista(texto=REDIRECT_BR if market.value=='OUT' else CLARIFY_BR,status='limitado',modo='extrativo')
-        def reply(text, status, fontes=None):
-            return RespostaEspecialista(texto=str(text), presentation=list(text.parts) if isinstance(text,AnswerText) else [], status=status, fontes=fontes or [], modo='extrativo')
+        def reply(text, status, fontes=None, grounding=None, modo='extrativo'):
+            return RespostaEspecialista(texto=str(text), presentation=list(text.parts) if isinstance(text,AnswerText) else [], status=status, fontes=fontes or [], modo=modo, grounding=grounding or [])
         if len(entrada.message) > MAX_QUERY:
             return reply('Para consultar as fontes, envie uma pergunta com ate 2000 caracteres. Sua entrada nao foi truncada.', 'limitado')
         if self._suspicious(entrada.message):
@@ -122,7 +137,8 @@ class KnowledgeRag:
             return reply('Você não relatou uma recusa ativa nessa mensagem. Não consultei transações nem confirmei aprovações. Qual é a dúvida que deseja esclarecer?', 'limitado')
         from app.rag.core import query_tokens
         terms=query_tokens(entrada.message)
-        decline = facts.decline
+        from app.propositions import conceptual_decline
+        decline = facts.decline and not conceptual_decline(entrada.message)
         # Normalizacao de intencao para consulta documental, nao diagnostico da transacao.
         result = self._retrieve(entrada.message)
         if result['status'] == 'unavailable':
@@ -153,20 +169,39 @@ class KnowledgeRag:
         from app.rag.guidance import reviewed_guidance
         from app.request_plan import grounded_attribute_limit
         missing=grounded_attribute_limit(entrada.message,candidates)
-        guidance = reviewed_guidance(meaningful, candidates)
+        # Opt-out preserves the same retrieval/filters and exposes literal evidence.
+        guidance = reviewed_guidance(meaningful, candidates) if self.reviewed_presentations else None
         if guidance is not None:
             missing=grounded_attribute_limit(meaningful,[{'text':guidance.text}])
         if guidance is not None and not (facts.fee and facts.entities & {'smart','classica'}):
             return reply(compose_notices(guidance.text,' '.join(missing) if missing else ''), 'sem_evidencia' if missing else 'evidencias', list(guidance.sources))
         from app.rag.quality import commercial_attribute, attribute_candidates
         attribute=commercial_attribute(entrada.message)
+        commercial_gap=''
         if attribute:
-            candidates=attribute_candidates(entrada.message,candidates)
-            if not candidates:
-                return reply(f'Não consigo confirmar {attribute} solicitado(a) nas fontes disponíveis. Um manual técnico não informa a oferta comercial aplicável. Consulte a oferta vigente no site oficial Getnet ou no app/Portal do Cliente; não consultei sua conta nem confirmei valores. '+ ' '.join(grounded_attribute_limit(entrada.message,[])), 'sem_evidencia')
+            commercial=attribute_candidates(entrada.message,candidates)
+            if commercial:
+                candidates=commercial
+            else:
+                from app.rag.selection import public_complement
+                if not self.reviewed_presentations and public_complement(entrada.message,candidates):
+                    commercial_gap=(f'Não confirmei {attribute} ou condição comercial aplicável. '
+                        'A evidência abaixo sustenta somente a parte documental; consulte a oferta vigente no canal oficial.')
+                else:
+                    return reply(f'Não consigo confirmar {attribute} solicitado(a) nas fontes disponíveis. Um manual técnico não informa a oferta comercial aplicável. Consulte a oferta vigente no site oficial Getnet ou no app/Portal do Cliente; não consultei sua conta nem confirmei valores. '+ ' '.join(grounded_attribute_limit(entrada.message,[])), 'sem_evidencia')
+        from app.rag.grounding import literal_claims
+        synthesis_failed = False
+        if self.synthesizer is not None and not self.reviewed_presentations and not commercial_gap:
+            try:
+                answer,sources,claims,complete=self.synthesizer.synthesize(entrada.message,candidates,deadline=deadline)
+                return reply(answer,'evidencias' if complete else 'limitado',sources,claims,'gerado')
+            except Exception:
+                # Invalid/failed generation is never shown, retried or sent to another provider.
+                synthesis_failed = True
+        fallback_notice = ('Síntese não validada ou indisponível; exibindo somente evidência literal.\n' if synthesis_failed else '')
         # Comparacao extrativa: mostrar fontes distintas, sem inferir ausencia de recurso.
         from app.rag.core import tokens
-        if tokens(entrada.message) & {'difference','differences','compare','comparison','diferenca','diferencas','comparar','comparacao'}:
+        if facts.comparison:
             selected=[]; seen=set()
             for candidate in candidates:
                 if candidate['source'] not in seen:
@@ -177,29 +212,43 @@ class KnowledgeRag:
             text='Trechos para comparacao, sem geracao por LLM. A ausencia de um recurso em um trecho nao significa que o produto nao o possui. Confirme modelo e edicao; nenhuma condicao comercial foi inferida.\n'
             text+='\n\n'.join(evidence_text(c)+'\nFonte: '+c['source']+'\nCaptura: '+c['captured_at'] for c in selected)
             if len(text)>4000:return reply('Evidencias excederam o limite; reformule a comparacao.', 'limitado')
-            return reply(text,'evidencias',[c['source'] for c in selected])
-        first = candidates[0]
-        # The answer emits one excerpt: assess coverage of that excerpt, not a hidden candidate.
-        missing=grounded_attribute_limit(entrada.message,[first])
-        excerpt=evidence_text(first)
-        text = ('Trecho da fonte oficial, sem geracao por LLM; confirme a aplicabilidade ao seu caso. '
+            missing=grounded_attribute_limit(entrada.message,selected)
+            if missing:text+='\n\n'+' '.join(missing)
+            return reply(fallback_notice+text,'limitado' if missing else 'evidencias',[c['source'] for c in selected],literal_claims(selected))
+        from app.rag.selection import select_evidence
+        selected=([candidates[0]] if self.reviewed_presentations else select_evidence(meaningful,candidates))
+        first=selected[0]
+        # Coverage is assessed only on whole excerpts actually emitted.
+        missing=list(grounded_attribute_limit(entrada.message,selected))
+        if commercial_gap:missing.append(commercial_gap)
+        # Mentioning a source product is not proof about another product.
+        # Explicitly expose unrepresented requested products, including
+        # questions that ask whether a manual can be transferred to a model.
+        from app.rag.quality import product_scope_conflict
+        products=request_facts(meaningful).entities & {'smart','classica','a920','dx8000'}
+        product_gaps=[p for p in sorted(products) if all(product_scope_conflict('Get '+p,c) for c in selected)]
+        if len(products)>1 and product_gaps:
+            missing.append('A evidência exibida não confirma o produto '+', '.join(product_gaps)+
+                '; não transfira características entre produtos ou edições a partir deste trecho.')
+        excerpts='\n\n'.join(evidence_text(c)+'\nFonte: '+c['source']+'\nCaptura: '+c['captured_at'] for c in selected)
+        text = ('Trecho(s) da fonte oficial, sem geracao por LLM; confirme a aplicabilidade ao seu caso. '
                 'Senhas somente no canal oficial ou no proprio dispositivo: nunca nesta conversa. Nenhuma configuracao ou operacao foi realizada pelo assistente.\n'
-                + excerpt + '\nFonte: ' + first['source'] + '\nCaptura: ' + first['captured_at'])
+                + excerpts)
         if decline:
             from app.rag.guidance import decline_followup
             text += '\nEsse trecho explica o status em geral, nao a causa desta transacao. ' + decline_followup(facts)
         if missing:text+='\n\n'+' '.join(missing)
         if len(text)>4000:return reply('Evidencias excederam o limite; reformule a pergunta.', 'limitado')
-        return reply(text, 'sem_evidencia' if missing else 'evidencias', [first['source']])
+        return reply(fallback_notice+text, ('sem_evidencia' if self.reviewed_presentations else 'limitado') if missing else 'evidencias', list(dict.fromkeys(c['source'] for c in selected)),literal_claims(selected))
 
 class KnowledgeGenerated(KnowledgeRag):
     """Opt-in adicional: usa gerador injetado; dublê nao equivale a smoke real."""
     def __init__(self,index,generator):
         super().__init__(index)
         self.generator=generator
-    def _single(self,entrada,contexto):
+    def _single(self,entrada,contexto,*,deadline=None):
         # Reaproveita limites, abstencao e filtros antes de qualquer geracao.
-        baseline=super()._single(entrada,contexto)
+        baseline=super()._single(entrada,contexto,deadline=deadline)
         if baseline.status != 'evidencias':return baseline
         from app.rag.generation import validated_draft, UnsupportedDraft, SensitiveEvidence
         from app.rag.fetch import SOURCES
@@ -292,7 +341,7 @@ class KnowledgeDispatch:
     def __init__(self,local,web=None):
         self.local,self.web=local,web
     def responder(self,entrada,contexto):
-        from app.service_policy import service_plan,reply
+        from app.service_policy import service_plan,reply,currency_reply
         message=entrada.message.strip()
         explicit=message.casefold().startswith(self.PREFIX)
         query=message[len(self.PREFIX):].strip() if explicit else message
@@ -300,7 +349,18 @@ class KnowledgeDispatch:
             return reply('Não sigo pedidos para alterar regras ou revelar segredos.',status='recusado')
         if explicit and (not query or len(query)>300):
             return reply('Consulta pública deve ter de 1 a 300 caracteres.',status='limitado')
-        policy=service_plan(query)
+        policy=service_plan(query,local=self.local)
+        if policy.replies and getattr(self.local,'documentary',False):
+            from app.rag.grounding import aggregate_coverage,retained_claims
+            responses=list(policy.replies)
+            if policy.message:
+                responses.insert(0,self.responder(Entrada(message=policy.message,user_id=entrada.user_id),contexto))
+            text='\n\n'.join(r.texto for r in responses)
+            sources=list(dict.fromkeys(f for r in responses for f in r.fontes))
+            status=next((v for v in ('recusado','indisponivel','limitado','sem_evidencia','evidencias') if any(r.status==v for r in responses)),'limitado')
+            return RespostaEspecialista(texto=text,status=status,fontes=sources,
+                grounding=retained_claims([g for r in responses for g in r.grounding],text,sources),
+                evidence_coverage=aggregate_coverage(responses),modo='extrativo')
         if policy.replies:
             if not policy.message:
                 return RespostaEspecialista(texto='\n\n'.join(r.texto for r in policy.replies),status=policy.replies[0].status,fontes=list(dict.fromkeys(f for r in policy.replies for f in r.fontes)),modo='extrativo')
@@ -312,7 +372,8 @@ class KnowledgeDispatch:
             if self.web is None:
                 return reply('Busca externa desativada nesta execução.',status='indisponivel',limitation_code='web_disabled')
             return self.web.responder(Entrada(message=query,user_id='public_query'),())
-        local=self.local.responder(entrada,contexto)
+        currency=(currency_reply(query,local=self.local) if getattr(self.local,'documentary',False) else None)
+        local=currency if currency is not None else self.local.responder(entrada,contexto)
         from app.rag.scope import retrieval_plan
         if local.status=='sem_evidencia' and self.web is not None and not contexto and retrieval_plan(query)[0] is not None:
             # O adaptador volta a validar privacidade, pertinência e fontes.

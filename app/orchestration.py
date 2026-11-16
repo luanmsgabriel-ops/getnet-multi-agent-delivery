@@ -1,13 +1,15 @@
 """Grafo G1 isolado do terminal legado; execução limitada e sem persistência."""
-from time import perf_counter
+from time import perf_counter, monotonic
 from typing import Protocol, TypedDict
 from uuid import uuid4
+from app.observability import current_request_id, request_context, emit_event
 from langgraph.graph import StateGraph, START, END
 from app.contracts import Entrada, Plano, RespostaEspecialista, Evento, Saida
 from app.router import RouterDemo
 from app.knowledge import KnowledgeDemo
 from app.support import SupportDemo
 from app.response_notices import Notice, compose_notices, response_parts
+from app.rag.grounding import aggregate_coverage
 
 class Router(Protocol):
     def planejar(self, entrada: Entrada) -> Plano: ...
@@ -28,7 +30,10 @@ class Estado(TypedDict):
 class Orquestrador:
     """Adaptadores síncronos locais: não usar provedores sem timeout próprio."""
     def __init__(self, router: Router | None = None, knowledge: Especialista | None = None,
-                 support: Especialista | None = None):
+                 support: Especialista | None = None, policy=None, preserve_failure_details=False):
+        self.preserve_failure_details = preserve_failure_details
+        from app.service_policy import service_plan
+        self.policy = policy or service_plan
         self.router = router if router is not None else RouterDemo()
         self.knowledge = knowledge if knowledge is not None else KnowledgeDemo()
         self.support = support if support is not None else SupportDemo()
@@ -48,11 +53,11 @@ class Orquestrador:
         try:
             plano = Plano.model_validate(self.router.planejar(estado["entrada"]))
             from app.service_policy import service_plan
-            policy = service_plan(estado['entrada'].message)
+            policy = self.policy(estado['entrada'].message)
             entrada = estado['entrada']
             if policy.replies:
                 if policy.message:
-                    entrada = Entrada(message=policy.message,user_id=entrada.user_id)
+                    entrada = entrada.model_copy(update={'message':policy.message})
                     plano = Plano.model_validate(self.router.planejar(entrada))
                 else:
                     plano = Plano(rota='clarify')
@@ -62,11 +67,13 @@ class Orquestrador:
                 partition=independent_public_request(entrada.message)
                 if partition:
                     private,public=partition
-                    entrada=Entrada(message=private,user_id=entrada.user_id)
-                    public_input=Entrada(message=public,user_id=entrada.user_id)
+                    entrada=entrada.model_copy(update={'message':private})
+                    public_input=entrada.model_copy(update={'message':public})
                     plano=Plano(rota='support_knowledge')
+            duration=(perf_counter()-inicio)*1000
+            emit_event('stage_result',stage='router',outcome='ok',duration_ms=duration)
             return {'public_input':public_input, "rota": plano.rota, 'entrada':entrada, 'policy_responses':list(policy.replies), "eventos": [Evento(agente="router", status="ok",
-                    duracao_ms=(perf_counter()-inicio)*1000)]}
+                    duracao_ms=duration)]}
         except Exception:
             return self._falha(estado, "router", inicio)
 
@@ -76,20 +83,24 @@ class Orquestrador:
             resposta = RespostaEspecialista.model_validate(getattr(self, nome).responder(
                 estado['public_input'] if nome=='knowledge' and estado.get('public_input') else estado['entrada'],
                 () if nome=='knowledge' and estado.get('public_input') else tuple(estado['respostas'])))
+            duration=(perf_counter()-inicio)*1000
+            emit_event('stage_result',stage=nome,outcome=resposta.status,duration_ms=duration)
             return {"respostas": [*estado["respostas"], resposta],
                     "falhou": resposta.status == "indisponivel",
                     "eventos": [*estado["eventos"],
                         *[Evento(agente=nome, ferramenta=t.ferramenta, status=t.status, duracao_ms=t.duracao_ms) for t in resposta.tool_traces],
                         Evento(agente=nome, status="falha" if resposta.status == "indisponivel" else "ok",
-                        duracao_ms=(perf_counter()-inicio)*1000)]}
+                        duracao_ms=duration)]}
         except Exception:
             return self._falha(estado, nome, inicio)
 
     @staticmethod
     def _falha(estado, nome, inicio):
         # Nunca incluir mensagem, identidade, exceção ou traceback no trace.
+        duration=(perf_counter()-inicio)*1000
+        emit_event("stage_result",stage=nome,outcome="error",duration_ms=duration)
         return {"falhou": True, "eventos": [*estado["eventos"],
-                Evento(agente=nome, status="falha", duracao_ms=(perf_counter()-inicio)*1000)]}
+                Evento(agente=nome, status="falha", duracao_ms=duration)]}
 
     @staticmethod
     def _apos_router(estado):
@@ -105,9 +116,11 @@ class Orquestrador:
         ) for r in estado['respostas'])
         return "knowledge" if not estado["falhou"] and not blocked and estado["rota"] == "support_knowledge" else "fim"
 
+    @request_context()
     def executar(self, dados: Entrada | dict) -> Saida:
+        started=monotonic()
         entrada = Entrada.model_validate(dados)
-        estado = self.grafo.invoke({"entrada": entrada, "request_id": str(uuid4()),
+        estado = self.grafo.invoke({"entrada": entrada, "request_id": current_request_id() or str(uuid4()),
             "rota": "clarify", "respostas": [], "policy_responses":[], "public_input":None, "eventos": [], "falhou": False},
             config={"recursion_limit": 5})
         if estado["falhou"]:
@@ -115,6 +128,8 @@ class Orquestrador:
             reasons={'web_disabled':'A busca externa está desativada nesta execução. Não realizei uma consulta online.','source_unavailable':'A busca oficial está indisponível nesta tentativa. Não consegui consultar a fonte; isso não significa que a informação não exista.'}
             if estado['respostas'] and estado['respostas'][-1].limitation_code in reasons:
                 texto=reasons[estado['respostas'][-1].limitation_code]
+            if self.preserve_failure_details and estado['respostas'] and estado['respostas'][-1].status=='indisponivel':
+                texto=estado['respostas'][-1].texto
         elif estado["rota"] == "clarify":
             texto = "" if estado['policy_responses'] else "Qual é sua dúvida sobre a Getnet?"
         else:
@@ -134,7 +149,8 @@ class Orquestrador:
             if any(r.status == prioridade for r in respostas):
                 status = prioridade
                 break
+        emit_event("execution_completed",stage="router",outcome="indisponivel" if estado["falhou"] else status,duration_ms=(monotonic()-started)*1000)
         return Saida(request_id=estado["request_id"], route=estado["rota"],
             status="indisponivel" if estado["falhou"] else status,
             answer=str(texto), presentation=list(getattr(texto,'parts',())), sources=fontes, simulated_data=not respostas or any(r.modo == "demonstracao" for r in respostas),
-            modo=modo, eventos=estado["eventos"])
+            modo=modo, eventos=estado["eventos"], evidence_coverage=None if estado['falhou'] else aggregate_coverage(respostas), grounding=[] if estado["falhou"] else [c for r in respostas for c in r.grounding if c.claim in str(texto)])

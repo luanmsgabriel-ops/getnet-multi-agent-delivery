@@ -56,9 +56,21 @@ def request_facts(message):
     fee = bool(words & {'taxa','taxas','tarifa','tarifas','preco','precos','custo','custos','custa','custam','mensalidade','aluguel','rental','monthly','valor','valores','fee','fees','rate','rates','price','cost'})
     migration = bool(re.search(r'\bmigr\w*\b', text)) and bool(words & {'conta','account','pacote','package','meu','minha','my'})
     # Negação e pergunta são locais ao predicado da ação.
-    action = any(p.action for p in clauses)
+    action = any(p.action and not conceptual_action_clause(p.text) for p in clauses)
     code = re.search(r'\b(?:codigo(?:\s+de\s+erro)?|erro|error(?:\s+code)?|code)\s*(?:(?:e|is)\s*)?[:#-]?\s*([0-9]{1,4})\b',text)
     return RequestFacts(declined,modality,entities,comparison,connectivity,fee,migration,action,code[1] if code else None)
+
+
+def conceptual_action_clause(text):
+    """A copular definition of an infinitive is not an instruction to execute it.
+    Imperatives, delegated requests and mixed execution predicates stay blocked.
+    This only refines the shared unsupported-action classification.
+    """
+    text=normalize(text)
+    if re.search(r'\b(?:transfira|transfere|contrate|altere|cancele|faca|efetue|execute|realize|quero|solicito|peco|pediu|mandou|please|transfer|cancel)\b',text):return False
+    actions=list(re.finditer(r'\b(?:transferir|contratar|alterar|cancelar)\b',text))
+    if not actions:return False
+    return all(re.search(r'\b(?:significa|implica|equivale a|consiste em|e|seria)\s+(?:(?:necessariamente|sempre|realmente|o mesmo que)\s+)?$',text[:m.start()]) for m in actions)
 
 @dataclass(frozen=True)
 class ReceivableQuery:

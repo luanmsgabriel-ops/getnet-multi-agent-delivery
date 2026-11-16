@@ -17,7 +17,7 @@ _LABEL = (r'(?:senha|password|passphrase|passcode|credencial|credential|'
 # (e.g. the SSID "Senha Livre") must never be swallowed while looking for "=".
 _QUALIFIER = (
     r'(?:do|da|de|del|para\s+(?:o|a|el|la))\s+(?:wi-?fi|rede|red|'
-    r'acesso|acceso|verifica[cç][aã]o|autentica[cç][aã]o|seguran[cç]a|'
+    r'acesso|acceso|login|lojista|usu[aá]rio|administrador|verifica[cç][aã]o|autentica[cç][aã]o|seguran[cç]a|'
     r'verificaci[oó]n|autenticaci[oó]n|seguridad|sms)|'
     r'(?:of|for)\s+(?:the\s+)?(?:wi-?fi|network|access|authentication|'
     r'login|sign-in|logging\s+in)|'
@@ -33,9 +33,9 @@ _CONNECTOR = re.compile(
     r'(?:\s+(?:(?:a|o|el|la)\s+(?:seguinte|siguiente)|'
     r'the\s+following|as\s+follows))?\s*:?\s*', re.I)
 _STATE = re.compile(
-    r'^(?:(?:esta|estava|foi|sera|was|has\s+been)\s+)?'
-    r'(?:(?:nao|not)\s+)?(?:digitad[ao]|inserid[ao]|necessari[ao]|'
-    r'obrigatori[ao]|corret[ao]|incorret[ao]|errad[ao]|solicitad[ao]|aceit[ao]|'
+    r'^(?:(?:esta|estava|foi|sera|sao|are|son|was|has\s+been)\s+)?'
+    r'(?:(?:nao|not)\s+)?(?:digitad[ao]|inserid[ao]|necessari[ao]s?|'
+    r'obrigatori[ao]s?|corret[ao]|incorret[ao]|errad[ao]|solicitad[ao]|aceit[ao]|'
     r'correct[oa]|incorrect[oa]|introducid[oa]|ingresad[oa]|requerid[oa]|rechazad[oa]|'
     r'accepted|rejected|wrong|incorrect|correct|required|entered|typed|needed)\b|'
     r'^(?:de\s+)?(?:\d+|seis|oito|six|eight)\s+'
@@ -73,7 +73,7 @@ _CLAUSE = (_NOMINAL_CLAUSE + r'|'
     r'(?:n[aã]o|cannot|can\x27t|doesn\x27t)\s+\w+\b|'
     r'(?:preciso|quero|posso|need|want)\s+\w+\b')
 _BOUNDARY = re.compile(
-    r'[;\n]|[.!?](?=\s|$)|,\s+(?=(?:(?:and|e|y|but|mas)\s+)?(?:'
+    r'[;\n]|[.!?](?=\s|$)|\s+(?=(?:que|which|that)\s+(?:est[aá]|fica|opera|is|are|operates)\b)|,\s+(?=(?:(?:and|e|y|but|mas)\s+)?(?:'
     + _CLAUSE + r'|' + _LABEL + r'\b))|'
     r'\s+(?:e|y|and|mas|but)\s+(?=(?:' + _CLAUSE + r'|' + _LABEL + r'\b))|'
     r'(?:\s+|[.!?]\s*)[—–]\s*(?=(?:' + _CLAUSE + r'|' + _LABEL + r'\b))', re.I)
@@ -92,18 +92,84 @@ def _plain(text):
                    if not unicodedata.combining(c))
 
 
+def _generic_description(tail):
+    """A recognized prefix cannot hide an unparsed value in the same clause."""
+    boundary = _BOUNDARY.search(tail)
+    clause = tail[:boundary.start()] if boundary else tail
+    plain = _plain(clause).strip()
+    if re.search(r'[:=]|\b(?:valor|value)\s+(?:e|is|equals)\b|'
+                 r'\b(?=\w*[a-z])(?=\w*\d)\w+\b', plain):
+        return False
+    match = _STATE.match(plain) or _USAGE.match(plain)
+    if match:
+        rest = plain[match.end():].strip()
+        if re.fullmatch(r'(?:devo|deve|precisa|pode|should|must|can)', match.group()):
+            rest = re.sub(r'^(?:ser|be)\s+', '', rest)
+            rest = re.sub(r'^(?:ter|have)\s+', '', rest)
+            match = _STATE.match(rest)
+            if not match:
+                return False
+            rest = rest[match.end():].strip()
+        if not rest:
+            return True
+        if re.fullmatch(r'corretamente',rest):
+            return True
+        if re.fullmatch(r'(?:sem|without|sin)\s+(?:erros?|errors?|errores?)(?:\s+antes de tentar novamente)?',rest):
+            return True
+        # A bounded UI-location modifier remains a procedure description,
+        # not a credential value (e.g. "na tela indicada e confirme").
+        if (re.search(r'\b(?:tela|teclado|pantalla|screen|keyboard)\b', match.group())
+                and re.fullmatch(r'(?:indicad[ao]|exibid[ao]|principal|inicial)(?:\s+e\s+confirme)?', rest)):
+            return True
+        if re.search(r'\b(?:digitos|caracteres|digits|characters)\b',match.group()):
+            if re.fullmatch(r'(?:ou|or)\s+(?:\d{1,3}|um|uma|dois|duas|tres|quatro|cinco|seis|sete|oito|nove|dez|one|two|three|four|five|six|seven|eight|nine|ten)(?:\s+(?:digitos|caracteres|digits|characters))?',rest):
+                return True
+        return bool(_PURPOSE.match(rest) or (_USAGE.match(rest) and _generic_description(rest)))
+    return bool(_PURPOSE.match(plain))
+
+
 def _value_start(text, head):
     """Return the start of an explicit or delimiter-free value, if present."""
     connector = _CONNECTOR.match(text, head.end())
     start = connector.end() if connector else head.end()
+    # Qualifiers may end immediately before punctuation. Inspect an explicit
+    # value continuation before the whitespace/bare-value early return.
+    tail = text[start:]
+    continued = re.match(r'^[,;.!?]\s*(?:(?:o|the)\s+)?(?:valor|value)\s*'
+                         r'(?::|=|\b(?:é|e|is|equals)\b)\s*',tail,re.I)
+    if continued:
+        return start + continued.end()
     if not connector:
         # Whitespace separates a bare value from its label/qualifiers.
         if start == len(text) or not text[start].isspace():
             return None
         start += len(text[start:]) - len(text[start:].lstrip())
-    tail = text[start:]
-    if connector and connector.group().strip().casefold() == 'e' and re.match(_CLAUSE, tail, re.I):
-        return None
+        tail = text[start:]
+    if connector and connector.group().strip().casefold() == 'e':
+        if re.match(_CLAUSE, tail, re.I):
+            return None
+        # In an entry instruction, "e confirme para ..." starts a new
+        # procedural clause, not the value of an accentless copula "é".
+        # The existing purpose grammar still rejects assignments and mixed
+        # alphanumeric values; subsequent credential heads are scanned too.
+        instruction = re.search(r'\b(?:digite|insira|digitar|inserir)\s+(?:(?:a|o|sua|seu)\s+)?$', text[:head.start()], re.I)
+        if instruction:
+            boundary = _BOUNDARY.search(tail)
+            clause = (tail[:boundary.start()] if boundary else tail).strip()
+            # Consume a complete UI choice after entry, never an assignment
+            # or an arbitrary credential value/trailing suffix.
+            label = r'["“][A-Za-zÀ-ÖØ-öø-ÿ -]{1,40}["”]'
+            choice = r'(?:escolha|escolher|selecione|selecionar)\s+(?:a\s+(?:via|opção)\s+)?'
+            confirmation_order = r'(?:\s+(?:(?:antes|depois)\s+de\s+confirmar|e\s+confirme))?'
+            if re.fullmatch(choice+label+r'(?:\s+ou\s+'+label+r')?'+confirmation_order+r'\)?',clause,re.I):
+                return None
+        confirmation = re.match(r'confirme\b', tail, re.I)
+        if instruction and confirmation:
+            rest = tail[confirmation.end():]
+            boundary = _BOUNDARY.search(rest)
+            clause = rest[:boundary.start()] if boundary else rest
+            if not clause.strip() or _generic_description(clause):
+                return None
     if tail.startswith(_REDACTION):
         rest = tail[len(_REDACTION):]
         if not rest.strip() or _BOUNDARY.match(rest):
@@ -113,8 +179,13 @@ def _value_start(text, head):
     # A quoted value is disclosure even if its words look like a state.
     if tail[0] not in ('"', "'", '“', '‘', '«'):
         plain = _plain(tail)
+        # ':' and '=' are explicit disclosure, even when the value starts
+        # with a word such as 'required'. Copular state descriptions must
+        # consume the clause rather than waive an arbitrary suffix.
+        if connector and re.search(r'[:=]',connector.group()):
+            return start
         if (_STATE.match(plain) or _USAGE.match(plain)
-                or (not connector and _PURPOSE.match(plain))):
+                or (not connector and _PURPOSE.match(plain))) and _generic_description(tail):
             return None
     return start
 

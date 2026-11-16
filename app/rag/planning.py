@@ -4,10 +4,15 @@ from app.intents import request_facts, normalize
 from app.rag.core import tokens
 
 
-def retrieve_brazil(index, question):
+def retrieve_brazil(index, question, *, preserve_question=False):
     from app.request_plan import without_declined_requests
     question=without_declined_requests(question)
     facts = request_facts(question)
+    # Uma especificação de conectividade não é um relato de falha. Preserva
+    # produto e atributo na busca, sem reescrever tudo como configurar Wi-Fi.
+    if preserve_question and facts.connectivity and facts.entities and not facts.comparison:
+        operational = re.search(r'\b(?:nao|not|won.t|sem|without|falha\w*|erro\w*|error\w*|configur\w*|setup|set up|conectar|connect|conecta|cai\w*|instav\w*|offline)\b', normalize(question))
+        if not operational:return index.search(question)
     if facts.decline:
         # A definição Pix está no bloco seguinte ao catálogo de cartões. Não
         # converter modalidade ausente em cartão nem usar status do terminal.
