@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     rate_limit_global_per_minute: int = 300
     max_message_chars: int = 2000
     warm_knowledge_index: bool = True
+    # Evaluation only: include tool outputs in /chat responses so the judge can check grounding.
+    expose_tool_results: bool = False
 
     anthropic_api_key: SecretStr | None = None
     llm_model: str = "claude-opus-5-5"

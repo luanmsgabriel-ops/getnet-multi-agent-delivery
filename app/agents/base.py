@@ -71,6 +71,7 @@ class TraceEvent:
     status: str
     latency_ms: int
     arguments: dict[str, Any]
+    result_preview: str = ""  # tool output excerpt; only exposed when evaluation mode is on
 
 
 @dataclass
@@ -165,7 +166,8 @@ def _execute(tool: Tool | None, block: dict[str, Any], ctx: ToolContext, agent: 
     name = str(block.get("name"))
     TOOL_CALLS.labels(agent, name if tool else "unknown", result.status).inc()
     TOOL_LATENCY.labels(name if tool else "unknown").observe(elapsed)
-    ctx.record(TraceEvent(agent, name, result.status, int(elapsed * 1000), args))
+    preview = json.dumps(result.model_dump(exclude_none=True), ensure_ascii=False, default=str)
+    ctx.record(TraceEvent(agent, name, result.status, int(elapsed * 1000), args, preview[:4000]))
     return result
 
 

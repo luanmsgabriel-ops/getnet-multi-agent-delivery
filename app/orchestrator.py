@@ -286,6 +286,7 @@ class Orchestrator:
                     "status": e.status,
                     "latency_ms": e.latency_ms,
                     "arguments": e.arguments,
+                    **({"result": e.result_preview} if self.settings.expose_tool_results else {}),
                 }
                 for e in ctx.trace
             ],

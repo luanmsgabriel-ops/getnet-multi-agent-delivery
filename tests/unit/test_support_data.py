@@ -95,3 +95,8 @@ def test_same_card_always_has_the_same_brand(db: Database) -> None:
         if s["card_last4"]:
             brands.setdefault(s["card_last4"], set()).add(s["brand"])
     assert all(len(b) == 1 for b in brands.values())
+
+
+def test_todays_sales_are_in_the_morning(db: Database) -> None:
+    sales = SupportRepository(db, principal()).sales(TODAY, TODAY)
+    assert sales and all(s["sold_at"][11:13] <= "10" for s in sales)

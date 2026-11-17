@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 
 from app.data.db import MOCK_TABLES, Database
 
-SEED_VERSION = "2"
+SEED_VERSION = "3"
 HISTORY_DAYS = 45
 
 MERCHANTS = [
@@ -176,7 +176,10 @@ def _generate(
             else:
                 count = rng.randint(6, 14) if day.weekday() < 6 else rng.randint(2, 5)
             for _ in range(count):
-                sold_at = datetime.combine(day, time(rng.randint(8, 19), rng.randint(0, 59)), tz)
+                last_hour = 10 if offset == 0 else 19  # today: morning only, never in the future
+                sold_at = datetime.combine(
+                    day, time(rng.randint(8, last_hour), rng.randint(0, 59)), tz
+                )
                 method = rng.choices(["credito", "debito", "pix"], weights=[45, 35, 20])[0]
                 installments = 1
                 if method == "credito" and rng.random() < 0.3:
