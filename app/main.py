@@ -1,0 +1,172 @@
+"""FastAPI application: routes, authentication, rate limiting and error handling."""
+
+import logging
+import uuid
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+from app import __version__
+from app.config import Settings, get_settings
+from app.data.db import Database
+from app.data.seed import ensure_seed
+from app.llm.client import AnthropicLLM, Ledger, LLMClient
+from app.orchestrator import Orchestrator, OrchestratorError
+from app.schemas import (
+    ChatRequest,
+    ChatResponse,
+    ErrorResponse,
+    HealthResponse,
+    MeResponse,
+    ReadyResponse,
+)
+from app.security.auth import AuthError, Principal, decode_token, require_scope
+from app.security.ratelimit import RateLimiter
+
+log = logging.getLogger("getnet")
+bearer = HTTPBearer(auto_error=False)
+
+
+class ApiError(Exception):
+    def __init__(self, status: int, code: str, message: str, headers: dict[str, str] | None = None):
+        super().__init__(message)
+        self.status, self.code, self.message, self.headers = status, code, message, headers
+
+
+def _error(
+    request: Request, status: int, code: str, message: str, headers: dict[str, str] | None = None
+) -> JSONResponse:
+    body = ErrorResponse.model_validate(
+        {
+            "error": {"code": code, "message": message},
+            "request_id": getattr(request.state, "request_id", None),
+        }
+    )
+    return JSONResponse(body.model_dump(), status_code=status, headers=headers)
+
+
+def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -> FastAPI:
+    """Build the app. `llm` overrides the provider (tests inject a scripted fake)."""
+    settings = settings or get_settings()
+    db = Database(settings.db_path)
+    limiter = RateLimiter(settings.rate_limit_per_minute, settings.rate_limit_global_per_minute)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        db.init()
+        ensure_seed(db, settings.today(), settings.tz)
+        client = llm
+        if client is None and settings.anthropic_api_key is not None:
+            client = AnthropicLLM(
+                settings.anthropic_api_key.get_secret_value(),
+                Ledger(db, settings.llm_budget_usd),
+                model=settings.llm_model,
+            )
+        app.state.orchestrator = Orchestrator(settings, db, client) if client else None
+        log.info("startup llm_configured=%s", client is not None)
+        yield
+
+    app = FastAPI(
+        title="Getnet Multi-Agent Support",
+        version=__version__,
+        lifespan=lifespan,
+        responses={
+            401: {"model": ErrorResponse},
+            403: {"model": ErrorResponse},
+            429: {"model": ErrorResponse},
+        },
+    )
+    app.state.settings, app.state.db, app.state.limiter = settings, db, limiter
+
+    @app.middleware("http")
+    async def request_id(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        rid = request.headers.get("x-request-id") or uuid.uuid4().hex
+        request.state.request_id = rid[:64]
+        response = await call_next(request)
+        response.headers["x-request-id"] = request.state.request_id
+        return response
+
+    @app.exception_handler(AuthError)
+    async def _auth_error(request: Request, exc: AuthError) -> JSONResponse:
+        headers = {"WWW-Authenticate": "Bearer"} if exc.status == 401 else None
+        return _error(request, exc.status, exc.code, exc.message, headers)
+
+    @app.exception_handler(ApiError)
+    async def _api_error(request: Request, exc: ApiError) -> JSONResponse:
+        return _error(request, exc.status, exc.code, exc.message, exc.headers)
+
+    @app.exception_handler(RequestValidationError)
+    async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
+        first = exc.errors()[0] if exc.errors() else {"msg": "invalid request"}
+        loc = ".".join(str(p) for p in first.get("loc", ()))
+        return _error(request, 422, "invalid_request", f"{loc}: {first['msg']}".strip(": "))
+
+    def principal(
+        creds: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
+    ) -> Principal:
+        if creds is None:
+            raise AuthError(401, "missing_token", "Authorization: Bearer <token> is required.")
+        p = decode_token(settings, creds.credentials)
+        if db.is_revoked(p.jti):
+            raise AuthError(401, "token_revoked", "Token revoked.")
+        return p
+
+    def rate_limited(p: Annotated[Principal, Depends(principal)]) -> Principal:
+        wait = limiter.check(p.sub)
+        if wait is not None:
+            retry = str(max(1, round(wait)))
+            raise ApiError(429, "rate_limited", "Too many requests.", {"Retry-After": retry})
+        return p
+
+    @app.get("/health", response_model=HealthResponse, tags=["ops"])
+    def health() -> HealthResponse:
+        return HealthResponse(status="ok", version=__version__)
+
+    @app.get(
+        "/ready",
+        response_model=ReadyResponse,
+        tags=["ops"],
+        responses={503: {"model": ReadyResponse}},
+    )
+    def ready() -> JSONResponse:
+        checks = {"database": db.ping(), "llm": app.state.orchestrator is not None}
+        body = ReadyResponse(ready=all(checks.values()), checks=checks)
+        return JSONResponse(body.model_dump(), status_code=200 if body.ready else 503)
+
+    @app.get("/me", response_model=MeResponse, tags=["auth"])
+    def me(p: Annotated[Principal, Depends(principal)]) -> MeResponse:
+        return MeResponse(sub=p.sub, tenant=p.tenant, scopes=sorted(p.scopes))
+
+    @app.post(
+        "/chat",
+        tags=["chat"],
+        response_model=ChatResponse,
+        responses={503: {"model": ErrorResponse}},
+    )
+    def chat(
+        body: ChatRequest, request: Request, p: Annotated[Principal, Depends(rate_limited)]
+    ) -> ChatResponse:
+        require_scope(p, "chat:use")
+        if body.user_id != p.sub:
+            raise AuthError(403, "user_mismatch", "user_id does not match the authenticated token.")
+        if len(body.message) > settings.max_message_chars:
+            raise ApiError(
+                422, "message_too_long", f"message exceeds {settings.max_message_chars} characters."
+            )
+        ensure_seed(db, settings.today(), settings.tz)
+        orchestrator: Orchestrator | None = app.state.orchestrator
+        if orchestrator is None:
+            raise ApiError(503, "llm_not_configured", "Set ANTHROPIC_API_KEY to enable the agents.")
+        try:
+            return orchestrator.run(p, body.message, request.state.request_id)
+        except OrchestratorError as exc:
+            raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    return app

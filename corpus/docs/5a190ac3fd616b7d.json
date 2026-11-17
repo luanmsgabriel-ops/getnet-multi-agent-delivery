@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-85/",
+ "title": "Erro ADQ 1-85: problema de comunicação com a operadora",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "5a190ac3fd616b7dcc85f03ff4d83520e637cc6f659a6b81be09b955e4b769e9",
+ "text": "## Quando ocorre: Durante a transação.\n\n### Solução:\n\n1. Clique na tecla de Função\n\n2. Insira o número 25\n\n3. A tela ficará verde confirmando a ação\n\n4. Insira a Senha do Operador\n\n5. A tela ficará verde confirmando a ação, novamente\n\n6. Selecione a Função 46\n\n7. A tela ficará verde confirmando a ação, novamente\n\n8. E faça uma venda teste."
+}

@@ -1,35 +1,24 @@
-# Ignora arquivos locais e temporÃ¡rios da peÃ§a cÃ³digo.
-.env
-.venv/
+# Python
 __pycache__/
-/historico/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Evitar publicar arquivos locais e segredos por variantes de nome.
+# Local configuration and secrets
+.env
 .env.*
 !.env.example
-_backups/
-*.pyc
-.pytest_cache/
-*.log
-_repro/
 
-_delivery/
-_auditoria_independente/
-_correcoes/
-
-# Evidências e ambientes da conclusão técnica permanecem locais.
-_conclusao/
-_auditoria_aderencia/
-_auditoria_adversarial/
-_correcoes_finais/
-
-# Artefatos locais de execução e verificação; evidências revisadas ficam em docs/.
-_local/
+# Local runtime state (SQLite databases, indexes, tokens)
+.data/
 *.db
 *.db-*
 *.sqlite*
-*.key
 
-# Somente logs revisados de evidência; logs de execução continuam ignorados.
-!docs/historico/**/*.log
-!docs/evidence/entrega-20261110/*.log
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+corpus/index/

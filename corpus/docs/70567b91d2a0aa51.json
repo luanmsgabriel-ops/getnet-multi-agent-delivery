@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-nfc/",
+ "title": "Erro na leitora NFC: erro na realização de vendas por aproximação",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "70567b91d2a0aa516f6cefa662b732fa643db2338dbbbb42e229bc97760008cb",
+ "text": "## Quando ocorre:Ao aproximar o cartão.\n\n### Solução:\n\n1. Clique na tecla de Função\n\n2. Insira o número 82\n\n3. A tela ficará verde confirmando a ação\n\n4. Insira a Senha do Operador\n\n5. Faça o teste do teclado\n\n6. Em seguida o teste do cartão\n\n7. Selecione a Função 38\n\n8. A tela ficará verde confirmando a ação, novamente\n\n9. Selecione a opção Inicialização\n\n10. A tela ficará verde confirmando a ação, novamente\n\n11. E faça uma venda teste."
+}

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, v3]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --python 3.12
+      - name: Lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Type check
+        run: uv run mypy
+      - name: Tests (offline, full suite)
+        run: uv run pytest
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Build image
+        run: docker build --tag getnet-agents:ci .
+      - name: Smoke test (hardened container)
+        run: |
+          docker run -d --name api -p 8000:8000 --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=64m --tmpfs /state:rw,size=64m,uid=10001 \
+            --cap-drop ALL --security-opt no-new-privileges \
+            -e JWT_SECRET="$(openssl rand -hex 32)" getnet-agents:ci
+          for i in $(seq 1 30); do curl -fs http://127.0.0.1:8000/health && break; sleep 1; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:8000/chat \
+            -H 'Content-Type: application/json' -d '{"message":"hi","user_id":"cliente1988"}')" = 401
+          TOKEN=$(docker exec api python -m app.security.tokens issue --sub cliente1988)
+          test "$(curl -s http://127.0.0.1:8000/me -H "Authorization: Bearer $TOKEN" | python3 -c 'import json,sys;print(json.load(sys.stdin)["sub"])')" = cliente1988
+      - name: Container logs
+        if: always()
+        run: docker logs api || true

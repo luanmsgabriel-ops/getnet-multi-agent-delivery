@@ -1,0 +1,1380 @@
+{
+ "documents": 171,
+ "by_section": {
+  "blog": 91,
+  "help_center": 68,
+  "product": 9,
+  "global": 1,
+  "manual": 2
+ },
+ "items": [
+  {
+   "url": "https://site.getnet.com.br/imprensa/",
+   "title": "Getnet | Imprensa",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "040aa8700cceb0709df09ab85ce67d772d7924a91c14ab48092ba36b7ace3f7e",
+   "chars": 38534
+  },
+  {
+   "url": "https://site.getnet.com.br/aumente-o-faturamento-no-inverno/",
+   "title": "4 Ideias de Negócio para o Inverno e Festas Julinas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "04868d6da5edd22febe0dcc69d6b065388e59d7e4a944704558ac088c810a94b",
+   "chars": 3947
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-conciliador-essencial/sobre-o-conciliador-essencial/",
+   "title": "Get Ajuda – Sobre o Conciliador Essencial",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "05dc001f36f9daf9b70ea96c24922ba871aaa46e93fb7100774c1a713ab7a671",
+   "chars": 2813
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-ecommerce/plugins-digitais-que-a-getnet-trabalha/",
+   "title": "Com quais Plugins Digitais a Getnet trabalha ajuda",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "06282a907b0124212c818609e18c3aee356a876fb14b5d7fc9a24e09b26921be",
+   "chars": 3692
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cadastro/como-trocar-o-domicilio-bancario/",
+   "title": "Como trocar o domicílio bancário?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "078600e5182cf7539c0882f02bb3ad34694d4703cd2d1d18ad60428de243a1c7",
+   "chars": 2186
+  },
+  {
+   "url": "https://site.getnet.com.br/getcheckout/",
+   "title": "Getnet | Get Checkout: Pagamentos Online para E-commerceGet Checkout: Pagamentos Online para E-commerce",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "0a9bf475ccca4a1ed67b832684a1889de2c1fab53075db2322797f08a9ed090e",
+   "chars": 3459
+  },
+  {
+   "url": "https://site.getnet.com.br/empreendedores-e-pmes/",
+   "title": "Empreendedores e PMEs impulsionam a transformação",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "0cbd1c52369eabe414fd2f3404d3cc95b4710f9dd39470714cf34d89e6897f4f",
+   "chars": 3791
+  },
+  {
+   "url": "https://site.getnet.com.br/5-cuidados-para-evitar-golpes-ao-vender-pelas-redes-sociais/",
+   "title": "5 cuidados para evitar golpes ao vender pelas redes sociais",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "1090bee6fb45d48e7bd1fbdbf9c90867fde4bc431d8c84c5a5e64d8eb853e194",
+   "chars": 4560
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-configuracoes/como-consultar-minhas-vendas/",
+   "title": "Como consultar minhas vendas?​",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "11942eb76986231c37831d0019fbc32203d2c61501fa8faff3526fdf82b95efe",
+   "chars": 993
+  },
+  {
+   "url": "https://site.getnet.com.br/contas-a-pagar/",
+   "title": "Contas a pagar: entenda o conceito e como aplicar nos negócios",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "11b63d9af37028d5da00e0a409d6e07ffb0d21a4ba832b82fd3a7a0170a88e08",
+   "chars": 3875
+  },
+  {
+   "url": "https://site.getnet.com.br/cartoes-aceitos/",
+   "title": "Getnet | Cartões",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "12f246c9078a594cbefe7a5acfc47c962a94631c5a4f0970c78fb1d1c4c5e79c",
+   "chars": 2173
+  },
+  {
+   "url": "https://site.getnet.com.br/link-de-pagamento-alternativa-segura/",
+   "title": "Link de Pagamento, uma alternativa prática e segura",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "14e814a25bc36d6b862c888eaaf9d7d8efb34bbb64ae00dce560b9415e424501",
+   "chars": 6919
+  },
+  {
+   "url": "https://site.getnet.com.br/entre-copas-o-que-mudou-em-4-anos-na-forma-como-pagamos/",
+   "title": "Entre Copas: o que mudou em 4 anos na forma como pagamos",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "17c192631c3d6268045cbe44eb13d73c7c5da64b8047dd482a66b9aba5a33755",
+   "chars": 3026
+  },
+  {
+   "url": "https://site.getnet.com.br/futuro-do-ecommerce/",
+   "title": "O Futuro do E commerce: adaptar-se para liderar",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "1977d491baf89bcc50864b8440cca494edd8e0ed78f2a3e81aeb31ea739819f6",
+   "chars": 3564
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-4-91/",
+   "title": "Erro ADQ 4-91: erro na aprovação da venda",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "19a23530d8709acce264d4c219d3736ae67fa28b09720c95f45e6d8c056434d5",
+   "chars": 439
+  },
+  {
+   "url": "https://site.getnet.com.br/como-inovar-seu-negocio/",
+   "title": "Como Inovar o Seu Negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "1cf017e84a4461ec5de61ab82896bd7a7d164d9936d26b0aa6685b45b8afb827",
+   "chars": 3168
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-maquininha/como-fazer-uma-venda-na-maquininha-getnet/",
+   "title": "Como fazer uma venda na maquininha Getnet?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "1dad3fb0bf3dbb7264751200f2ef99bce0bc944ac8ce56d321be638dbdda3c28",
+   "chars": 1477
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/onde-consultar-uma-venda-cancelada/",
+   "title": "Onde consultar uma venda cancelada?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "1dcc5572bd1a83855dc8e7f367eb700db9b93ecf0d50ab13aab65c0ba189075a",
+   "chars": 1034
+  },
+  {
+   "url": "https://site.getnet.com.br/antifraude/",
+   "title": "Antifraude",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "1e5a5b6c340b25a36655db4c2d7ed41c40a1f461e54f761ecc92d3e377f143af",
+   "chars": 2205
+  },
+  {
+   "url": "https://site.getnet.com.br/como-vender-mais-no-verao/",
+   "title": "Como aproveitar o verão para impulsionar suas vendas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "1efeab3c1304ea97922a00a6160f655fe4166442c6ce2b5dd937f9f5bda9aa4d",
+   "chars": 9233
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-chargeback/como-estornar-uma-venda-na-maquininha-getnet/",
+   "title": "Como estornar uma venda na maquininha Getnet?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "1f06e6eb2ce219fe3f791164ea7e37d04de6f2492367f72feab44c57bb793091",
+   "chars": 1678
+  },
+  {
+   "url": "https://site.getnet.com.br/como-vender-no-tiktok-shop-guia-para-empreendedores/",
+   "title": "Como vender no TikTok Shop: guia para empreendedores",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "1fa1ce2cfaf453d0f23e634b6119738c567ef7d8458d4756bbf1afaf3dcbd099",
+   "chars": 11157
+  },
+  {
+   "url": "https://site.getnet.com.br/agentic-commerce-o-que-e-e-porque-seu-negocio-precisa/",
+   "title": "Agentic Commerce: o que é e por que seu negócio precisa",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "21f6fcda7cd295cf1132531f3cfb5717517094e569f3ad8d4288d7c4ed8097de",
+   "chars": 11326
+  },
+  {
+   "url": "https://site.getnet.com.br/automacao-atendimento-ao-cliente/",
+   "title": "Saiba como a automação humaniza o atendimento ao cliente",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "231e1a124c0150743b271cf7ab8efa04b6ac0f8c335a68247cad0aabc0577aaf",
+   "chars": 2539
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart/",
+   "title": "Soluções Get Smart",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "26eb9c176f0eeb2ff58fa01f1c5dc06b869928caf65a05bc9758f956ee6ae829",
+   "chars": 1217
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-voucher/o-que-e-o-pat/",
+   "title": "O Programa de Alimentação do Trabalhador (PAT)",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "2a0a35e86a6d7bbe3f23d8c38b7b66fd734d37399f982f4420cafe55588916c8",
+   "chars": 4511
+  },
+  {
+   "url": "https://site.getnet.com.br/dia-das-maes/",
+   "title": "Dia das Mães: 5 dicas para atrair clientes ao seu restaurante",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "2b0c8140a782687961e096e0dd181cf5556f71b4076d372871478d3c4165e2a1",
+   "chars": 3098
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-maquininha/simulador-calculadora-de-vendas/",
+   "title": "Simulador ou Calculadora de Vendas Getnet",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "2c5aec49accfb0e3c019e6805d2ab8f96362147783bfd106b0f2caab186447ca",
+   "chars": 2208
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-tap/o-que-e-o-get-tap-e-como-funciona/",
+   "title": "O que é o Get Tap e como funciona?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "2f6049463b932c8a83bba2ef13024ec6a79eb06aca77379f1b97787488622910",
+   "chars": 1063
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-recarga-de-celular-desligamento/sobre-o-desligamento-da-recarga-de-celular/",
+   "title": "Get Ajuda – Sobre o Desligamento da Recarga de Celular",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "2f9194c10b525a477c3b0b44a9c9c5842744be43c8a362a3d1bed022db1b4ee6",
+   "chars": 2611
+  },
+  {
+   "url": "https://site.getnet.com.br/fve-zaz/",
+   "title": "Getnet | ZAZ uma parceira da GetnetZAZ uma parceira da Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "32873595b746a56fbcc72b18b2fefcef90b87cb3369f96b792c1bd0a414053b8",
+   "chars": 1002
+  },
+  {
+   "url": "https://site.getnet.com.br/como-consultar-cnpj/",
+   "title": "Como consultar CNPJ: confira passo a passo",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "337b6600ee5a8c8fb0c6b87fd80b704d2cf60e4b7adb7f235b5a21f1460ea948",
+   "chars": 3052
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/quais-possiveis-status-das-minhas-vendas/",
+   "title": "Quais são os possíveis status das minhas vendas?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "34b4f81a2f9e2cf5e09bd155ab67c7160f115f048ccd9182ea0a20ca83d8adda",
+   "chars": 1497
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-s-2074/",
+   "title": "Erro S-2074: erro de comunicação",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "34e22b03071842f7ad863c54f9b862ddb1e068839122b34c8953b8d3dc2c8057",
+   "chars": 281
+  },
+  {
+   "url": "https://site.getnet.com.br/getnetrestaurantes/",
+   "title": "Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "3ac17014953fb0bf04c90195d6596d5870980eaa31aa1c9e2f528d74daef9dc8",
+   "chars": 2143
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-idl-1-08/",
+   "title": "Erro IDL 1-08: erro de integração com as bandeiras/cartão",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "3b48e5db71817e79f4a17b393ab3b8e3b6bc1fc0c4f00a37080cce0c9f58f41e",
+   "chars": 457
+  },
+  {
+   "url": "https://site.getnet.com.br/dias-de-festival-veja-como-preparar-seu-negocio-para-vender-mais/",
+   "title": "Dias de festival: veja como preparar seu negócio para vender mais",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4261831dc1eb3d81a18740ea0e6765acd55e7e444d3c118bbc442a304bcdbe2e",
+   "chars": 8743
+  },
+  {
+   "url": "https://site.getnet.com.br/maquininha/aluguel/",
+   "title": "Getnet | Maquininha de Aluguel Getnet - Garanta Aluguel ZEROMaquininha de Aluguel Getnet - Garanta Aluguel ZERO",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "4520fd6d5346333e461ef71e2da0150715773a9a7b69edc49e1e0d629771e120",
+   "chars": 4621
+  },
+  {
+   "url": "https://site.getnet.com.br/datas-casadas-como-aproveitar-para-vender-mais/",
+   "title": "Datas casadas: o que são e como aproveitar para vender mais",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "46970f1c6f5ec5efb7c697e084b701c94c5fe3bd0272578896649ff830cab8ba",
+   "chars": 8991
+  },
+  {
+   "url": "https://site.getnet.com.br/ideias-de-negocios-lucrativos/",
+   "title": "Quer Empreender? Veja 9 ideias de negócios lucrativos",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4779e9e65a4f5c9c49007fb3744ab38d6f880a3bd87866739d22e3f3fb920ccf",
+   "chars": 2786
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-conta/como-acesso-a-minha-get-conta/",
+   "title": "Como acesso a minha Get Conta?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "4811519d260051d814960f49f733822fd578b5de44dfcfa3c25e2d021a65dd64",
+   "chars": 979
+  },
+  {
+   "url": "https://site.getnet.com.br/contrato-social/",
+   "title": "Contrato Social: o que é e quem precisa ter",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4942b329e13c0875362fc320e0c4653183b6c00c65f34ed115c48ea38d7f7fc5",
+   "chars": 3482
+  },
+  {
+   "url": "https://site.getnet.com.br/a-era-do-dinheiro-inteligente/",
+   "title": "A era do dinheiro inteligente",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "498688e7799d75b33e04cc48898239234964adfd54f7c667204155ce5042883e",
+   "chars": 3792
+  },
+  {
+   "url": "https://site.getnet.com.br/gestao-de-vendas-getnet/",
+   "title": "Faça como a Dona Jura e use o gestão de vendas da Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4b6623cb4b53e030c0a937b750e5eb18cf78571aa57b9f63095f2eb6d30b40b4",
+   "chars": 3002
+  },
+  {
+   "url": "https://site.getnet.com.br/franquia/",
+   "title": "Franquias: Como escolher a melhor opção",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4b73fb55aee2f2e084e02804a7da69748abf099bbda52f7a521e1b2a86dca93c",
+   "chars": 3754
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-conta/o-que-e-a-get-conta/",
+   "title": "O que é a Get Conta? Quais os benefícios?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "4c9e9a3149374d90d86d8d95015e821f68396eeafdd38a63deac933fef37160e",
+   "chars": 2139
+  },
+  {
+   "url": "https://site.getnet.com.br/golpe-comprovante-de-pix/",
+   "title": "Como saber se um comprovante de Pix é falso?",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4f2fd95b5d40f128a0cdd425e7f109093d6263b04d89536e489a25dc526f1446",
+   "chars": 2690
+  },
+  {
+   "url": "https://site.getnet.com.br/black-friday-getnet/",
+   "title": "Black Friday não começa em novembro: prepare o seu negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "4fe9891982d1e30df4fd7e9fba139f7263188db65b31503ed3c85475c60373d9",
+   "chars": 4728
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-18/",
+   "title": "Erro ADQ 1-18: erro de comunicação",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "50d2a4a895f46303de7ff8a053f5e7333f6adfc882d59ebd33deb8f0cbd4edba",
+   "chars": 374
+  },
+  {
+   "url": "https://site.getnet.com.br/checkout-de-pagamento-o-que-e/",
+   "title": "Checkout: o que é e como melhorar a experiência do cliente",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "51b93929fd16417bdd376838dfa5c32650f7dec4da11be738a1824a859099e89",
+   "chars": 4968
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-pix/como-desabilitar-o-recebimento-de-vendas-via-pix-no-aplicativo-getnet-brasil/",
+   "title": "Como desabilitar o recebimento de vendas via pix no aplicativo Getnet Brasil?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "5238af9d051f8492fca592d966783345846abbdb7afd79af4e2a97982907a9bc",
+   "chars": 1142
+  },
+  {
+   "url": "https://site.getnet.com.br/como-vender-mais-no-halloween-5-dicas-para-aproveitar-a-data/",
+   "title": "Como vender mais no Halloween: 5 dicas para aproveitar a data",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "52695795d6bdd976c71a85c3e71628e5e96d360e353c8d6679b0347c91b59ec3",
+   "chars": 12003
+  },
+  {
+   "url": "https://site.getnet.com.br/como-se-tornar-mei-comecando-com-as-ferramentas-certas/",
+   "title": "Como se tornar MEI e começar com as ferramentas certas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "5393d064b331ee25274a9f984f80cb9da24fe539888d8e28e92837935422b88e",
+   "chars": 5491
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-configuracoes/como-configurar-o-wi-fi-na-sua-maquininha-getnet/",
+   "title": "Como configurar o Wi-Fi na sua maquininha Getnet?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "53b7a8fe3a86afdf18c485252c50fc3fab30c819a655e9273616c8306a3916c7",
+   "chars": 1332
+  },
+  {
+   "url": "https://site.getnet.com.br/faturamento/",
+   "title": "Faturamento: O que é e como calcular o do seu negócio?",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "547245b19d4752dbdc603dcf395583ee2b5530c06aed57f08fa56e2130fb88c2",
+   "chars": 3430
+  },
+  {
+   "url": "https://site.getnet.com.br/esg/",
+   "title": "ESG",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "547319fc721c6acecd7b9474bdc2976a966d66b6354c68c428eb63ed72026fc1",
+   "chars": 6616
+  },
+  {
+   "url": "https://site.getnet.com.br/emprestimo/",
+   "title": "Emprestimo",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "54ca413a5449ea0ea43aa3752adfa18284f9e4071269ff33c2269c544fc5971e",
+   "chars": 5482
+  },
+  {
+   "url": "https://site.getnet.com.br/agentic-commerce/",
+   "title": "Getnet | Agentic Commerce: o futuro das compras com IAAgentic Commerce: o futuro das compras com IA",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "56652edb90d7e689db5f62a457f6a6924d4de9088a525fdbc5bed609b72b5e0e",
+   "chars": 5863
+  },
+  {
+   "url": "https://site.getnet.com.br/como-fidelizar-a-venda-extra/",
+   "title": "13º salário: como transformar a renda extra de dezembro em vendas e fidelização",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "58856f67048b26e39a232cd51252f7a641eee778634cfb4e190dc264945e3b75",
+   "chars": 6504
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-85/",
+   "title": "Erro ADQ 1-85: problema de comunicação com a operadora",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "5a190ac3fd616b7dcc85f03ff4d83520e637cc6f659a6b81be09b955e4b769e9",
+   "chars": 341
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/como-exportar-minhas-vendas-pix/",
+   "title": "Como exportar minhas vendas Pix?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "5b96868a2cfc11588530f4b02be6675320f5b183964780c1324f75706af2f6b1",
+   "chars": 871
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cadastro/como-atualizar-seus-dados-cadastrais-no-aplicativo-getnet-brasil/",
+   "title": "Como atualizar seus dados cadastrais no aplicativo Getnet Brasil",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "5c5bd20d464d9af3c5d109badbb5da86f3dd63e567c8a80888e9a5e901d48237",
+   "chars": 1187
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-tap/como-utilizar-o-get-tap/",
+   "title": "Como utilizar o Get Tap?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "5e6ae28c3d7fa9cdd2e0daf00278432bcce0a85792627236b8407d09ee6fa36a",
+   "chars": 799
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-07/",
+   "title": "Erro ADQ 1-07: maquininha não inicializada",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "60f6507c0fd2cedc3efff7ee2174ae45446ab91dd149785c0fadd98534dc9d36",
+   "chars": 676
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-receba-ja/plano-de-recebimento-reduzido/",
+   "title": "Plano de Recebimento Reduzido",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "6333d490b57a3696a97a7ee67dc5d7d1d18885e9aeda9d8140bccd2d2c91e770",
+   "chars": 4296
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-reserva-financeira/reserva-financeira/",
+   "title": "Entenda como funciona a Reserva Financeira da Getnet",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "63a32f8163c61ff8d38f03b4835d2c8c1b8ef4435e64a9ae6d06a965ea5007a4",
+   "chars": 1439
+  },
+  {
+   "url": "https://site.getnet.com.br/duvidas/",
+   "title": "Dúvidas e Perguntas Frequentes",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "64f6ae694b4c59729e1fec745995a11f7bca96642a9785c847e2d9840cfb3f6b",
+   "chars": 46618
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-antecipacao-de-venda/como-antecipar-sua-vendas-pelo-app/",
+   "title": "Como antecipar suas vendas pelo app",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "66252157df9791d68448c196d769668b4be1c6668ef355214bad2b8eb7575d63",
+   "chars": 844
+  },
+  {
+   "url": "https://site.getnet.com.br/getnet-connects-novo-programa-de-parcerias/",
+   "title": "Getnet Connects: Novo programa de parcerias multinacional",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "66f2809b164b6883d42845f2c6ab479a906ff29efdd141a5fbeaf145d28d169c",
+   "chars": 7164
+  },
+  {
+   "url": "https://site.getnet.com.br/como-fazer-declaracao-de-conteudo/",
+   "title": "Como fazer a declaração de conteúdo?",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "67ad62ff442b0ac29afb51e79f545853683552b866cc7a60da635a162d643044",
+   "chars": 3982
+  },
+  {
+   "url": "https://site.getnet.com.br/frete-cif/",
+   "title": "Entenda o frete CIF e saiba como usar",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "69f53e75d6669f9984c3f44bf65cfbb95b3d22cd9f192f3ee500fa67f416c87f",
+   "chars": 2569
+  },
+  {
+   "url": "https://site.getnet.com.br/5-dicas-para-aquecer-seu-caixa-com-a-chegada-do-frio/",
+   "title": "5 dicas para aquecer seu caixa com a chegada do frio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "6ab9e352fd3cc1bc2046d72b9bf06e67366ac4a843fafd149c0859c3622698d0",
+   "chars": 9609
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/como-fazer-minha-gestao-de-venda/",
+   "title": "Como fazer a gestão das minhas vendas?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "6c16b0dce300e0ccd1c38230bb4acfa085d236d78fa4d836df81c7aa1fd1c23d",
+   "chars": 635
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/como-cancelar-minhas-vendas/",
+   "title": "Como cancelar minhas vendas?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "6fd687a115841158d4f3ac0e3dbae20f674d69ec069979f89fb4611b41fbbd0d",
+   "chars": 1243
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-nfc/",
+   "title": "Erro na leitora NFC: erro na realização de vendas por aproximação",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "70567b91d2a0aa516f6cefa662b732fa643db2338dbbbb42e229bc97760008cb",
+   "chars": 441
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cadastro/como-finalizar-seu-cadastro-no-aplicativo-getnet-brasil-e-comecar-a-aceitar-pagamentos/",
+   "title": "Como finalizar seu cadastro no aplicativo Getnet Brasil?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "7307e6107eca47313507a8ea321ba395dfde2868bfcf117535dfe806bdf12fb5",
+   "chars": 1530
+  },
+  {
+   "url": "https://site.getnet.com.br/getnet-reforca-posicionamento-como-parceira-do-empreendedor/",
+   "title": "Getnet reforça posicionamento como parceira do empreendedor",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "73737b75037d0cc8b43a5731a1d396a556dc5e4f0f4f3baa805c511870252cb8",
+   "chars": 4404
+  },
+  {
+   "url": "https://site.getnet.com.br/blog/",
+   "title": "blog",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "7432016da9fd2636a7361121d84ae1f0782cb7f1d737cc0f65abf4b375e264e2",
+   "chars": 1708
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-maquininha/como-acessa-o-manual-da-sua-maquininha-getnet/",
+   "title": "Como acessar o manual da sua maquininha Getnet?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "74faafc6cb005b5cb681b540e9f945b6cde3c83b3df2ef62db720e90f2099e9e",
+   "chars": 461
+  },
+  {
+   "url": "https://site.getnet.com.br/get-code/",
+   "title": "Getnet - Get Code | Este é o seu espaço para inovar",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "755b1b117f5447b5ab21c1a0cf4968d2d6ed939b6e283e6e8516c11cfe58c1b8",
+   "chars": 2715
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-taxas/taxas-por-transacao/",
+   "title": "Taxas Getnet: Entenda nosso MDR (taxa por transação)",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "79652dcdc7e7dad48bbea687fa3961aa9edf693bd06e784d0cf2d188e9604483",
+   "chars": 2180
+  },
+  {
+   "url": "https://site.getnet.com.br/dicas-de-senhas/",
+   "title": "5 Dicas para Evitar Senhas Óbvias e Não Ser Hackeado",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "7a4f018cd9bb3813d6d0333572ab8cbe086e1135dcd0fb5252cc2e4f5c6ea0e0",
+   "chars": 1786
+  },
+  {
+   "url": "https://site.getnet.com.br/getnet-connects/",
+   "title": "Getnet Connects | Programa de Parcerias Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "7b51adebc10a5173a2be44aac6ca71218342aec3114cfbe851735cda26f32473",
+   "chars": 1115
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cancelamento/como-cancelar-produtos-e-servicos/",
+   "title": "Como cancelar produtos e serviços Getnet?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "7c0c506b0d1d4c82b55b5c5c5fee71a46a3f9bc338690c369379bd6873fef864",
+   "chars": 359
+  },
+  {
+   "url": "https://site.getnet.com.br/gestao-de-vendas-menos-papel-mais-controle-na-mao/",
+   "title": "Gestão de Vendas: Menos papel, mais controle na mão",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "7d85e0ed0f974ac5fa8a02f50fae1353a2cec67edec14418340bf737060614ca",
+   "chars": 4378
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-conta/como-realizo-uma-transferencia-e-quais-os-limites-diarios/",
+   "title": "Como realizo uma transferência e quais os limites diários?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "8057f282cb74758a2c77776e0b9bd2e67e20b1e7098f5d5843834e1f78a3e930",
+   "chars": 776
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-reserva-financeira/antecipacao-reserva-financeira/",
+   "title": "Antecipação da Reserva Financeira",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "849b43ab222d76121aec5b48e12d01d36276bb545339959abf16a57910e8fe1a",
+   "chars": 1718
+  },
+  {
+   "url": "https://site.getnet.com.br/carteiras-digitais/",
+   "title": "Carteiras Digitais: O que são e como podem aumentar as vendas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "86e09e02400f4128898f6d52a63c6f37f9bbcee2f464a40f51f190c178751b60",
+   "chars": 3702
+  },
+  {
+   "url": "https://site.getnet.com.br/carnaval-2026-veja-3-solucoes-para-vender-mais-neste-periodo/",
+   "title": "Carnaval 2026: veja 3 soluções para vender mais neste período",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "86e945ee6078a5189437f5e4e229b663653712d7952d5be7699371b6482e9e87",
+   "chars": 8062
+  },
+  {
+   "url": "https://site.getnet.com.br/indicadores-que-todo-lojista-deveria-acompanhar-semanalmente/",
+   "title": "5 indicadores que todo lojista deveria acompanhar semanalmente",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "870562a5a2d8601ef1fa841195ab3c8ef30cb1fca2c3d7195eb65cb5b20b5276",
+   "chars": 4001
+  },
+  {
+   "url": "https://site.getnet.com.br/como-o-checkout-getnet-pode-ajudar-no-faturamento-ecommerce/",
+   "title": "Como o Checkout Getnet pode ajudar no faturamento e-commerce",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "875ac9a6f6ea2de636cc2934a88c572de2931541c91e450129ce85c98ad67922",
+   "chars": 7679
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-configuracoes/funcionalidades-portal-minha-conta-e-app-getnet-brasil/",
+   "title": "Funcionalidades portal minha conta e App Getnet Brasil",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "87bb4a9cf20978bf5f1e1f73fd4926c2c409795fef3a572285d29744a90f18d2",
+   "chars": 954
+  },
+  {
+   "url": "https://site.getnet.com.br/financas-do-primeiro-negocio-veja-como-se-organizar-antes/",
+   "title": "Finanças do primeiro negócio: veja como se organizar antes",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "87d22764da75b1347b774f8b9d938bee3caafb6e793397044fcb3358a1aebe49",
+   "chars": 9290
+  },
+  {
+   "url": "https://site.getnet.com.br/5-dicas-essenciais-para-modernizar-as-vendas-na-feira/",
+   "title": "5 dicas essenciais para modernizar e acelerar as vendas na feira",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "88f15f86441b4b5cdce2d1d98cd03accf809a52936e891e2620f14f3edb70729",
+   "chars": 7385
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cadastro/como-redefinir-a-senha-aplicativo-2/",
+   "title": "Como Redefinir a Senha de Acesso do Meu Aplicativo Getnet Brasil?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "89ca72234bd0ca3c092b097cb2ae7afeeebf1bf31726e2801565c33b22058e55",
+   "chars": 1158
+  },
+  {
+   "url": "https://site.getnet.com.br/getstore/",
+   "title": "GetStore",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "8a070e46bba3b7f1a4ead0069df4767281bdcfd1c290beaccf8ff8df23c80b79",
+   "chars": 738
+  },
+  {
+   "url": "https://site.getnet.com.br/getnet-lanca-get-code-comunidade-global-de-desenvolvedores-para-inovacao/",
+   "title": "Get Code, comunidade global de desenvolvedores para inovação",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "8cc2722fd174c93d05ff7b42e950a97a35fb4f1ab8ff1690bb859bf6de8990c9",
+   "chars": 4276
+  },
+  {
+   "url": "https://site.getnet.com.br/calcule-ticket-medio-do-seu-negocio/",
+   "title": "Confira o que é e como calcular o ticket médio do seu negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "8d0a3126dfe2eaf0fdfb3b1d64d8c5376d2cb430f3d53f16a121e2acd9fd2046",
+   "chars": 3865
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/como-consultar-os-status-das-minhas-vendas/",
+   "title": "Como consultar os status das minhas vendas realizadas?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "8e3db6687ae3729a71d214caf86120e3790f903e74c74cc9a4c6f4b112c08e2c",
+   "chars": 888
+  },
+  {
+   "url": "https://site.getnet.com.br/institucional/",
+   "title": "Institucional",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "8f00e476bb91241ef66e00dce40f163774bd5cf66406804c97d5698aff99ff06",
+   "chars": 8111
+  },
+  {
+   "url": "https://site.getnet.com.br/todas-as-maquininhas/",
+   "title": "Getnet | Maquininha de cartão: Melhores taxas e opções grátisMaquininha de cartão: Melhores taxas e opções grátis",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "8f14d8f97696cb3da762db75c5ba2ad917b5c2c322d7f2d5d676b68f08a18b28",
+   "chars": 5049
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-conta/o-que-e-tarifa-de-inatividade/",
+   "title": "O que é tarifa de inatividade?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "9119baad6522b4e9aa7d568eca98636972e8aaf13b8746d36ab21c1c26cdc154",
+   "chars": 809
+  },
+  {
+   "url": "https://site.getnet.com.br/link-de-pagamento-getnet/",
+   "title": "Faça como a Dona Jura e use o Link de pagamento da Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "913085fb64c50dfd90e361aed2f6a3208baab4c529fb5d85f855bc24c813db29",
+   "chars": 3270
+  },
+  {
+   "url": "https://site.getnet.com.br/como-organizar-as-despesas-pessoais-e-empresariais/",
+   "title": "Como organizar as despesas pessoais e da empresa",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "94489b3842a3f6d4227d467e36a7620ea4c0dda2f57859e0b77f5d45aa0e27a7",
+   "chars": 4185
+  },
+  {
+   "url": "https://site.getnet.com.br/crescimento-vendas-online/",
+   "title": "Vendas online crescem 24% no primeiro semestre, aponta Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "96a114804f1e8aed9aed2394e349cf2b943ce0342f1d0015caa1634fb1056f0a",
+   "chars": 2549
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-maquininha/como-solicitar-a-manutencao-da-maquininha-getnet/",
+   "title": "Como solicitar a manutenção da maquininha Getnet?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "9903401588dd057ad515e3b0be686f3ff1cb91da7b49dd4ccb1b5c8f7348bae3",
+   "chars": 1225
+  },
+  {
+   "url": "https://site.getnet.com.br/conversor-de-moedas-getnet-disponivel-agora-no-tef/",
+   "title": "Conversor de Moedas Getnet, disponível agora no TEF",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "99b519c4b71ed5df82a4f1a61ae26618c7298ee5ef20b9aea6a285d8bd32627e",
+   "chars": 7952
+  },
+  {
+   "url": "https://site.getnet.com.br/conta-digital-getnet/",
+   "title": "Conheça a Get Conta: A Conta Digital da Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "9b2ef262dee4ac1a79c346bba12f9d2fd8f1eceaa8eb582c1fbc3670e15223c9",
+   "chars": 2853
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-33/",
+   "title": "Erro ADQ 1-33: erro de leitura",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "9ca38b38ee35cc1a41b08ef6da96df905ed20b0efc18b2f3ddce56446a0ee4dd",
+   "chars": 668
+  },
+  {
+   "url": "https://site.getnet.com.br/erros-na-gestao-financeira/",
+   "title": "7 erros comuns na gestão financeira de pequenos negócios",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "a1ecd8be2c599d7a4e80b21080d878c6b7e72f17a595434cdd3982b62edeea15",
+   "chars": 3974
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-3-30/",
+   "title": "Erro ADQ 3-30: erro de criptografia",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "a3a84d27b05f24497ff5b41c444232299b8ab6e2cbfcd50a37c2dca3e1388822",
+   "chars": 694
+  },
+  {
+   "url": "https://site.getnet.com.br/eye/",
+   "title": "Gestão de vendas completa: Eye Getnet",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "a4fdf613ac3cc2732f4fd934ce4afd08078f64ce6a7dc29063daac8c3a7914b5",
+   "chars": 1046
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/entenda-o-que-e-venda-autorizada-aprovada-e-desfeita/",
+   "title": "Entenda o que é venda Autorizada, Aprovada e Desfeita",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "a9f05b859dfab88a5e949c7bdc10070f11f487e7fe2d925c3930b69cf57f2e50",
+   "chars": 321
+  },
+  {
+   "url": "https://www.getnet.net/en/",
+   "title": "Getnet - Home",
+   "section": "global",
+   "captured_at": "2026-11-17",
+   "sha256": "aba79475133ec1495fdc13cd52abae4dbcd3d31357a4e63016dd64494fa52640",
+   "chars": 4084
+  },
+  {
+   "url": "https://site.getnet.com.br/cartoes-aceitos-hml-2/",
+   "title": "Getnet | Cartões",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "acef2bbfc58b685f8271e256e9462788adde270a992e29a9552d1a224ea7a967",
+   "chars": 2116
+  },
+  {
+   "url": "https://site.getnet.com.br/5-funcionalidades-da-maquininha-getnet-para-vender-mais/",
+   "title": "5 funcionalidades da maquininha Get para vender mais",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "afc40b6aa7203cf6853f239131e8c74981ec22823332be048c19e9f4a251f90d",
+   "chars": 3432
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-configuracoes/configuracoes-da-sua-maquininha/",
+   "title": "Configurações da sua maquininha",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "b01417c09fde57b5b2dd9f2c2cb87b1058e2084a2b065c5cb55c556f2f551e91",
+   "chars": 492
+  },
+  {
+   "url": "https://site.getnet.com.br/getnet-e-comida-di-buteco/",
+   "title": "Getnet e Comida di Buteco: 10 anos de parceria",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b166dca884ea2405889e23367b90614ca3de819c844702aa18ea5f9f2f211c43",
+   "chars": 3480
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-87/",
+   "title": "Erro ADQ 1-87: erro com o registro do CHIP",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "b17803db597ef242807f40d43a363fab39dcc0402b5c2bf6e47525dd204a0d60",
+   "chars": 419
+  },
+  {
+   "url": "https://site.getnet.com.br/conheca-o-conversor-de-moedas/",
+   "title": "Conversor de Moedas: Conheça essa funcionalidade",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b22318059e6c6e06f881a233a775a5e80ce4a0448f7f071e058d84e9513436dd",
+   "chars": 1982
+  },
+  {
+   "url": "https://site.getnet.com.br/dicas-para-lucrar-mais-nas-festas-juninas/",
+   "title": "Dicas para lucrar mais nas festas juninas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b25fee1f1c91697cec1e975c2ad25bb5bc350668ce4e868b8be3b9a0f342136e",
+   "chars": 3249
+  },
+  {
+   "url": "https://site.getnet.com.br/conta-digital/",
+   "title": "Getnet | Maquininha + Conta Digital",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b2d653ff8e4c81cd4760526f6a82c6b5b78c96b6ab0dfcb8895eab22c4f09eaf",
+   "chars": 798
+  },
+  {
+   "url": "https://site.getnet.com.br/emprestimo-getnet/",
+   "title": "Empréstimo: como Funciona o Crédito com Garantia de Recebíveis",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b356e097f1536f3a750a2149a4c917f05b65ea1dc624ace2226771ea99f1d009",
+   "chars": 2972
+  },
+  {
+   "url": "https://site.getnet.com.br/checklist-do-ecommerce/",
+   "title": "Checklist do e-commerce eficiente: confira os 5 pontos importantes",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b35db16e980c031bc45e69bacc24f3366107e80b21fca9378286874f8a683718",
+   "chars": 4220
+  },
+  {
+   "url": "https://site.getnet.com.br/domicilio-eletronico-trabalhista/",
+   "title": "Domicílio Eletrônico Trabalhista (DET): Conheça o que é",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b3b8c80ee773e30c315fbef50f7e07e4aae77da8bc73e40767e1cff6eea53a61",
+   "chars": 3580
+  },
+  {
+   "url": "https://site.getnet.com.br/carnaval-2026-5-dicas-de-seguranca-para-evitar-golpes-durante-a-folia/",
+   "title": "Carnaval 2026: 5 dicas de segurança para evitar golpes na folia",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b4f5baba01302b4ad99db371e9f5c5088ed143a55d536ec25509a0c6057aea34",
+   "chars": 6438
+  },
+  {
+   "url": "https://site.getnet.com.br/liberdade-financeira/",
+   "title": "Conquiste sua liberdade financeira e saia das dívidas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "b72d9ab99e0ccde567d90c4205d7c8eb6c4d86b4153aefcb950491d098f4ce6e",
+   "chars": 6003
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-chargeback/como-estornar-uma-venda-pelo-aplicativo-getnet-brasil/",
+   "title": "Como estornar uma venda pelo aplicativo Getnet Brasil",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "bf0421c0aac9bcbfeecc2b75c124dcfad35b4e2fbd9d916673d2aa1123270c36",
+   "chars": 1733
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-4-27/",
+   "title": "Erro ADQ 4-27: erro na comunicação dos sistemas",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "c07959550db6c7ae0831098547e7ce8bd369063653626fb480e85e8f5ff78b03",
+   "chars": 432
+  },
+  {
+   "url": "https://site.getnet.com.br/como-definir-precos-justos-e-competitivos-para-produtos-e-servicos/",
+   "title": "Como definir preços justos e competitivos para produtos e serviços",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "c0b2efaa39b68296698ee1375706d4b55960bdc1770a3d954fec0f20f96fb407",
+   "chars": 7488
+  },
+  {
+   "url": "https://site.getnet.com.br/adquirente/",
+   "title": "Adquirente: Tudo que você precisa saber",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "c2ad5b7e952a8d95a763297405405a28741ccf572afa3435e1ba67296f15877e",
+   "chars": 2427
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-whatsapp-business/descontinuacao-whatsapp-business/",
+   "title": "Descontinuação dos pagamentos via WhatsApp Business",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "c2d1d532035476ebc29a9286c2c63c763aacffcb08f6a15917095e25be7b1356",
+   "chars": 1530
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-chargeback/sobre-o-chargeback/",
+   "title": "Sobre o chargeback",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "c3542e3f00df32a4c05f1e74a44438efbe9f1eb8da545b9fcac9198e3ef7cd88",
+   "chars": 10444
+  },
+  {
+   "url": "https://site.getnet.com.br/dicas-segundo-semestre/",
+   "title": "Vire a Chave: 5 Dicas para um Segundo Semestre de sucesso",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "c3bc347fc7efcc39f0809406e5480284fdd1e943141d9f5f4f0874e38685481a",
+   "chars": 3676
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-get-conta/como-cancelar-a-minha-get-conta/",
+   "title": "Como cancelar a minha Get Conta?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "c626c1990c88e7e76b6f6e94508a855546790b381e2b2fdb16f64fd90a32592f",
+   "chars": 421
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cadastro/como-redefinir-a-senha-aplicativo/",
+   "title": "Como Redefinir a Senha de Acesso do Meu Aplicativo Getnet Brasil?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "c7c62438375ae817aa9c2e9de1fd51009089284b51d1a5f0065f67f0a0e7aa2b",
+   "chars": 1114
+  },
+  {
+   "url": "https://site.getnet.com.br/conversor-de-moedas/",
+   "title": "Getnet | Conversor de Moedas",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "c800802d99a78c2e26a10f65be66e72253377515dac9bbe924c83a319c9476ba",
+   "chars": 1719
+  },
+  {
+   "url": "https://site.getnet.com.br/conversor-de-moedas-getnet/",
+   "title": "Conversor de Moedas: Conheça os benefícios para seu negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "c821665c71ee68d493d3452762c75a3ff8aac8ab67067464d8e8f959926b1152",
+   "chars": 4500
+  },
+  {
+   "url": "https://site.getnet.com.br/contas-a-pagar-e-receber-como-equilibrar-o-fluxo-financeiro-do-negocio/",
+   "title": "Contas a pagar e a receber: Como equilibrar o fluxo financeiro",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "c9bc90d610ded8937b6a5bc219f6fe8d55b9367c6a99532f47088c7816d4b927",
+   "chars": 6482
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-pix/como-utilizo-o-pix-por-biometria/",
+   "title": "Como utilizo o Pix por Biometria?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "c9e7e698e52579d04e121adccf855d997e44cdb5f993705f1611abd21f4a1b22",
+   "chars": 1578
+  },
+  {
+   "url": "https://site.getnet.com.br/get-tap/",
+   "title": "Getnet | Maquininha no celular: Receba pelo celular",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "cbfe4c5aa45dfd12996eb31a29da6d0f5bbd2f56069c00f9848bfc8cf4002581",
+   "chars": 4821
+  },
+  {
+   "url": "https://site.getnet.com.br/como-organizar-recebimento-de-compras/",
+   "title": "Clientes que compram em novembro, mas pagam depois: como organizar",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "cc763a943728b03d9ea25b8e8e001ebc4089944535704715f43c3ede6546e4b5",
+   "chars": 3613
+  },
+  {
+   "url": "https://site.getnet.com.br/carreiras/",
+   "title": "Getnet - Carreiras",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "cf5bf1cf0b6537fe80afb9db33ac7953316bc9a3200874558aa119d5228dfe4b",
+   "chars": 4372
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-cancelamento/como-cancelar-a-parceria/",
+   "title": "Como cancelar a parceria?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "d110d338ae7ec1a828d4e211fc0fd304a3a32da21e260356697bc99c5763bf0d",
+   "chars": 321
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-rastreamento/como-acompanhar-entrega-get-mini/",
+   "title": "Como posso acompanhar a entrega da minha Get Mini?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "d185daa2a760156f2eafd68a721d5c1704e7455b91b8d67c1dd80f0fecd6bf1e",
+   "chars": 471
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/como-acessar-as-minhas-vendas-realizadas/",
+   "title": "Como acessar as Minhas vendas realizadas?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "d546dea79790ec97513937eae12a1ff945b6ec3bbb9aac31b3e3a427be241360",
+   "chars": 636
+  },
+  {
+   "url": "https://site.getnet.com.br/erros-na-gestao-de-pagamentos/",
+   "title": "5 erros comuns que podem prejudicar seu negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "d77b9c37fba958ffa481c1cef391da007916669d64eeb0aa782482f92ea76290",
+   "chars": 4483
+  },
+  {
+   "url": "https://site.getnet.com.br/dicas-para-vender-mais-ecommerce/",
+   "title": "Dia dos Namorados: Dicas para Vender Mais no E-commerce",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "d7dfec7354b49e1d4ac3097e7ff1b5f510913a5250fade9b186811ff61438322",
+   "chars": 3196
+  },
+  {
+   "url": "https://site.getnet.com.br/crediario/",
+   "title": "Crediário",
+   "section": "product",
+   "captured_at": "2026-11-17",
+   "sha256": "d8b4aa111a92bdddfef2411711b1568df488a8ba4c12a332101f01f273dc31d6",
+   "chars": 5195
+  },
+  {
+   "url": "https://site.getnet.com.br/conheca-a-taxa-selic/",
+   "title": "O que é a Taxa Selic e como ela impacta o seu negócio?",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "d911d1ac640a6983bf126bf21b90e8a7e018d3d1f039c289f6004b0ae778ab4d",
+   "chars": 2602
+  },
+  {
+   "url": "https://site.getnet.com.br/5-dicas-para-bares-e-restaurantes-se-prepararem-aos-jogos/",
+   "title": "5 dicas para bares e restaurantes se prepararem aos jogos",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "db7f2840a03e9b93ca688a2a6e7c5e3a1d1e9458bccc9d12ce95297c31b20db0",
+   "chars": 9308
+  },
+  {
+   "url": "https://site.getnet.com.br/get-tap-maquininha-de-cartao/",
+   "title": "Get Tap: Transforme seu Celular em uma Maquininha de Cartão",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "dc83695c963ecb5c30b0819b4f50cac4cfba4cfb04dfd2394ea43c497e540ced",
+   "chars": 6474
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-4-30/",
+   "title": "Erro ADQ 4-30: falha na comunicação na maquininha",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "dd953caf1f36353f92ba7ff847ff779ea85f273fb42da4a909891bd470664f91",
+   "chars": 437
+  },
+  {
+   "url": "https://site.getnet.com.br/ferias-de-julho-5-dicas-para-vender-mais/",
+   "title": "Férias de julho: 5 dicas para preparar seu negócio e vender mais",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "ddc7608be7ca8afaffcd66097327bfe64e9bfbaca4f31fcb3a401628f0ee0602",
+   "chars": 7865
+  },
+  {
+   "url": "https://site.getnet.com.br/ia-para-pequenos-empreendedores/",
+   "title": "IA para Pequenos Empreendedores: como utilizar a IA no dia a dia",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "dde6a7e976b5827ffad35c169d07387dd37ee6e105afb9a7a4a1abcf53114e99",
+   "chars": 3729
+  },
+  {
+   "url": "https://site.getnet.com.br/get-code-promove-meetup-sobre-oportunidades-de-negocio/",
+   "title": "Get Code promove meetup sobre oportunidades de negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "ddf2455f01490b8cdad89899d87cbf86951e8780c47bdedb95f2af30709d1360",
+   "chars": 3083
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-19/",
+   "title": "Erro ADQ 1-19: erro de conexão",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "e44f5ab68e1e354b8d1f14670daba9559033a6623159bbc25108494e3252daf6",
+   "chars": 430
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-chargeback/o-que-e-chargeback/",
+   "title": "O que é chargeback e como evitar?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "e8f339f05fb0065bbbabad94e8894170baedfe432d35998205ec365d888f36b8",
+   "chars": 5416
+  },
+  {
+   "url": "https://site.getnet.com.br/conciliacao-financeira-para-pequenos-negocios/",
+   "title": "Conciliação financeira para pequenos negócios",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "e969173a98a3c5f741509e45cf1703e646a85d9499992347ecd78b7d47e069a8",
+   "chars": 7894
+  },
+  {
+   "url": "https://site.getnet.com.br/chargeback/",
+   "title": "Chargeback: o que é, como acontece e como evitar prejuízos",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "ea2919bf734094784a15d5cac731ec1dfe1ba9ce3b5665c9f2c706327d5da1c4",
+   "chars": 1860
+  },
+  {
+   "url": "https://site.getnet.com.br/wp-content/uploads/2025/09/Manul-GetSmart.pdf",
+   "title": "Get Smart: caracteristicas tecnicas, manual pagina 3",
+   "section": "manual",
+   "captured_at": "2026-11-07",
+   "sha256": "eac541b4fcbe6c0c8fc043cdb27ea88a42d67c52a2607222421bafb445c562b4",
+   "chars": 2449
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-pix/como-fazer-uma-venda-com-pix-na-maquininha/",
+   "title": "Como fazer uma venda com Pix na maquininha?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "eb4e02059cf340c837204751ab05f5eebe043760aaa81a79b9b20b9f1eed21be",
+   "chars": 552
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-gestao-de-vendas/como-emitir-carta-status/",
+   "title": "Como emitir carta status?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "ec47fe46284206a587c0511fc521b785e94e7e3cb7f3656f1aa581061badfa21",
+   "chars": 953
+  },
+  {
+   "url": "https://site.getnet.com.br/link-de-pagamento-vendas/",
+   "title": "Link de pagamento: a chave para ampliar suas vendas!",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "ee8b783b354c401cc897caf30d3df5581408e2a4ed51af01eff0cd0600453504",
+   "chars": 3404
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-maquininha/como-pedir-uma-maquininha-adicional/",
+   "title": "Como pedir uma maquininha Getnet adicional?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "efb592ae4ebd6f79a40065952aec3d3f091eccb7138678c5fa0d650fc50cc84c",
+   "chars": 1390
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-chargeback/como-atualizar-seus-dados-de-domicilio-bancario-no-aplicativo-getnet-brasil/",
+   "title": "Como atualizar seus dados de domicílio bancário no aplicativo Getnet Brasil?",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "f0384e5433e5e83412dd3d0d3fa0fae784defa23dd7bc1ca6f2b3644fbf46ba1",
+   "chars": 1543
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-06/",
+   "title": "Erro ADQ 1-06: maquininha não configurada",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "f145ea2707b67f915f92aeeff26411153011708b6707c23db993396aca2405c9",
+   "chars": 432
+  },
+  {
+   "url": "https://site.getnet.com.br/como-vender-online-para-outros-paises-e-expandir-seu-negocio/",
+   "title": "Como vender online para outros países e expandir seu negócio",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "f2a6234ee419f8162d7a5a2586a1fd19e7176891b405c965392626b4cde3e658",
+   "chars": 9364
+  },
+  {
+   "url": "https://site.getnet.com.br/dia-das-maes-como-empreendedores-se-protegem-de-golpes/",
+   "title": "Dia das Mães: Como empreendedores se protegem de golpes",
+   "section": "blog",
+   "captured_at": "2026-11-17",
+   "sha256": "f66e65009dd3a2f6f165dade3d929603bd98a48bc77c414a97f1a7d6afc39990",
+   "chars": 6973
+  },
+  {
+   "url": "https://site.getnet.com.br/wp-content/uploads/2026/06/getnet_12_06-26_Manul_GetClassica_V2.pdf",
+   "title": "Get Classica: botoes e conectividade, manual paginas 3, 4 e 9",
+   "section": "manual",
+   "captured_at": "2026-11-07",
+   "sha256": "f681cd2fe9fa754c2b9237107a67339c7d2e6df9e1ada11b0e107d14b6ca9d0e",
+   "chars": 3111
+  },
+  {
+   "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-84/",
+   "title": "Erro ADQ 1-84: problema de conexão",
+   "section": "help_center",
+   "captured_at": "2026-11-17",
+   "sha256": "f7b4b2fded7704af5bb9f3f570bb5be1cd9b8370554ff4054c0171d293082e3e",
+   "chars": 354
+  }
+ ]
+}

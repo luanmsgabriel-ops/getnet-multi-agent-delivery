@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-19/",
+ "title": "Erro ADQ 1-19: erro de conexão",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "e44f5ab68e1e354b8d1f14670daba9559033a6623159bbc25108494e3252daf6",
+ "text": "## Quando ocorre: No processamento da transação.\n\n### Solução:\n\n1. Clique na tecla de Função\n\n2. Insira o número 59\n\n3. A tela ficará verde confirmando a ação\n\n4. Selecione a Função 25\n\n5. A tela ficará verde confirmando a ação, novamente\n\n6. Insira a Senha do Operador\n\n7. A tela ficará verde confirmando a ação, novamente\n\n8. Selecione a Função 46\n\n9. A tela ficará verde confirmando a ação, novamente\n\n10. Faça uma venda teste."
+}

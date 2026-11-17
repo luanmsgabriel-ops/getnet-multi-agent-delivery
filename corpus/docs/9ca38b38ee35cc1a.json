@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-33/",
+ "title": "Erro ADQ 1-33: erro de leitura",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "9ca38b38ee35cc1a41b08ef6da96df905ed20b0efc18b2f3ddce56446a0ee4dd",
+ "text": "## Quando ocorre: No momento da transação.\n\n### Solução:\n\n1. Clique na tecla de Função\n\n2. Insira o número 38\n\n3. A tela ficará verde confirmando a ação\n\n4. Selecione a opção: Inicialização\n\n5. A tela ficará verde confirmando a ação, novamente\n\n6. Em seguida, faça uma venda teste.\n\n7. Clique na tecla de Função\n\n8. Insira o número 60\n\n9. A tela ficará verde confirmando a ação\n\n10. Selecione a opção Configuração\n\n11. Depois Apagar memória\n\n12. Insira a Senha do Técnico\n\n13. A tela ficará verde confirmando a ação, novamente\n\n14. Selecione a Função 38\n\n15. Depois Inicialização\n\n16. A tela ficará verde confirmando a ação, novamente\n\n17. Então, faça uma venda teste."
+}

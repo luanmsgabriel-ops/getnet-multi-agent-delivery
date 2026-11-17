@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-06/",
+ "title": "Erro ADQ 1-06: maquininha não configurada",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "f145ea2707b67f915f92aeeff26411153011708b6707c23db993396aca2405c9",
+ "text": "## Quando ocorre: Ao tentar utilizar a maquininha.\n\n### Solução:\n\n1. Clique na tecla de Função\n\n2. Insira o número 59\n\n3. A tela ficará verde confirmando a ação\n\n4. Selecione a Função 25\n\n5. A tela ficará verde confirmando a ação, novamente\n\n6. Insira a Senha do Operador\n\n7. A tela ficará verde confirmando a ação, novamente\n\n8. Selecione a Função 46\n\n9. A tela ficará verde confirmando a ação, novamente\n\n10. Faça uma venda teste."
+}

@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-adq-1-87/",
+ "title": "Erro ADQ 1-87: erro com o registro do CHIP",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "b17803db597ef242807f40d43a363fab39dcc0402b5c2bf6e47525dd204a0d60",
+ "text": "## Quando ocorre: No momento da transação.\n\n### Solução:\n\n1. Confirme se o CHIP está devidamente inserido no terminal\n\n2. Clique na tecla de Função\n\n3. Insira o número 25\n\n4. A tela ficará verde confirmando a ação\n\n5. Insira a Senha do Lojista\n\n6. Selecione a Função 46\n\n7. A tela ficará verde confirmando a ação\n\n8. Selecione a Função 90\n\n9. A tela ficará verde confirmando a ação, novamente\n\n10. Faça uma venda teste."
+}
