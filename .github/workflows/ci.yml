@@ -83,3 +83,8 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2 \
             detect --source /repo --redact --no-banner
+      - name: Alert rules (promtool check + unit tests)
+        run: |
+          PROMTOOL="docker run --rm --entrypoint promtool -v $PWD/ops/prometheus:/p -w /p prom/prometheus:v2.55.1"
+          $PROMTOOL check rules alerts.yml
+          $PROMTOOL test rules alerts_test.yml

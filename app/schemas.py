@@ -21,6 +21,7 @@ class ChatResponse(BaseModel):
     )
     session_id: str
     agents_used: list[str]
+    trace_id: str | None = None
     tool_calls: list[dict[str, Any]]
     sources: list[dict[str, Any]]
     handoff: dict[str, Any] | None = None
@@ -36,6 +37,12 @@ class OperatorReply(BaseModel):
         "(it may use tools); close: case closed with a final note."
     )
     message: str = Field(min_length=1, max_length=4000)
+
+
+class Feedback(BaseModel):
+    request_id: str = Field(max_length=64)
+    rating: Literal["up", "down"]
+    comment: str | None = Field(default=None, max_length=500)
 
 
 class ErrorBody(BaseModel):

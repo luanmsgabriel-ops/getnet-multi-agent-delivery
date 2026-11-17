@@ -171,3 +171,27 @@ def test_cost_and_ledger_cap(tmp_path: Path) -> None:
     ledger.record("supervisor", "claude-opus-5-5", 0.97)
     with pytest.raises(BudgetExceeded):
         ledger.check()
+
+
+def test_retriever_loads_once_under_concurrency(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Regression: concurrent first requests each loaded the 0.6 GB model and OOM-killed the API."""
+    import threading
+    import time as _time
+
+    import app.rag.store as store
+
+    loads: list[int] = []
+
+    def slow_load() -> object:
+        loads.append(1)
+        _time.sleep(0.2)
+        return object()
+
+    monkeypatch.setattr(store, "_RETRIEVER", None)
+    monkeypatch.setattr(store, "_load", slow_load)
+    threads = [threading.Thread(target=store.default_retriever) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert loads == [1] and store.retriever_loaded()

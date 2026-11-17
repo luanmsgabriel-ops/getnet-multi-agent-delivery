@@ -7,11 +7,15 @@ RUN pip install --no-cache-dir uv==0.13.9
 WORKDIR /app
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
-COPY app ./app
-COPY corpus ./corpus
 # Download the embedding model and embed the knowledge base at build time (offline runtime).
+# Only the retrieval module and the corpus are copied first, so this layer stays cached
+# while the rest of the application changes.
+COPY app/__init__.py app/__init__.py
+COPY app/rag/__init__.py app/rag/store.py app/rag/
+COPY corpus ./corpus
 ENV EMBED_MODEL_DIR=/app/models HF_HUB_DISABLE_TELEMETRY=1
 RUN .venv/bin/python -m app.rag.store build && chmod -R a+rX /app/models
+COPY app ./app
 
 # ---- runtime: non-root, read-only friendly --------------------------------
 FROM python:3.12-slim

@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 30
     rate_limit_global_per_minute: int = 300
     max_message_chars: int = 2000
+    warm_knowledge_index: bool = True
 
     anthropic_api_key: SecretStr | None = None
     llm_model: str = "claude-opus-5-5"

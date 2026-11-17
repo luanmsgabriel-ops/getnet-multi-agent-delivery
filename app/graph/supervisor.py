@@ -31,6 +31,7 @@ from app.agents.base import (
 )
 from app.agents.knowledge import run_knowledge
 from app.agents.support import run_support
+from app.observability import HANDOFFS
 from app.security.guardrails import PROMPT_CANARY
 
 MAX_SUPERVISOR_STEPS = 5
@@ -254,6 +255,7 @@ def escalate_node(state: State, config: RunnableConfig) -> State:
         summary=args.summary,
         language=ctx.language,
     )
+    HANDOFFS.labels(args.reason, args.priority).inc()
     ctx.services["notify"](
         "operator",
         "handoff.created",

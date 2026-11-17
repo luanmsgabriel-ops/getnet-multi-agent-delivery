@@ -14,7 +14,11 @@ up:  ## Build and start the API on http://127.0.0.1:8000
 	@echo "API: http://127.0.0.1:8000/docs"
 
 down:  ## Stop the stack
-	docker compose down
+	docker compose --profile obs down
+
+obs:  ## Start API + Prometheus, Grafana (:3000) and Jaeger (:16686) with tracing on
+	OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318 docker compose --profile obs up --build -d
+	@echo "Grafana: http://127.0.0.1:3000  Jaeger: http://127.0.0.1:16686  Prometheus: http://127.0.0.1:9090"
 
 logs:  ## Follow API logs
 	docker compose logs -f api
@@ -36,4 +40,4 @@ lint:  ## Ruff + mypy
 test:  ## Run the offline test suite
 	$(UV) run pytest
 
-.PHONY: help setup up down logs token operator-token install lint test
+.PHONY: help setup up down obs logs token operator-token install lint test

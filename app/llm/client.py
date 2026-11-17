@@ -16,9 +16,18 @@ from threading import Lock
 from typing import Any, Protocol
 
 import anthropic
+from opentelemetry import trace
 
 from app.data.db import Database
 from app.llm.pricing import cost_usd
+from app.observability import (
+    LLM_CALLS,
+    LLM_COST,
+    LLM_ERRORS,
+    LLM_LATENCY,
+    LLM_TOKENS,
+    tracer,
+)
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 RESERVE_USD = 0.05  # headroom kept before each call so a single call cannot overshoot
@@ -71,6 +80,19 @@ class UsageTracker:
             "web_searches": sum(c.web_searches for c in self.calls),
             "cost_usd": round(self.cost_usd, 5),
         }
+
+
+def observe_call(record: CallRecord) -> None:
+    LLM_CALLS.labels(record.agent, record.model, record.stop_reason).inc()
+    LLM_COST.labels(record.agent, record.model).inc(record.cost_usd)
+    LLM_LATENCY.labels(record.agent).observe(record.latency_ms / 1000)
+    for kind, value in (
+        ("input", record.input_tokens),
+        ("output", record.output_tokens),
+        ("cache_read", record.cache_read_tokens),
+        ("cache_write", record.cache_write_tokens),
+    ):
+        LLM_TOKENS.labels(record.agent, kind).inc(value)
 
 
 current_usage: contextvars.ContextVar[UsageTracker | None] = contextvars.ContextVar(
@@ -168,6 +190,46 @@ class AnthropicLLM:
         self.ledger.check()
         if tracker is not None and tracker.cost_usd + RESERVE_USD > tracker.max_cost_usd:
             raise BudgetExceeded("Per-conversation cost cap reached.")
+        with tracer.start_as_current_span(f"llm.{agent}") as span:
+            span.set_attributes(
+                {
+                    "gen_ai.system": "anthropic",
+                    "gen_ai.request.model": self.model,
+                    "agent": agent,
+                    "effort": effort,
+                }
+            )
+            try:
+                result = self._call(
+                    agent,
+                    system,
+                    messages,
+                    tools,
+                    effort,
+                    max_tokens,
+                    tool_choice,
+                    output_schema,
+                    tracker,
+                )
+            except LLMUnavailable as exc:
+                LLM_ERRORS.labels(agent, str(exc)).inc()
+                span.set_attribute("error.type", str(exc))
+                raise
+            span.set_attribute("gen_ai.response.finish_reason", result.stop_reason)
+            return result
+
+    def _call(
+        self,
+        agent: str,
+        system: str,
+        messages: list[dict[str, Any]],
+        tools: list[dict[str, Any]],
+        effort: str,
+        max_tokens: int,
+        tool_choice: dict[str, Any] | None,
+        output_schema: dict[str, Any] | None,
+        tracker: "UsageTracker | None",
+    ) -> LLMResult:
         started = time.monotonic()
         try:
             request: dict[str, Any] = {
@@ -221,6 +283,17 @@ class AnthropicLLM:
             stop_reason=str(response.stop_reason),
         )
         self.ledger.record(agent, response.model, cost)
+        trace.get_current_span().set_attributes(
+            {
+                "gen_ai.response.model": response.model,
+                "gen_ai.usage.input_tokens": usage.input_tokens,
+                "gen_ai.usage.output_tokens": usage.output_tokens,
+                "gen_ai.usage.cache_read_tokens": record.cache_read_tokens,
+                "cost_usd": cost,
+                "web_searches": searches,
+            }
+        )
+        observe_call(record)
         if tracker is not None:
             tracker.add(record)
         if response.stop_reason == "refusal":

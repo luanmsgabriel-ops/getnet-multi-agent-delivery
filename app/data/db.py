@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
 
 CREATE TABLE IF NOT EXISTS revoked_tokens (jti TEXT PRIMARY KEY, revoked_at TEXT NOT NULL);
 
+CREATE TABLE IF NOT EXISTS feedback (
+    request_id TEXT NOT NULL, merchant_id TEXT NOT NULL, rating TEXT NOT NULL, comment TEXT,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS merchants (
     id TEXT PRIMARY KEY,
     tenant TEXT NOT NULL,
@@ -120,4 +125,14 @@ class Database:
             conn.execute(
                 "INSERT OR IGNORE INTO revoked_tokens(jti, revoked_at) VALUES (?, ?)",
                 (jti, revoked_at),
+            )
+
+    def add_feedback(
+        self, request_id: str, merchant_id: str, rating: str, comment: str | None
+    ) -> None:
+        with self.connect() as conn:
+            conn.execute(
+                "INSERT INTO feedback (request_id, merchant_id, rating, comment) "
+                "VALUES (?, ?, ?, ?)",
+                (request_id, merchant_id, rating, comment),
             )

@@ -30,7 +30,7 @@ def _poster(url: str | None, token: str | None) -> Any:
     if url:
         import httpx2 as httpx
 
-        client = httpx.Client(base_url=url, timeout=180)
+        client = httpx.Client(base_url=url, timeout=300)
         return lambda body: client.post(
             "/chat", json=body, headers={"Authorization": f"Bearer {token}"}
         )

@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.data.db import Database
 from app.llm.client import BudgetExceeded, LLMClient, LLMUnavailable
+from app.observability import TOOL_CALLS, TOOL_LATENCY, tracer
 from app.security.auth import AuthError, Principal
 
 
@@ -131,6 +132,17 @@ def _clean_schema(node: Any) -> Any:
 
 
 def _run_one(tool: Tool | None, block: dict[str, Any], ctx: ToolContext, agent: str) -> ToolResult:
+    name = str(block.get("name"))
+    with tracer.start_as_current_span(f"tool.{name}") as span:
+        span.set_attribute("agent", agent)
+        result = _execute(tool, block, ctx, agent)
+        span.set_attribute("tool.status", result.status)
+        if result.error is not None:
+            span.set_attribute("error.type", result.error.code)
+        return result
+
+
+def _execute(tool: Tool | None, block: dict[str, Any], ctx: ToolContext, agent: str) -> ToolResult:
     started = time.monotonic()
     args = block.get("input") or {}
     if tool is None:
@@ -149,15 +161,11 @@ def _run_one(tool: Tool | None, block: dict[str, Any], ctx: ToolContext, agent: 
         except Exception as exc:  # a tool bug must not crash the conversation
             result = ToolResult.fail("upstream_error", f"{type(exc).__name__}")
     result.sources = [ctx.add_source(s) for s in result.sources]
-    ctx.record(
-        TraceEvent(
-            agent,
-            str(block.get("name")),
-            result.status,
-            int((time.monotonic() - started) * 1000),
-            args,
-        )
-    )
+    elapsed = time.monotonic() - started
+    name = str(block.get("name"))
+    TOOL_CALLS.labels(agent, name if tool else "unknown", result.status).inc()
+    TOOL_LATENCY.labels(name if tool else "unknown").observe(elapsed)
+    ctx.record(TraceEvent(agent, name, result.status, int(elapsed * 1000), args))
     return result
 
 
@@ -226,6 +234,23 @@ def run_agent(
     server_tools: list[dict[str, Any]] | None = None,
 ) -> AgentRun:
     """Tool-use loop for a specialist: call model, run tools, repeat until it answers."""
+    with tracer.start_as_current_span(f"agent.{agent}") as span:
+        run = _loop(llm, agent, system, task, tools, ctx, effort, max_steps, server_tools)
+        span.set_attributes({"agent.steps": run.steps, "agent.stop": run.stop})
+        return run
+
+
+def _loop(
+    llm: LLMClient,
+    agent: str,
+    system: str,
+    task: str,
+    tools: list[Tool],
+    ctx: ToolContext,
+    effort: str,
+    max_steps: int,
+    server_tools: list[dict[str, Any]] | None,
+) -> AgentRun:
     by_name = {t.name: t for t in tools}
     schemas = [t.schema() for t in tools] + (server_tools or [])
     messages: list[dict[str, Any]] = [{"role": "user", "content": task}]

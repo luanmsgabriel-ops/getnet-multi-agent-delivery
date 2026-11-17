@@ -122,7 +122,15 @@ def test_every_data_route_requires_auth(client: TestClient, path: str) -> None:
 
 
 def test_all_non_public_routes_are_protected(client: TestClient) -> None:
-    public = {"/health", "/ready", "/openapi.json", "/docs", "/docs/oauth2-redirect", "/redoc"}
+    public = {
+        "/health",
+        "/ready",
+        "/metrics",
+        "/openapi.json",
+        "/docs",
+        "/docs/oauth2-redirect",
+        "/redoc",
+    }
     for route in client.app.routes:  # type: ignore[attr-defined]
         path = getattr(route, "path", "")
         if path in public:

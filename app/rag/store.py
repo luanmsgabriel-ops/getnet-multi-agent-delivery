@@ -13,10 +13,10 @@ import math
 import os
 import re
 import sys
+import threading
 import unicodedata
 from collections import Counter
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
@@ -141,7 +141,8 @@ class Embedder:
         from fastembed import TextEmbedding
 
         self.name = model
-        self._model = TextEmbedding(model_name=model, cache_dir=str(cache_dir))
+        # One ONNX thread per query: many small queries from concurrent chats beat one fast one.
+        self._model = TextEmbedding(model_name=model, cache_dir=str(cache_dir), threads=1)
 
     def embed(self, texts: list[str]) -> np.ndarray:
         vectors = np.array(list(self._model.embed(texts, batch_size=32)), dtype=np.float32)
@@ -229,8 +230,26 @@ class Retriever:
         return [Hit(self.chunks[i], score) for i, score in ranked]
 
 
-@lru_cache(maxsize=1)
+_LOAD_LOCK = threading.Lock()
+_RETRIEVER: Retriever | None = None
+
+
 def default_retriever() -> Retriever:
+    """Process-wide retriever, loaded once. The lock matters: the embedding model takes
+    ~0.6 GB and tens of seconds to load, and concurrent first requests must not each load it."""
+    global _RETRIEVER
+    if _RETRIEVER is None:
+        with _LOAD_LOCK:
+            if _RETRIEVER is None:
+                _RETRIEVER = _load()
+    return _RETRIEVER
+
+
+def retriever_loaded() -> bool:
+    return _RETRIEVER is not None
+
+
+def _load() -> Retriever:
     chunks = load_chunks()
     embeddings = load_embeddings(chunks)
     embedder: Embedder | None = None

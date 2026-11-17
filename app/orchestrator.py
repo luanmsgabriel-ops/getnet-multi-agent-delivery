@@ -1,8 +1,10 @@
 """Runs chat turns through the supervisor graph: guardrails, memory, handoff and resume."""
 
+import logging
 import re
 import sqlite3
 import time
+from datetime import UTC, datetime
 from typing import Any
 
 from langgraph.checkpoint.sqlite import SqliteSaver
@@ -15,10 +17,22 @@ from app.graph.supervisor import build_graph
 from app.hitl import notify
 from app.hitl.store import HitlStore
 from app.llm.client import BudgetExceeded, LLMClient, LLMUnavailable, UsageTracker, current_usage
+from app.observability import (
+    CHAT_COST,
+    CHAT_LATENCY,
+    CHAT_TURNS,
+    GUARDRAIL,
+    HANDOFF_REPLY,
+    HANDOFFS_PENDING,
+    bind_gauge,
+    current_trace_id,
+    log_event,
+)
 from app.schemas import ChatResponse
 from app.security.auth import Principal
 from app.security.guardrails import InputDecision, OutputDecision, check_input, check_output
 
+log = logging.getLogger("getnet.chat")
 _CITATION = re.compile(r"\[(S\d+)\]")
 
 HANDOFF_ACK = {
@@ -52,6 +66,7 @@ class Orchestrator:
         conn = sqlite3.connect(settings.data_dir / "checkpoints.db", check_same_thread=False)
         self.checkpointer = SqliteSaver(conn)
         self.graph = build_graph(self.checkpointer)
+        bind_gauge(HANDOFFS_PENDING, lambda: float(len(self.hitl.handoffs("pending"))))
 
     # -- helpers ------------------------------------------------------------------------
     def notify(self, target: str, event: str, payload: dict[str, Any]) -> None:
@@ -200,6 +215,8 @@ class Orchestrator:
             str(state.get("answer") or "").strip(), {s.id for s in ctx.sources}, handoff["language"]
         )
         self.hitl.resolve(handoff["id"], checked.text)
+        opened = datetime.fromisoformat(handoff["created_at"])
+        HANDOFF_REPLY.observe((datetime.now(UTC) - opened).total_seconds())
         event = {"handoff_id": handoff["id"], "answer": checked.text, "request_id": request_id}
         self.hitl.add_event(merchant.sub, handoff["session_id"], "handoff.resolved", event)
         self.notify("merchant", "handoff.resolved", {**event, "merchant_id": merchant.sub})
@@ -235,11 +252,33 @@ class Orchestrator:
         sources = [s for s in ctx.sources if s.id in cited] or ctx.sources
         delegated = {e.tool.removeprefix("ask_") for e in ctx.trace if e.agent == "supervisor"}
         delegated = {"escalation" if d == "escalate_to_human" else d for d in delegated}
+        agents = ["supervisor", *sorted(delegated - {"user"})]
+        latency_s = time.monotonic() - started
+        CHAT_TURNS.labels(outcome).inc()
+        CHAT_LATENCY.labels(outcome).observe(latency_s)
+        CHAT_COST.observe(tracker.cost_usd)
+        GUARDRAIL.labels("input", screened.category).inc()
+        for flag in checked.flags:
+            GUARDRAIL.labels("output", flag).inc()
+        log_event(
+            log,
+            "chat_turn",
+            outcome=outcome,
+            agents=agents,
+            tools=[f"{e.agent}.{e.tool}:{e.status}" for e in ctx.trace],
+            llm_calls=len(tracker.calls),
+            cost_usd=round(tracker.cost_usd, 5),
+            latency_ms=int(latency_s * 1000),
+            guardrail=screened.category,
+            redacted=screened.redacted,
+            output_flags=checked.flags,
+        )
         return ChatResponse(
             answer=answer.strip(),
             outcome=outcome,
             session_id=ctx.session_id,
-            agents_used=["supervisor", *sorted(delegated - {"user"})],
+            agents_used=agents,
+            trace_id=current_trace_id(),
             tool_calls=[
                 {
                     "agent": e.agent,

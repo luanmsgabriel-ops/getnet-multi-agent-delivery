@@ -19,6 +19,7 @@ def settings(tmp_path: Path) -> Settings:
         anthropic_api_key=None,
         rate_limit_per_minute=1000,
         rate_limit_global_per_minute=1000,
+        warm_knowledge_index=False,
         _env_file=None,  # type: ignore[call-arg]
     )
 

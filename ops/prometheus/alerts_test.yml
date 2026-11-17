@@ -1,0 +1,47 @@
+# promtool test rules ops/prometheus/alerts_test.yml
+rule_files:
+  - alerts.yml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'http_requests_total{route="/chat", status="200"}'
+        values: '0+90x15'
+      - series: 'http_requests_total{route="/chat", status="503"}'
+        values: '0+10x15'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: ChatErrorRateHigh
+        exp_alerts:
+          - exp_labels: {severity: page}
+            exp_annotations: {summary: "More than 5% of /chat requests are failing"}
+
+  - interval: 1m
+    input_series:
+      - series: 'llm_budget_spent_usd'
+        values: '7.5+0.1x10'
+      - series: 'llm_budget_limit_usd'
+        values: '10x10'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: LLMBudgetNearlyExhausted
+        exp_alerts: []
+      - eval_time: 10m
+        alertname: LLMBudgetNearlyExhausted
+        exp_alerts:
+          - exp_labels: {severity: ticket}
+            exp_annotations: {summary: "More than 80% of the LLM budget is spent"}
+
+  - interval: 1m
+    input_series:
+      - series: 'handoffs_pending'
+        values: '2x10 8x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: HandoffsWaiting
+        exp_alerts: []
+      - eval_time: 30m
+        alertname: HandoffsWaiting
+        exp_alerts:
+          - exp_labels: {severity: page}
+            exp_annotations: {summary: "More than 5 merchants waiting for a human for 15 minutes"}

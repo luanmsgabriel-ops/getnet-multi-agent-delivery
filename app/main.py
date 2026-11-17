@@ -2,6 +2,7 @@
 
 import json
 import logging
+import threading
 import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
@@ -12,23 +13,39 @@ from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app import __version__
 from app.config import Settings, get_settings
 from app.data.db import Database
 from app.data.seed import ensure_seed
 from app.llm.client import AnthropicLLM, Ledger, LLMClient
+from app.observability import (
+    BUDGET_LIMIT,
+    BUDGET_SPENT,
+    FEEDBACK,
+    HTTP_REQUESTS,
+    bind_gauge,
+    log_event,
+    request_id_var,
+    setup_logging,
+    setup_tracing,
+    tracer,
+)
 from app.orchestrator import Orchestrator, OrchestratorError
+from app.rag.store import default_retriever, retriever_loaded
 from app.schemas import (
     ChatRequest,
     ChatResponse,
     ErrorResponse,
+    Feedback,
     HealthResponse,
     MeResponse,
     OperatorReply,
     ReadyResponse,
 )
 from app.security.auth import AuthError, Principal, decode_token, require_scope
+from app.security.guardrails import redact
 from app.security.ratelimit import RateLimiter
 
 log = logging.getLogger("getnet")
@@ -56,6 +73,8 @@ def _error(
 def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -> FastAPI:
     """Build the app. `llm` overrides the provider (tests inject a scripted fake)."""
     settings = settings or get_settings()
+    setup_logging()
+    tracing = setup_tracing()
     db = Database(settings.db_path)
     limiter = RateLimiter(settings.rate_limit_per_minute, settings.rate_limit_global_per_minute)
 
@@ -65,13 +84,16 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
         ensure_seed(db, settings.today(), settings.tz)
         client = llm
         if client is None and settings.anthropic_api_key is not None:
+            ledger = Ledger(db, settings.llm_budget_usd)
+            bind_gauge(BUDGET_SPENT, ledger.spent)
+            BUDGET_LIMIT.set(settings.llm_budget_usd)
             client = AnthropicLLM(
-                settings.anthropic_api_key.get_secret_value(),
-                Ledger(db, settings.llm_budget_usd),
-                model=settings.llm_model,
+                settings.anthropic_api_key.get_secret_value(), ledger, model=settings.llm_model
             )
         app.state.orchestrator = Orchestrator(settings, db, client) if client else None
-        log.info("startup llm_configured=%s", client is not None)
+        if settings.warm_knowledge_index:  # load the embedding model once, off the request path
+            threading.Thread(target=default_retriever, name="kb-warmup", daemon=True).start()
+        log_event(log, "startup", llm_configured=client is not None, tracing=tracing)
         yield
 
     app = FastAPI(
@@ -90,10 +112,26 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     async def request_id(
         request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
-        rid = request.headers.get("x-request-id") or uuid.uuid4().hex
-        request.state.request_id = rid[:64]
-        response = await call_next(request)
-        response.headers["x-request-id"] = request.state.request_id
+        rid = (request.headers.get("x-request-id") or uuid.uuid4().hex)[:64]
+        request.state.request_id = rid
+        token = request_id_var.set(rid)
+        try:
+            with tracer.start_as_current_span(f"HTTP {request.method}") as span:
+                response = await call_next(request)
+                route = getattr(request.scope.get("route"), "path", "unmatched")
+                span.update_name(f"{request.method} {route}")
+                span.set_attributes(
+                    {
+                        "http.route": route,
+                        "request_id": rid,
+                        "http.status_code": response.status_code,
+                    }
+                )
+        finally:
+            request_id_var.reset(token)
+        if route != "/metrics":
+            HTTP_REQUESTS.labels(route, str(response.status_code)).inc()
+        response.headers["x-request-id"] = rid
         return response
 
     @app.exception_handler(AuthError)
@@ -140,8 +178,24 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     )
     def ready() -> JSONResponse:
         checks = {"database": db.ping(), "llm": app.state.orchestrator is not None}
+        if settings.warm_knowledge_index:
+            checks["knowledge_index"] = retriever_loaded()
         body = ReadyResponse(ready=all(checks.values()), checks=checks)
         return JSONResponse(body.model_dump(), status_code=200 if body.ready else 503)
+
+    @app.get("/metrics", tags=["ops"], include_in_schema=False)
+    def metrics() -> Response:
+        """Prometheus scrape endpoint (no merchant data; publish only on the internal network)."""
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+    @app.post("/feedback", status_code=204, tags=["chat"])
+    def feedback(body: Feedback, p: Annotated[Principal, Depends(principal)]) -> Response:
+        """Merchant rating of an answer: an online quality signal next to the offline evals."""
+        require_scope(p, "chat:use")
+        comment = redact(body.comment)[0] if body.comment else None
+        db.add_feedback(body.request_id, p.sub, body.rating, comment)
+        FEEDBACK.labels(body.rating).inc()
+        return Response(status_code=204)
 
     @app.get("/me", response_model=MeResponse, tags=["auth"])
     def me(p: Annotated[Principal, Depends(principal)]) -> MeResponse:
