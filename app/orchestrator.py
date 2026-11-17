@@ -11,6 +11,7 @@ from app.graph.supervisor import build_graph
 from app.llm.client import BudgetExceeded, LLMClient, LLMUnavailable, UsageTracker, current_usage
 from app.schemas import ChatResponse
 from app.security.auth import Principal
+from app.security.guardrails import InputDecision, OutputDecision, check_input, check_output
 
 _CITATION = re.compile(r"\[(S\d+)\]")
 
@@ -32,11 +33,23 @@ class Orchestrator:
         token = current_usage.set(tracker)
         now = self.settings.now()
         ctx = ToolContext(principal=principal, db=self.db, now=now, llm=self.llm)
-        user_turn = (
-            f"<context>merchant_id={principal.sub}; now={now:%A %Y-%m-%d %H:%M} "
-            f"America/Sao_Paulo</context>\n\n{message}"
-        )
         try:
+            screened = check_input(self.llm, message)
+            if screened.blocked:
+                return self._response(
+                    screened.refusal(),
+                    "blocked",
+                    ctx,
+                    tracker,
+                    started,
+                    request_id,
+                    screened,
+                    OutputDecision(""),
+                )
+            user_turn = (
+                f"<context>merchant_id={principal.sub}; now={now:%A %Y-%m-%d %H:%M} "
+                f"America/Sao_Paulo</context>\n\n{screened.text}"
+            )
             state = self.graph.invoke(
                 {"messages": [{"role": "user", "content": user_turn}], "steps": 0},
                 config={"configurable": {"ctx": ctx}, "recursion_limit": 25},
@@ -48,17 +61,39 @@ class Orchestrator:
         finally:
             current_usage.reset(token)
 
-        answer = str(state.get("answer", "")).strip()
+        checked = check_output(
+            str(state.get("answer", "")).strip(), {s.id for s in ctx.sources}, screened.language
+        )
+        outcome = "blocked" if checked.blocked else state.get("outcome", "answered")
+        return self._response(
+            checked.text, outcome, ctx, tracker, started, request_id, screened, checked
+        )
+
+    def _response(
+        self,
+        answer: str,
+        outcome: str,
+        ctx: ToolContext,
+        tracker: UsageTracker,
+        started: float,
+        request_id: str,
+        screened: InputDecision,
+        checked: OutputDecision,
+    ) -> ChatResponse:
         cited = set(_CITATION.findall(answer))
         sources = [s for s in ctx.sources if s.id in cited] or ctx.sources
         delegated = {e.tool.removeprefix("ask_") for e in ctx.trace if e.agent == "supervisor"}
         agents = ["supervisor", *sorted(delegated - {"user"})]
         return ChatResponse(
-            answer=answer,
-            outcome=state.get("outcome", "answered"),
+            answer=answer.strip(),
+            outcome=outcome,
             agents_used=agents,
             tool_calls=[_event(e) for e in ctx.trace],
-            sources=[s.model_dump() for s in sources],
+            sources=[s.model_dump() for s in sources] if outcome != "blocked" else [],
+            guardrails={
+                "input": {"category": screened.category, "redacted": screened.redacted},
+                "output": {"flags": checked.flags},
+            },
             usage=tracker.summary(),
             latency_ms=int((time.monotonic() - started) * 1000),
             request_id=request_id,

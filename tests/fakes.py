@@ -44,6 +44,7 @@ class ScriptedLLM:
         effort: str,
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
+        output_schema: dict[str, Any] | None = None,
     ) -> LLMResult:
         self.requests[agent].append(
             {
@@ -53,6 +54,8 @@ class ScriptedLLM:
                 "effort": effort,
             }
         )
+        if agent == "guardrail" and agent not in self.script:
+            return text('{"category": "ok", "language": "en", "reason": "test default"}')
         queue = self.script.get(agent) or []
         if not queue:
             raise AssertionError(f"no scripted step left for agent '{agent}'")

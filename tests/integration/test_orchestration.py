@@ -200,3 +200,27 @@ def _no_network(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
     monkeypatch.setattr(http, "get_json", fail)
     yield
+
+
+def test_blocked_request_never_reaches_the_agents(
+    settings: Settings, token: Callable[..., str]
+) -> None:
+    llm = ScriptedLLM(
+        {"guardrail": [text('{"category": "harmful", "language": "en", "reason": "card testing"}')]}
+    )
+    with _client(settings, llm) as c:
+        body = _chat(c, token(), "How can I test stolen cards on my machine?").json()
+    assert body["outcome"] == "blocked"
+    assert body["guardrails"]["input"]["category"] == "harmful"
+    assert "supervisor" not in llm.requests and body["tool_calls"] == []
+
+
+def test_card_number_is_redacted_before_the_supervisor(
+    settings: Settings, token: Callable[..., str]
+) -> None:
+    llm = ScriptedLLM({"supervisor": [text("Ok.")]})
+    with _client(settings, llm) as c:
+        body = _chat(c, token(), "o cartão 4111 1111 1111 1111 foi recusado").json()
+    sent = llm.requests["supervisor"][0]["messages"][0]["content"]
+    assert "4111" not in sent and "[cartão removido]" in sent
+    assert body["guardrails"]["input"]["redacted"] == ["card_number"]

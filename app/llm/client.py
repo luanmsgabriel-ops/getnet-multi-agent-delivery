@@ -96,6 +96,7 @@ class LLMClient(Protocol):
         effort: str,
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
+        output_schema: dict[str, Any] | None = None,
     ) -> LLMResult: ...
 
 
@@ -161,6 +162,7 @@ class AnthropicLLM:
         effort: str,
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
+        output_schema: dict[str, Any] | None = None,
     ) -> LLMResult:
         tracker = current_usage.get()
         self.ledger.check()
@@ -175,12 +177,18 @@ class AnthropicLLM:
                     {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
                 ],
                 "messages": messages,
-                "tools": tools,
-                "tool_choice": tool_choice or {"type": "auto"},
                 "output_config": {"effort": effort},
                 "betas": [FALLBACK_BETA],
                 "fallbacks": "default",
             }
+            if tools:
+                request["tools"] = tools
+                request["tool_choice"] = tool_choice or {"type": "auto"}
+            if output_schema is not None:
+                request["output_config"]["format"] = {
+                    "type": "json_schema",
+                    "schema": output_schema,
+                }
             response = self._client.beta.messages.create(**request)
         except anthropic.APIStatusError as exc:
             raise LLMUnavailable(f"provider_error_{exc.status_code}") from exc

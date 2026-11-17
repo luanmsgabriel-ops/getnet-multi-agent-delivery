@@ -58,3 +58,28 @@ jobs:
       - name: Container logs
         if: always()
         run: docker logs api || true
+      - name: Image scan (critical, fixable)
+        run: |
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.57.0 \
+            image --scanners vuln --exit-code 1 --severity CRITICAL --ignore-unfixed --no-progress \
+            getnet-agents:ci
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v6
+      - name: Dependency vulnerabilities (pip-audit)
+        run: |
+          uv export --frozen --no-dev --no-hashes > /tmp/requirements.txt
+          uvx pip-audit -r /tmp/requirements.txt
+      - name: Static analysis (bandit, medium and above)
+        run: uvx bandit -r app -q -ll
+      - name: Secret scan (gitleaks)
+        run: |
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.21.2 \
+            detect --source /repo --redact --no-banner

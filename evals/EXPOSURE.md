@@ -9,6 +9,7 @@ once for the reported number and never used to choose prompts, parameters or mod
 | `retrieval_dev.jsonl` | retrieval | help-center article titles (Getnet site) | yes: chunk size, RRF weights, embedding model | 2026-11-17 sweep |
 | `retrieval_xling.jsonl` | retrieval | 10 English questions (written by us) | yes: choice of hybrid over lexical | 2026-11-17 |
 | `retrieval_holdout.jsonl` | retrieval | official FAQ questions, `/duvidas` page (Getnet site) | **no** | 2026-11-17 17:5x UTC, once, after all retrieval choices were fixed |
+| `adversarial.jsonl` | guardrail | 60 attacks + 60 benign look-alikes (written by us) | **no**: classifier prompt written before the first run, unchanged after | 2026-11-17 18:28 UTC, once |
 
 ## Retrieval decisions made on dev (before the holdout run)
 

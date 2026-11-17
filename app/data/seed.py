@@ -82,7 +82,7 @@ def ensure_seed(db: Database, today: date, tz: ZoneInfo) -> bool:
         return False
     with db.connect() as conn:
         for table in MOCK_TABLES:
-            conn.execute(f"DELETE FROM {table}")  # noqa: S608 - fixed table names
+            conn.execute(f"DELETE FROM {table}")  # noqa: S608  # nosec B608 - constant table names
         conn.executemany("INSERT INTO merchants VALUES (?, ?, ?, ?, ?)", MERCHANTS)
         conn.executemany("INSERT INTO decline_codes VALUES (?, ?, ?, ?)", DECLINE_CODES)
         now = datetime.combine(today, time(15, 0), tz)

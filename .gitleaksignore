@@ -1,0 +1,11 @@
+# Reviewed false positives in the v2 history (2026-11-17):
+# - SHA-256 file hashes in app/rag/semantic.py and docs/evidence/*/validation.json
+# - public Akamai mPulse browser key embedded in Getnet public HTML (tests/fixtures, v2)
+8ad9f924279523e53085249f07973fcd7e9914ad:app/rag/semantic.py:generic-api-key:15
+8ad9f924279523e53085249f07973fcd7e9914ad:app/rag/semantic.py:generic-api-key:16
+8ad9f924279523e53085249f07973fcd7e9914ad:app/rag/semantic.py:generic-api-key:17
+a5b2761c5255eb74d48cc895ccb73df481fc7ab2:docs/evidence/delivery-final-20261111/validation.json:generic-api-key:29
+a5b2761c5255eb74d48cc895ccb73df481fc7ab2:docs/evidence/delivery-final-20261111/validation.json:generic-api-key:120
+a5b2761c5255eb74d48cc895ccb73df481fc7ab2:docs/evidence/model-validation-20261111/validation.json:generic-api-key:14
+a5b2761c5255eb74d48cc895ccb73df481fc7ab2:docs/evidence/model-validation-20261111/validation.json:generic-api-key:85
+a5b2761c5255eb74d48cc895ccb73df481fc7ab2:tests/fixtures/getnet_duvidas_real.html:generic-api-key:764

@@ -15,10 +15,11 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
-    outcome: str = Field(description="answered | clarify | limit")
+    outcome: str = Field(description="answered | clarify | limit | blocked")
     agents_used: list[str]
     tool_calls: list[dict[str, Any]]
     sources: list[dict[str, Any]]
+    guardrails: dict[str, Any]
     usage: dict[str, Any]
     latency_ms: int
     request_id: str
