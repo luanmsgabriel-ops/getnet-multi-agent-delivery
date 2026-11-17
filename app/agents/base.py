@@ -78,6 +78,10 @@ class ToolContext:
     db: Database
     now: datetime
     llm: LLMClient
+    session_id: str = "default"
+    language: str = "en"
+    # Session services (handoff store, notifier); absent in unit tests of single tools.
+    services: dict[str, Any] = field(default_factory=dict)
     trace: list[TraceEvent] = field(default_factory=list)
     sources: list[Source] = field(default_factory=list)
     _lock: Lock = field(default_factory=Lock)

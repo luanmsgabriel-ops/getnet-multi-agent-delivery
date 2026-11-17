@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     llm_budget_usd: float = 10.0
     max_cost_per_chat_usd: float = 0.40
 
+    # Human handoff notifications (signed with HMAC-SHA256 when a secret is set)
+    operator_webhook_url: str | None = None
+    merchant_webhook_url: str | None = None
+    webhook_secret: SecretStr | None = None
+
     @field_validator("jwt_secret")
     @classmethod
     def _strong_secret(cls, value: SecretStr) -> SecretStr:
@@ -36,7 +41,7 @@ class Settings(BaseSettings):
             raise ValueError("JWT_SECRET must have at least 32 characters (run `make setup`).")
         return value
 
-    @field_validator("anthropic_api_key")
+    @field_validator("anthropic_api_key", "webhook_secret")
     @classmethod
     def _empty_is_none(cls, value: SecretStr | None) -> SecretStr | None:
         if value is not None and not value.get_secret_value().strip():

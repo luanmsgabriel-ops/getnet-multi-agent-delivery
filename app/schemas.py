@@ -1,6 +1,6 @@
 """Public HTTP contracts."""
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -15,14 +15,27 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
-    outcome: str = Field(description="answered | clarify | limit | blocked")
+    outcome: str = Field(
+        description="answered | clarify | limit | blocked | handoff | handoff_pending | "
+        "handoff_resolved"
+    )
+    session_id: str
     agents_used: list[str]
     tool_calls: list[dict[str, Any]]
     sources: list[dict[str, Any]]
+    handoff: dict[str, Any] | None = None
     guardrails: dict[str, Any]
     usage: dict[str, Any]
     latency_ms: int
     request_id: str
+
+
+class OperatorReply(BaseModel):
+    action: Literal["reply", "instruct", "close"] = Field(
+        description="reply: message for the merchant; instruct: guidance for the assistant "
+        "(it may use tools); close: case closed with a final note."
+    )
+    message: str = Field(min_length=1, max_length=4000)
 
 
 class ErrorBody(BaseModel):

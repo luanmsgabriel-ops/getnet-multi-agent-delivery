@@ -1,14 +1,16 @@
 """FastAPI application: routes, authentication, rate limiting and error handling."""
 
+import json
 import logging
+import time
 import uuid
-from collections.abc import AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app import __version__
@@ -23,6 +25,7 @@ from app.schemas import (
     ErrorResponse,
     HealthResponse,
     MeResponse,
+    OperatorReply,
     ReadyResponse,
 )
 from app.security.auth import AuthError, Principal, decode_token, require_scope
@@ -161,12 +164,108 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
                 422, "message_too_long", f"message exceeds {settings.max_message_chars} characters."
             )
         ensure_seed(db, settings.today(), settings.tz)
+        try:
+            return orch().run(
+                p, body.message, request.state.request_id, body.session_id or "default"
+            )
+        except OrchestratorError as exc:
+            raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    def orch() -> Orchestrator:
         orchestrator: Orchestrator | None = app.state.orchestrator
         if orchestrator is None:
             raise ApiError(503, "llm_not_configured", "Set ANTHROPIC_API_KEY to enable the agents.")
+        return orchestrator
+
+    @app.delete("/sessions/{session_id}", status_code=204, tags=["chat"])
+    def reset_session(session_id: str, p: Annotated[Principal, Depends(principal)]) -> Response:
+        require_scope(p, "chat:use")
+        orch().reset(p, session_id)
+        return Response(status_code=204)
+
+    @app.get("/sessions/{session_id}/events", tags=["chat"])
+    def session_events(
+        session_id: str,
+        request: Request,
+        p: Annotated[Principal, Depends(principal)],
+        after: int = 0,
+        wait_s: int = 25,
+    ) -> StreamingResponse:
+        """Server-sent events for the merchant (e.g. the operator's answer to a handoff)."""
+        require_scope(p, "chat:use")
+        store = orch().hitl
+        last = int(request.headers.get("last-event-id") or after)
+
+        def stream() -> Iterator[str]:
+            nonlocal last
+            deadline = time.monotonic() + max(1, min(wait_s, 60))
+            while time.monotonic() < deadline:
+                for event in store.events_after(p.sub, session_id, last):
+                    last = event["id"]
+                    data = json.dumps(event["payload"], ensure_ascii=False)
+                    yield f"id: {event['id']}\nevent: {event['type']}\ndata: {data}\n\n"
+                time.sleep(1)
+            yield ": keep-alive\n\n"
+
+        return StreamingResponse(stream(), media_type="text/event-stream")
+
+    @app.get("/handoffs/{handoff_id}", tags=["handoff"])
+    def get_handoff(handoff_id: str, p: Annotated[Principal, Depends(principal)]) -> dict[str, Any]:
+        require_scope(p, "chat:use")
+        handoff = orch().hitl.handoff(handoff_id)
+        if handoff is None or handoff["merchant_id"] != p.sub:
+            raise ApiError(404, "not_found", "Handoff not found.")
+        return {
+            k: handoff[k]
+            for k in ("id", "status", "reason", "created_at", "replied_at", "final_answer")
+        }
+
+    @app.get("/operator/handoffs", tags=["operator"])
+    def operator_queue(
+        p: Annotated[Principal, Depends(principal)], status: str | None = "pending"
+    ) -> list[dict[str, Any]]:
+        require_scope(p, "operator")
+        hidden = {"scopes", "thread_id"}
+        return [
+            {k: v for k, v in h.items() if k not in hidden} for h in orch().hitl.handoffs(status)
+        ]
+
+    @app.post(
+        "/operator/handoffs/{handoff_id}/reply", tags=["operator"], response_model=ChatResponse
+    )
+    def operator_reply(
+        handoff_id: str,
+        body: OperatorReply,
+        request: Request,
+        p: Annotated[Principal, Depends(principal)],
+    ) -> ChatResponse:
+        require_scope(p, "operator")
+        handoff = orch().hitl.handoff(handoff_id)
+        if handoff is None:
+            raise ApiError(404, "not_found", "Handoff not found.")
         try:
-            return orchestrator.run(p, body.message, request.state.request_id)
+            return orch().resume(
+                handoff, p.sub, body.action, body.message, request.state.request_id
+            )
         except OrchestratorError as exc:
             raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    @app.post("/tickets/{ticket_id}/confirm", tags=["tickets"])
+    def confirm_ticket(
+        ticket_id: str, p: Annotated[Principal, Depends(principal)]
+    ) -> dict[str, Any]:
+        """Second phase of a write: only the merchant can confirm what the agent proposed."""
+        require_scope(p, "tickets:write")
+        ticket = orch().hitl.confirm_ticket(p.sub, ticket_id)
+        if ticket is None:
+            raise ApiError(404, "not_found", "Ticket proposal not found.")
+        if ticket["status"] == "expired":
+            raise ApiError(410, "proposal_expired", "Proposal expired; ask the assistant again.")
+        return ticket
+
+    @app.get("/tickets", tags=["tickets"])
+    def list_tickets(p: Annotated[Principal, Depends(principal)]) -> list[dict[str, Any]]:
+        require_scope(p, "tickets:read")
+        return orch().hitl.tickets(p.sub)
 
     return app

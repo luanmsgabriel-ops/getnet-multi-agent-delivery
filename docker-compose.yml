@@ -1,5 +1,15 @@
+x-hardened: &hardened
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,noexec,nosuid
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  restart: unless-stopped
+
 services:
   api:
+    <<: *hardened
     build: .
     image: getnet-agents:local
     env_file:
@@ -7,19 +17,27 @@ services:
         required: true
     environment:
       DATA_DIR: /state
+      OPERATOR_WEBHOOK_URL: http://webhook-sink:9000/operator
+      MERCHANT_WEBHOOK_URL: http://webhook-sink:9000/merchant
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
       - getnet_state:/state
-    read_only: true
-    tmpfs:
-      - /tmp:size=64m,noexec,nosuid
-    cap_drop: [ALL]
-    security_opt: ["no-new-privileges:true"]
-    pids_limit: 128
     mem_limit: 1g
     cpus: 1.0
-    restart: unless-stopped
+    depends_on: [webhook-sink]
+
+  # Stands in for the operator's queue tool and the merchant app: logs signed notifications.
+  webhook-sink:
+    <<: *hardened
+    image: getnet-agents:local
+    command: ["python", "-m", "app.hitl.sink"]
+    env_file:
+      - path: .env
+        required: true
+    mem_limit: 128m
+    healthcheck:
+      disable: true
 
 volumes:
   getnet_state:

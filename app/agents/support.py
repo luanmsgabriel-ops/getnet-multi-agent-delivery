@@ -12,6 +12,7 @@ from pydantic import Field
 
 from app.agents.base import AgentRun, Tool, ToolContext, ToolInput, ToolResult, run_agent
 from app.data.support_repo import SupportRepository
+from app.security.auth import require_scope
 
 SYSTEM = """You are the Customer Support Agent of Getnet, a Brazilian acquirer. You serve one \
 authenticated merchant and can only see that merchant's data through your tools.
@@ -21,6 +22,8 @@ How to work:
 - Resolve relative dates ("yesterday", "next week") from the current date given in the task.
 - Prefer one well-chosen call; call several tools at once when the request needs them.
 - If the data does not answer the request, say exactly what is missing.
+- Only propose a support ticket when the request asks to open one; a proposal is not a ticket \
+until the merchant confirms it.
 
 Reply in the language of the request, concisely, with the concrete numbers (BRL as R$ 1.234,56) \
 and dates (DD/MM/YYYY). Start your reply with one line `STATUS: ok`, `STATUS: partial` or \
@@ -197,6 +200,39 @@ def lookup_decline_code(ctx: ToolContext, args: DeclineInput) -> ToolResult:
     return ToolResult(status="ok", data={**row, "retry_allowed": bool(row["retry_allowed"])})
 
 
+class TicketInput(ToolInput):
+    topic: Literal["terminal", "receivables", "sales", "connectivity", "other"] = Field(
+        description="Ticket topic."
+    )
+    summary: str = Field(description="What the merchant needs, with the facts already checked.")
+
+
+def propose_ticket(ctx: ToolContext, args: TicketInput) -> ToolResult:
+    require_scope(ctx.principal, "tickets:write")
+    proposal = ctx.services["hitl"].propose_ticket(ctx.principal.sub, args.topic, args.summary)
+    return ToolResult(
+        status="ok",
+        data={
+            **proposal,
+            "state": "proposed (not created)",
+            "next_step": f"The merchant must confirm it: POST /tickets/{proposal['proposal_id']}"
+            "/confirm (button in the app). A 'yes' in the chat does not confirm it.",
+        },
+    )
+
+
+class NoInput(ToolInput):
+    pass
+
+
+def get_tickets(ctx: ToolContext, args: NoInput) -> ToolResult:
+    require_scope(ctx.principal, "tickets:read")
+    tickets = ctx.services["hitl"].tickets(ctx.principal.sub)
+    if not tickets:
+        return ToolResult(status="not_found", data={"message": "No confirmed tickets."})
+    return ToolResult(status="ok", data={"tickets": tickets[:20]})
+
+
 TOOLS = [
     Tool(
         "get_sales_summary",
@@ -234,6 +270,19 @@ TOOLS = [
         "Meaning of an issuer decline code and what the merchant should do.",
         DeclineInput,
         lookup_decline_code,
+    ),
+    Tool(
+        "propose_ticket",
+        "Propose a support ticket for the merchant to confirm (two-phase write). Use only when "
+        "the merchant asks to open a ticket/request. Returns a proposal id, not a ticket.",
+        TicketInput,
+        propose_ticket,
+    ),
+    Tool(
+        "get_tickets",
+        "List the merchant's confirmed support tickets and their status.",
+        NoInput,
+        get_tickets,
     ),
 ]
 
