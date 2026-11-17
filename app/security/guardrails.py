@@ -24,9 +24,10 @@ _CPF = re.compile(r"(?<!\d)\d{3}\.?\d{3}\.?\d{3}-?\d{2}(?!\d)")
 _CNPJ = re.compile(r"(?<!\d)\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}(?!\d)")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 _PHONE = re.compile(r"(?<!\d)(?:\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4}(?!\d)")
-_SECRET = re.compile(
-    r"(?i)\b(?:sk-[a-z0-9_-]{16,}|senha\s*[:=]\s*\S+|password\s*[:=]\s*\S+|cvv\s*[:=]?\s*\d{3,4})"
-)
+_API_KEY = re.compile(r"(?i)\bsk-[a-z0-9_-]{16,}")
+# A credential *value* typed by the user ("senha: hunter2!", "cvv 123"); redacted in inputs
+# only, so answers that merely talk about passwords ("Esqueceu a senha: ...") stay intact.
+_CREDENTIAL = re.compile(r"(?i)\b(?:senha|password|cvv)\s*[:=]?\s*(?=[^\s*_]*[\d@#$%!])[^\s*_]{3,}")
 _PROMISE = re.compile(
     r"(?i)\b(garant\w*|prometo|prometemos|promise|guarantee\w*)\b.{0,60}"
     r"\b(reembols\w*|estorn\w*|refund\w*|devolu\w*|ressarc\w*|compensa\w*)"
@@ -45,9 +46,9 @@ def luhn_ok(digits: str) -> bool:
     return total % 10 == 0
 
 
-INPUT_KINDS = frozenset({"secret", "cnpj", "cpf", "email", "phone"})
+INPUT_KINDS = frozenset({"api_key", "credential", "cnpj", "cpf", "email", "phone"})
 # Answers may legitimately show official contact phones and e-mails; never cards or CPFs.
-OUTPUT_KINDS = frozenset({"secret", "cpf"})
+OUTPUT_KINDS = frozenset({"api_key", "cpf"})
 
 
 def redact(text: str, kinds: frozenset[str] = INPUT_KINDS) -> tuple[str, list[str]]:
@@ -63,7 +64,8 @@ def redact(text: str, kinds: frozenset[str] = INPUT_KINDS) -> tuple[str, list[st
 
     text = _CARD.sub(card, text)
     for name, pattern, label in (
-        ("secret", _SECRET, "[segredo removido]"),
+        ("api_key", _API_KEY, "[segredo removido]"),
+        ("credential", _CREDENTIAL, "[segredo removido]"),
         ("cnpj", _CNPJ, "[CNPJ removido]"),
         ("cpf", _CPF, "[CPF removido]"),
         ("email", _EMAIL, "[e-mail removido]"),
@@ -195,6 +197,6 @@ def check_output(answer: str, known_source_ids: set[str], language: str = "en") 
     if _PROMISE.search(answer):
         flags.append("promise_detected")
     answer, found = redact(answer, OUTPUT_KINDS)
-    if "card_number" in found or "cpf" in found or "secret" in found:
+    if found:
         flags.append("pii_redacted")
     return OutputDecision(answer, flags)

@@ -16,7 +16,14 @@ from app.data.db import Database
 from app.graph.supervisor import build_graph
 from app.hitl import notify
 from app.hitl.store import HitlStore
-from app.llm.client import BudgetExceeded, LLMClient, LLMUnavailable, UsageTracker, current_usage
+from app.llm.client import (
+    BudgetExceeded,
+    ConversationBudgetExceeded,
+    LLMClient,
+    LLMUnavailable,
+    UsageTracker,
+    current_usage,
+)
 from app.observability import (
     CHAT_COST,
     CHAT_LATENCY,
@@ -46,6 +53,18 @@ HANDOFF_WAIT = {
     "continuo por aqui.",
     "en": "Your case (protocol {id}) is with a specialist. I'll continue here as soon as they "
     "reply.",
+}
+
+
+class TurnLimit(Exception):
+    """The per-turn cost cap was reached: answer honestly instead of failing."""
+
+
+TURN_LIMIT = {
+    "pt": "Essa solicitação ficou grande demais para eu concluir de uma vez. Pode dividir em "
+    "perguntas menores? Assim consigo responder cada parte com os dados certos.",
+    "en": "This request got too large for me to finish in one go. Could you split it into "
+    "smaller questions? Then I can answer each part with the right data.",
 }
 
 
@@ -100,6 +119,8 @@ class Orchestrator:
                 config={"configurable": {"ctx": ctx, "thread_id": thread}, "recursion_limit": 30},
             )
             return state
+        except ConversationBudgetExceeded as exc:
+            raise TurnLimit(str(exc)) from exc
         except BudgetExceeded as exc:
             raise OrchestratorError(503, "budget_exceeded", str(exc)) from exc
         except LLMUnavailable as exc:
@@ -143,7 +164,8 @@ class Orchestrator:
             now = ctx.now
             user_turn = (
                 f"<context>merchant_id={principal.sub}; now={now:%A %Y-%m-%d %H:%M} "
-                f"America/Sao_Paulo</context>\n\n{screened.text}"
+                f"America/Sao_Paulo; reply_language={screened.language}</context>"
+                f"\n\n{screened.text}"
             )
             state = self._invoke(
                 {
@@ -158,6 +180,11 @@ class Orchestrator:
                 },
                 ctx,
                 self.thread_id(principal, session_id),
+            )
+        except TurnLimit:
+            text = _pick(TURN_LIMIT, screened.language)
+            return self._response(
+                text, "limit", ctx, tracker, started, request_id, screened, OutputDecision("")
             )
         finally:
             current_usage.reset(token)
@@ -206,6 +233,9 @@ class Orchestrator:
                 ctx,
                 handoff["thread_id"],
             )
+        except TurnLimit as exc:
+            self.hitl.release(handoff["id"])
+            raise OrchestratorError(503, "turn_limit", "Per-turn cost cap reached.") from exc
         except Exception:
             self.hitl.release(handoff["id"])
             raise

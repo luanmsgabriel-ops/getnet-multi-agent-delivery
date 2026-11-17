@@ -37,6 +37,10 @@ class BudgetExceeded(Exception):
     """Spend cap reached (global ledger or per-chat)."""
 
 
+class ConversationBudgetExceeded(BudgetExceeded):
+    """Per-turn cap reached (the global budget may still have room)."""
+
+
 class LLMUnavailable(Exception):
     """Provider failed after SDK retries, or refused."""
 
@@ -189,7 +193,7 @@ class AnthropicLLM:
         tracker = current_usage.get()
         self.ledger.check()
         if tracker is not None and tracker.cost_usd + RESERVE_USD > tracker.max_cost_usd:
-            raise BudgetExceeded("Per-conversation cost cap reached.")
+            raise ConversationBudgetExceeded("Per-conversation cost cap reached.")
         with tracer.start_as_current_span(f"llm.{agent}") as span:
             span.set_attributes(
                 {

@@ -27,38 +27,108 @@ FIELDS = [
 ]
 
 
+def _evidence(record: dict[str, Any]) -> str:
+    from app.rag.store import default_retriever
+
+    parts = []
+    for turn in record["turns"]:
+        for call in turn["response"].get("tool_calls", []):
+            if call["tool"] == "search_kb":
+                hits = default_retriever().search(str(call["arguments"].get("query", "")), k=3)
+                parts += [f"[site Getnet] {h.chunk.title}: {h.chunk.text[:700]}" for h in hits]
+            elif call["tool"] == "escalate_to_human":
+                parts.append("[sistema] encaminhamento humano criado (protocolo na resposta)")
+            elif call.get("result") and not call["tool"].startswith("ask_"):
+                parts.append(f"[{call['tool']}] {call['result'][:1200]}")
+    return "\n\n".join(parts)[:5000]
+
+
 def export(run_dirs: list[Path], n: int, seed: int = 7) -> None:
-    rows = []
+    """Sample n answers (about a third from judge 'fail' verdicts, hidden from the labeller)."""
+    refs = {}
+    for path in (Path(__file__).resolve().parent / "datasets").glob("*.jsonl"):
+        for line in path.read_text("utf-8").splitlines():
+            row = json.loads(line) if line else {}
+            if row.get("reference"):
+                refs[row["id"]] = row["reference"]
+    pool: dict[str, list[dict[str, Any]]] = {"pass": [], "fail": []}
     for d in run_dirs:
+        verdicts = {}
+        if (d / "judge.jsonl").exists():
+            for line in (d / "judge.jsonl").read_text("utf-8").splitlines():
+                g = json.loads(line)
+                verdicts[(g["case_id"], g["repeat"])] = g.get("verdict", "pass")
         for line in (d / "raw.jsonl").read_text("utf-8").splitlines():
             r = json.loads(line)
             if r["http_status"] != 200:
                 continue
-            evidence = [
-                f"{c['tool']}: {c.get('result', '')[:600]}"
-                for t in r["turns"]
-                for c in t["response"].get("tool_calls", [])
-                if not c["tool"].startswith("ask_")
-            ]
-            rows.append(
-                {
-                    "run_dir": d.name,
-                    "case_id": r["case_id"],
-                    "repeat": r["repeat"],
-                    "question": " || ".join(t["message"] for t in r["turns"]),
-                    "answer": r["response"].get("answer", ""),
-                    "evidence": "\n".join(evidence)[:3000],
-                    "human_verdict": "",
-                    "human_correctness": "",
-                }
-            )
-    random.Random(seed).shuffle(rows)
+            evidence = _evidence(r)
+            if r["case_id"] in refs:
+                evidence = f"[resposta oficial do FAQ] {refs[r['case_id']]}\n\n{evidence}"
+            row = {
+                "run_dir": d.name,
+                "case_id": r["case_id"],
+                "repeat": r["repeat"],
+                "question": " || ".join(t["message"] for t in r["turns"]),
+                "answer": r["response"].get("answer", ""),
+                "evidence": evidence,
+                "human_verdict": "",
+                "human_correctness": "",
+            }
+            pool[verdicts.get((r["case_id"], r["repeat"]), "pass")].append(row)
+    rng = random.Random(seed)
+    for rows in pool.values():
+        rng.shuffle(rows)
+    picked = pool["fail"][: n // 3]
+    picked += pool["pass"][: n - len(picked)]
+    rng.shuffle(picked)
     ROOT.mkdir(exist_ok=True)
     with (ROOT / "labels.csv").open("w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDS)
         writer.writeheader()
-        writer.writerows(rows[:n])
-    print(f"wrote {ROOT / 'labels.csv'} with {min(n, len(rows))} rows to label")
+        writer.writerows(picked)
+    md = [
+        "# Rotulação: 30 respostas",
+        "",
+        "Para cada item responda numa linha: `número P|F nota(1-5) [comentário]`.",
+        "",
+    ]
+    for i, row in enumerate(picked, 1):
+        md += [
+            "---",
+            f"## {i}",
+            "",
+            f"**Pergunta:** {row['question']}",
+            "",
+            "**Resposta do assistente:**",
+            "",
+            row["answer"],
+            "",
+            "**Evidência (o que o sistema consultou):**",
+            "",
+            "```",
+            row["evidence"] or "(nenhuma)",
+            "```",
+            "",
+        ]
+    (ROOT / "labels.md").write_text("\n".join(md), "utf-8")
+    print(f"wrote {ROOT / 'labels.md'} and labels.csv with {len(picked)} items")
+
+
+def import_answers(text_file: Path) -> None:
+    """Parse lines like '7 F 2 comment' into labels.csv (row order = item number)."""
+    rows = list(csv.DictReader((ROOT / "labels.csv").open(encoding="utf-8-sig")))
+    for line in text_file.read_text("utf-8").splitlines():
+        parts = line.strip().split(maxsplit=3)
+        if len(parts) >= 3 and parts[0].isdigit() and parts[1].upper() in ("P", "F"):
+            row = rows[int(parts[0]) - 1]
+            row["human_verdict"] = "pass" if parts[1].upper() == "P" else "fail"
+            row["human_correctness"] = parts[2]
+    with (ROOT / "labels.csv").open("w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDS)
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"labelled {sum(bool(r['human_verdict']) for r in rows)}/{len(rows)}")
 
 
 def kappa(a: list[str], b: list[str]) -> float:
@@ -120,9 +190,13 @@ def main() -> None:
     exp.add_argument("run_dirs", nargs="+", type=Path)
     exp.add_argument("--n", type=int, default=30)
     sub.add_parser("score")
+    imp = sub.add_parser("import")
+    imp.add_argument("text_file", type=Path)
     args = parser.parse_args()
     if args.cmd == "export":
         export(args.run_dirs, args.n)
+    elif args.cmd == "import":
+        import_answers(args.text_file)
     else:
         score()
 

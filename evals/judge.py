@@ -62,6 +62,13 @@ SCHEMA: dict[str, Any] = {
 }
 
 
+def _passages(arguments: dict[str, Any]) -> str:
+    from app.rag.store import default_retriever
+
+    hits = default_retriever().search(str(arguments.get("query", "")), k=5)
+    return "\n".join(f"  <{h.chunk.doc_url}> {h.chunk.title}: {h.chunk.text}" for h in hits)
+
+
 def packet(record: dict[str, Any], reference: str | None) -> str:
     convo = []
     for i, turn in enumerate(record["turns"], 1):
@@ -71,17 +78,30 @@ def packet(record: dict[str, Any], reference: str | None) -> str:
     evidence = []
     for turn in record["turns"]:
         for call in turn["response"].get("tool_calls", []):
-            if call.get("result") and not call["tool"].startswith("ask_"):
+            args = json.dumps(call["arguments"], ensure_ascii=False)
+            if call["tool"] == "search_kb":
+                # Retrieval is deterministic: rebuild the full passages the agent saw
+                # (the response only stores a truncated preview).
+                evidence.append(f"- search_kb({args}) ->\n{_passages(call['arguments'])}")
+            elif call["tool"] == "escalate_to_human":
                 evidence.append(
-                    f"- {call['tool']}({json.dumps(call['arguments'], ensure_ascii=False)})"
-                    f" -> {call['result'][:2500]}"
+                    f"- escalate_to_human({args}) -> handoff created by the system, "
+                    "status pending; the protocol id is the one in the reply"
                 )
+            elif call.get("result") and not call["tool"].startswith("ask_"):
+                evidence.append(f"- {call['tool']}({args}) -> {call['result'][:6000]}")
+    cited = [
+        f"[{s['id']}] {s['title']} <{s['url']}>" for s in record["response"].get("sources", [])
+    ]
     parts = [
         "## Conversation",
         *convo,
         "",
         "## Reply to grade (last turn)",
         record["response"].get("answer", ""),
+        "",
+        "## Source ids used in the reply",
+        "\n".join(cited) or "(none)",
         "",
         "## Evidence retrieved by the system",
         "\n".join(evidence[:12]) or "(none)",

@@ -224,3 +224,16 @@ def test_card_number_is_redacted_before_the_supervisor(
     sent = llm.requests["supervisor"][0]["messages"][0]["content"]
     assert "4111" not in sent and "[cartão removido]" in sent
     assert body["guardrails"]["input"]["redacted"] == ["card_number"]
+
+
+def test_turn_cost_cap_returns_an_honest_limit_answer(
+    settings: Settings, token: Callable[..., str]
+) -> None:
+    from app.llm.client import ConversationBudgetExceeded
+
+    def capped(_: list[dict[str, Any]]) -> LLMResult:
+        raise ConversationBudgetExceeded("Per-conversation cost cap reached.")
+
+    with _client(settings, ScriptedLLM({"supervisor": [capped]})) as c:
+        r = _chat(c, token(), "pergunta enorme")
+    assert r.status_code == 200 and r.json()["outcome"] == "limit"

@@ -15,8 +15,8 @@ from tests.fakes import ScriptedLLM, text
         ("CNPJ 12.345.678/0001-95 da loja", "cnpj"),
         ("me escreve em loja@exemplo.com.br", "email"),
         ("liga no (51) 99876-5432", "phone"),
-        ("minha senha: hunter2!", "secret"),
-        ("use a chave sk-ant-api03-abcdefghijklmnopqrstu", "secret"),
+        ("minha senha: hunter2!", "credential"),
+        ("use a chave sk-ant-api03-abcdefghijklmnopqrstu", "api_key"),
     ],
 )
 def test_personal_data_is_redacted(message: str, label: str) -> None:
@@ -78,3 +78,14 @@ def test_output_keeps_official_contact_numbers() -> None:
     answer = "Ligue 4002-4000 ou chame no WhatsApp (11) 4002-4000; e-mail ajuda@getnet.com.br"
     out = check_output(answer, set())
     assert out.text == answer and out.flags == []
+
+
+def test_answers_about_passwords_are_not_redacted() -> None:
+    answer = "**Esqueceu a senha:** procure o banco emissor. Nunca informe a senha do cartão."
+    out = check_output(answer, set())
+    assert out.text == answer and out.flags == []
+
+
+def test_credential_values_in_inputs_are_redacted() -> None:
+    clean, found = redact("minha senha: abc123 e o cvv 456")
+    assert "abc123" not in clean and "456" not in clean and found == ["credential"]
