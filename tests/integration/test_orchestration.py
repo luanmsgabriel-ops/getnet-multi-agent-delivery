@@ -237,3 +237,24 @@ def test_turn_cost_cap_returns_an_honest_limit_answer(
     with _client(settings, ScriptedLLM({"supervisor": [capped]})) as c:
         r = _chat(c, token(), "pergunta enorme")
     assert r.status_code == 200 and r.json()["outcome"] == "limit"
+
+
+def test_invented_figures_are_flagged_to_the_supervisor(
+    settings: Settings, token: Callable[..., str]
+) -> None:
+    llm = ScriptedLLM(
+        {
+            "supervisor": [
+                calls(("ask_knowledge", {"question": "Qual a taxa do crediário?"})),
+                text("Não confirmei a taxa."),
+            ],
+            "knowledge": [
+                calls(("search_kb", {"query": "crediário parcelamento"})),
+                text("STATUS: ok\nParcela em até 48x com taxa de 9,87% [S1]."),
+            ],
+        }
+    )
+    with _client(settings, llm) as c:
+        _chat(c, token(), "Qual a taxa do crediário?")
+    observation = json.loads(_tool_results(llm.requests["supervisor"][1])[0]["content"])
+    assert observation["data"]["unverified_figures"] == ["9,87%"]  # 48x is in the source

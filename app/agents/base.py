@@ -84,6 +84,7 @@ class ToolContext:
     language: str = "en"
     # Session services (handoff store, notifier); absent in unit tests of single tools.
     services: dict[str, Any] = field(default_factory=dict)
+    evidence: list[str] = field(default_factory=list)  # full tool outputs, for grounding checks
     trace: list[TraceEvent] = field(default_factory=list)
     sources: list[Source] = field(default_factory=list)
     _lock: Lock = field(default_factory=Lock)
@@ -167,6 +168,9 @@ def _execute(tool: Tool | None, block: dict[str, Any], ctx: ToolContext, agent: 
     TOOL_CALLS.labels(agent, name if tool else "unknown", result.status).inc()
     TOOL_LATENCY.labels(name if tool else "unknown").observe(elapsed)
     preview = json.dumps(result.model_dump(exclude_none=True), ensure_ascii=False, default=str)
+    if not name.startswith("ask_"):
+        with ctx._lock:
+            ctx.evidence.append(preview)
     ctx.record(TraceEvent(agent, name, result.status, int(elapsed * 1000), args, preview[:4000]))
     return result
 

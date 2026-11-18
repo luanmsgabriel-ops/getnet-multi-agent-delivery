@@ -32,6 +32,7 @@ from app.agents.base import (
 from app.agents.knowledge import run_knowledge
 from app.agents.support import run_support
 from app.observability import HANDOFFS
+from app.rag.grounding import unsupported_figures
 from app.security.guardrails import PROMPT_CANARY
 
 MAX_SUPERVISOR_STEPS = 5
@@ -70,6 +71,8 @@ Final answer:
 - Combine the observations into one coherent reply; keep the [S#] source markers you received.
 - State limitations in one sentence (for example, the data is a reference or a source does \
 not cover something). Never promise refunds, deadlines or actions you did not perform.
+- If an observation lists unverified_figures, do not state those figures as facts: leave them \
+out or say they could not be confirmed in the official sources.
 - Never ask for passwords, PINs, card numbers or security codes; point to the official reset \
 channel instead.
 
@@ -119,7 +122,11 @@ def observation(run: AgentRun) -> ToolResult:
 
 
 def _ask_knowledge(ctx: ToolContext, args: AskKnowledge) -> ToolResult:
-    return observation(run_knowledge(ctx, args.question))
+    result = observation(run_knowledge(ctx, args.question))
+    unverified = unsupported_figures(str(result.data["answer"]), ctx.evidence)
+    if unverified:  # figures (fees, limits, deadlines) not found in any retrieved source
+        result.data["unverified_figures"] = unverified
+    return result
 
 
 def _ask_support(ctx: ToolContext, args: AskSupport) -> ToolResult:

@@ -25,6 +25,7 @@ Datasets: `original` (the 10 challenge questions), `dev` (40: PT/EN knowledge, p
 | multi_turn | 36 | 92% | 92% | 94% | 4.64 | 4.63 | 23 s (2 turns) | US$ 0.039 |
 | handoff (must / must not escalate) | 48 | **100%** | 100% | 100% | 4.88 | 4.88 | 13 s | US$ 0.024 |
 | **holdout: official FAQ** (once) | 20 | 90% | n/a | 80% | 4.25 | 4.44 | 14 s | US$ 0.024 |
+| **holdout v2: Q&A inside help and product pages** (once, after the RAG changes) | 20 | 100% | n/a | 90% | 4.55 | 4.50 | 12 s | US$ 0.031 |
 | original on **Claude Opus 5.5** | 30 | 97% | 90% | 93% | 4.62 | 4.52 | 23 s | US$ 0.107 |
 
 Correctness and groundedness are means on a 1-5 scale. The judge found zero policy violations (refund or deadline promises, other merchants' data) in the final runs.

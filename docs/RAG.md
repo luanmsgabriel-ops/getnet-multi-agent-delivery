@@ -29,8 +29,22 @@ Queries come from Getnet's own site, except `xling`. While measuring, the query 
 | **holdout: official FAQ** (run once) | 102 | lexical | 0.37 | 0.59 | 0.66 | 0.47 |
 | | | dense | 0.25 | 0.39 | 0.51 | 0.32 |
 | | | hybrid | **0.44** | 0.58 | **0.70** | **0.51** |
+| **holdout v2: Q&A inside help and product pages** (run once, 2026-11-18) | 121 | lexical | 0.36 | 0.65 | 0.73 | 0.48 |
+| | | dense | 0.22 | 0.40 | 0.55 | 0.30 |
+| | | hybrid | 0.31 | 0.63 | 0.73 | 0.44 |
 
 How to read these numbers:
 - Hybrid is the default. It ties lexical on Portuguese queries and is clearly better when the merchant writes in English.
 - Holdout recall@5 is 0.58. The FAQ answers are short paragraphs inside a single 46,000-character page, and the measurement strips the question text, so this is a strict, lower-bound setting.
+- A second holdout, built only after the first was used, comes out at the same level (hybrid recall@5 0.63, recall@10 0.73). The retrieval quality generalizes, and so does its main limit.
 - In the end-to-end eval, the agent can reformulate its query and fall back to web search. It needed web search in 1 of the 10 challenge questions, down from about 11 per 10 with the earlier 13-page knowledge base.
+
+## Changes tried after the first holdout (measured on dev only)
+
+| Change | Result on dev | Decision |
+|---|---|---|
+| Q&A-aware chunking (a question line always starts a chunk) | Hybrid recall@5: dev 0.63 → 0.60; first FAQ set (now dev) 0.58 → 0.56; English MRR 0.62 → 0.68 | **Reverted.** No recall gain. |
+| 8 passages per search instead of 5 | Dev recall@10 is 0.75 vs 0.63 at @5 | **Kept** (`KB_PASSAGES`), trading tokens for recall. |
+| Figure check: fees, limits, deadlines and amounts in a Knowledge answer must appear in the retrieved evidence; otherwise the supervisor gets `unverified_figures` and may not state them as facts | Unit and integration tests | **Kept** (`app/rag/grounding.py`). |
+
+With these changes, the fresh answer holdout (20 official questions from inside help and product pages, run once) scored 100% on deterministic checks and **90% judge pass** (correctness 4.55). The first answer holdout (the long `/duvidas` page) scored 80%. These are different question sets, so the gain cannot be attributed to the changes alone.

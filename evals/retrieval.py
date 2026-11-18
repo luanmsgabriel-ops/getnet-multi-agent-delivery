@@ -16,6 +16,7 @@ question's meaning, not from the question being copied in the page.
 """
 
 import argparse
+import itertools
 import json
 import re
 import unicodedata
@@ -77,7 +78,33 @@ def build_sets(docs: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
         {"query": p["query"], "answer_prefix": norm(p["answer"])[:50]}
         for p in faq_pairs(faq["text"])
     ]
-    return {"dev": dev, "holdout": holdout}
+    return {"dev": dev, "holdout": holdout, "holdout_v2": inpage_pairs(docs)}
+
+
+SKIP_QUESTIONS = ("dúvidas", "duvidas", "pronto", "já conhece", "ja conhece")
+
+
+def inpage_pairs(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Official Q&A written inside help-center and product pages (not the /duvidas FAQ).
+    Built after the first holdout was consumed and never used for tuning."""
+    items: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for d in docs:
+        if d["section"] not in ("help_center", "product") or d["url"] == FAQ_URL:
+            continue
+        lines = [ln.lstrip("# ").strip() for ln in d["text"].split("\n") if ln.strip()]
+        for line, answer in itertools.pairwise(lines):
+            if not (line.endswith("?") and 15 < len(line) < 160 and len(answer) > 60):
+                continue
+            if answer.endswith("?") or norm(line) == norm(d["title"]) or norm(line) in seen:
+                continue
+            if line.lower().startswith(SKIP_QUESTIONS):
+                continue
+            seen.add(norm(line))
+            items.append(
+                {"query": line, "answer_prefix": norm(answer)[:50], "source_url": d["url"]}
+            )
+    return items
 
 
 def stripped_chunks(docs: list[dict[str, Any]], queries: list[str]) -> list[Chunk]:
@@ -155,7 +182,7 @@ def evaluate(split: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", choices=["dev", "xling", "holdout"], default="dev")
+    parser.add_argument("--split", choices=["dev", "xling", "holdout", "holdout_v2"], default="dev")
     args = parser.parse_args()
     report = evaluate(args.split)
     out = ROOT / "results" / f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}-retrieval-{args.split}"

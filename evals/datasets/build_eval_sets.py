@@ -499,6 +499,35 @@ def holdout_answers(n: int = 20) -> list[dict[str, Any]]:
     return rows
 
 
+def holdout_answers_v2(n: int = 20) -> list[dict[str, Any]]:
+    """Official Q&A from inside help-center/product pages (not /duvidas); built after the
+    first answer holdout was consumed. The reference is the official answer text."""
+    sys.path.insert(0, str(HERE.parents[1]))
+    from evals.retrieval import inpage_pairs, load_docs, norm
+
+    docs = load_docs()
+    by_url = {d["url"]: d for d in docs}
+    pairs = inpage_pairs(docs)
+    step = max(1, len(pairs) // n)
+    rows = []
+    for i, p in enumerate(pairs[::step][:n], 1):
+        lines = [
+            ln.lstrip("# ").strip()
+            for ln in by_url[p["source_url"]]["text"].split("\n")
+            if ln.strip()
+        ]
+        start = next(k for k, ln in enumerate(lines) if norm(ln) == norm(p["query"])) + 1
+        answer = []
+        for ln in lines[start:]:
+            if ln.endswith("?") or sum(map(len, answer)) > 700:
+                break
+            answer.append(ln)
+        row = case(f"G{i:02d}", p["query"], K, ["search_kb"], tags=["holdout", "inpage"])
+        row["reference"] = " ".join(answer)
+        rows.append(row)
+    return rows
+
+
 def write(name: str, rows: list[dict[str, Any]]) -> None:
     for r in rows:
         r["split"] = name
@@ -513,3 +542,4 @@ if __name__ == "__main__":
     write("multi_turn", MULTI)
     write("handoff", HANDOFF)
     write("holdout_answers", holdout_answers())
+    write("holdout_answers_v2", holdout_answers_v2())
