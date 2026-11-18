@@ -40,6 +40,20 @@ Reading the table:
 - **Weakest set: the first holdout (80%).** The failures are mostly "not found in the knowledge base" for answers that live inside the 46,000-character FAQ page. It is the same weakness the retrieval holdout shows (recall@5 0.58, `docs/RAG.md`). Question/answer-aware chunking was then tried on dev and reverted (no gain). Retrieving 8 passages and a figure check were kept. A fresh holdout from other pages scored 90%. Its questions differ, so part of the gain may come from easier pages.
 - **Judge variance.** Re-judging the same answers moves pass rates by 3-10 points (for example original 97-100%, holdout 70-80%), so differences smaller than that are noise.
 
+## Prompt ablation: does the supervisor's guidance earn its tokens?
+
+The same 40 dev cases were run with a **minimal** supervisor prompt, keeping only the role, the tool list and the security lines. The "How to decide" and "Final answer" guidance was dropped (`evals/ablation.py`). Everything else stayed the same. The comparison is against the first repeat of the committed full-prompt run.
+
+| Supervisor prompt | Checks pass | Judge pass | Correctness | Groundedness | Unsupported claims / case | Cost / case |
+|---|---:|---:|---:|---:|---:|---:|
+| **Full** (current) | **97.5%** | 97.5% | **4.80** | **4.66** | **0.55** | **US$ 0.022** |
+| Minimal | 95% | 100% | 4.58 | 4.35 | 0.85 | US$ 0.025 |
+
+- **Kept: the full prompt.** Without the guidance, answers carry about 55% more claims the judge cannot find in the evidence. Correctness and groundedness drop by 0.2-0.3, and each case costs about 15% more.
+- **Clarification lost structure.** For "Quanto está a cotação hoje?", the minimal prompt asked "which currency?" in plain text instead of using `ask_user`. The merchant sees the same question, but the API reports `answered` instead of `clarify`.
+- **Judge pass did not separate the two.** Both are within judge noise (3-10 points). The rubric scores are more sensitive than the pass/fail verdict for prompt changes.
+- **Caveats.** One repeat of 40 cases, run once, about US$ 1.10 with the judge. The differences are consistent across metrics, but small samples can mislead.
+
 ## Judge calibration against a human
 
 A person labelled 30 sampled answers (pass/fail plus a 1-5 correctness score) without seeing the judge's grades. They used the same rules and exactly the same evidence the judge receives (`evals/calibration/labels.csv`, `evals/calibration/calibration.md`).
