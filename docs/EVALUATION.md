@@ -14,7 +14,7 @@ Everything below was measured on 2026-11-17/18 with real model calls. Raw respon
 | Human calibration of the judge | whether the judge can be trusted | `uv run python -m evals.calibration score` |
 | Retrieval and guardrail evals | recall@k / MRR on official questions; attack block and false-positive rates | `evals.retrieval`, `evals.security` |
 
-Datasets: `original` (the 10 challenge questions), `dev` (40: PT/EN knowledge, public data, merchant data, multi-intent, clarification, guardrail, isolation), `multi_turn` (12 conversations), `handoff` (8 that must escalate, 8 that must not) and `holdout_answers` (20 official FAQ questions with the official answer as reference, run once). Deterministic checks on the last turn cover the expected outcome (answer, clarify, handoff or block), the agents and tools used, and required or forbidden terms. The judge is a different model family (`openai/gpt-5-mini` via OpenRouter). It receives a blind packet: the conversation, the reply, the evidence the system retrieved, and the official reference when there is one. It never sees the expected agents or tools, nor the generator model.
+Datasets: `original` (the 10 challenge questions), `dev` (40: PT/EN knowledge, public data, merchant data, multi-intent, clarification, guardrail, isolation), `multi_turn` (12 conversations), `handoff` (8 that must escalate, 8 that must not) `holdout_answers` (20 official FAQ questions with the official answer as reference, run once) and `holdout_answers_v2` (20 more from inside help and product pages, run once). Deterministic checks on the last turn cover the expected outcome (answer, clarify, handoff or block), the agents and tools used, and required or forbidden terms. The judge is a different model family (`openai/gpt-5-mini` via OpenRouter). It receives a blind packet: the conversation, the reply, the evidence the system retrieved, and the official reference when there is one. It never sees the expected agents or tools, nor the generator model.
 
 ## Results (Claude Sonnet 5.5 for all agents)
 
@@ -34,7 +34,7 @@ Reading the table:
 - **Model choice (ADR 008).** Sonnet matches Opus on these cases at about a quarter of the cost and half the latency, so it is the default (`LLM_MODEL`).
 - **Router.** A keyword router (`evals/baseline.py`) gets the exact agent set right on 74% of the same single-turn cases and covers 3 of 5 multi-intent cases. The supervisor used the expected agents in 98-100% of runs.
 - **Known routing ambiguity.** "What does decline code 05 mean?" goes to the Knowledge Agent (help-center pages) rather than the Support Agent (decline-code table). The answer is still judged correct; the expectation was left as written.
-- **Weakest set: the holdout (80%).** The failures are mostly "not found in the knowledge base" for answers that live inside the 46,000-character FAQ page. It is the same weakness the retrieval holdout shows (recall@5 0.58, `docs/RAG.md`). The next fix is question/answer-aware chunking for FAQ pages, measured on a fresh holdout. It was not tuned on this one.
+- **Weakest set: the first holdout (80%).** The failures are mostly "not found in the knowledge base" for answers that live inside the 46,000-character FAQ page. It is the same weakness the retrieval holdout shows (recall@5 0.58, `docs/RAG.md`). Question/answer-aware chunking was then tried on dev and reverted (no gain). Retrieving 8 passages and a figure check were kept. A fresh holdout from other pages scored 90%. Its questions differ, so part of the gain may come from easier pages.
 - **Judge variance.** Re-judging the same answers moves pass rates by 3-10 points (for example original 97-100%, holdout 70-80%), so differences smaller than that are noise.
 
 ## Judge calibration against a human
@@ -58,6 +58,7 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Indirect prompt injection (poisoned KB passage, end to end) | not followed; the merchant was warned | `docs/SECURITY.md` |
 | Retrieval, English questions over the Portuguese corpus | hybrid recall@5 0.90 vs lexical 0.60 | `docs/RAG.md` |
 | Retrieval, official FAQ holdout (102 questions) | hybrid recall@5 0.58, recall@10 0.70 | `docs/RAG.md` |
+| Retrieval, fresh holdout of Q&A inside help and product pages (121 questions) | hybrid recall@5 0.63, recall@10 0.73 | `docs/RAG.md` |
 | Memory and handoff end to end (real model, Compose) | follow-up resolved from memory; dispute escalated, operator reply resumed the graph, merchant notified | `evals/results/*-e2e-flows` |
 
 ## Bugs the evals found, fixed with tests
