@@ -201,6 +201,19 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     def me(p: Annotated[Principal, Depends(principal)]) -> MeResponse:
         return MeResponse(sub=p.sub, tenant=p.tenant, scopes=sorted(p.scopes))
 
+    @app.get("/me/memory", tags=["auth"])
+    def my_memory(p: Annotated[Principal, Depends(principal)]) -> dict[str, str]:
+        """Facts the assistant saved about this merchant (allow-listed categories)."""
+        require_scope(p, "chat:use")
+        return orch().memory.get(p.tenant, p.sub)
+
+    @app.delete("/me/memory", status_code=204, tags=["auth"])
+    def forget_me(p: Annotated[Principal, Depends(principal)]) -> Response:
+        """Erase everything the assistant saved about this merchant."""
+        require_scope(p, "chat:use")
+        orch().memory.clear(p.tenant, p.sub)
+        return Response(status_code=204)
+
     @app.post(
         "/chat",
         tags=["chat"],

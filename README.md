@@ -62,7 +62,7 @@ POST /chat {message, user_id} + Bearer JWT
   -> auth: identity from the token; user_id must match; scopes; rate limit
   -> input guardrail: redact card/CPF/secrets, then LLM classifier (injection, fraud, off-topic)
   -> LangGraph turn (SQLite checkpointer per merchant session):
-       prepare (last 8 turns) -> SUPERVISOR --tool calls, parallel--> specialists -> SUPERVISOR -> ...
+       prepare (summary + last turns + saved merchant facts) -> SUPERVISOR --tool calls, parallel--> specialists -> SUPERVISOR -> ...
                                    |                                   |
                                    |  ask_knowledge: Knowledge Agent (search_kb, web_search,
                                    |                 get_weather, get_exchange_rate)
@@ -75,10 +75,10 @@ POST /chat {message, user_id} + Bearer JWT
   -> JSON answer with agents, tool calls, sources, usage, cost and trace_id
 ```
 
-- **Supervisor.** An LLM with four tools. It identifies every need in the message and calls specialists in parallel when needs are independent. It reads their structured observations (`status`, `coverage`, `answer`), retries a different way when a result is partial, and writes the final answer in the merchant's language with `[S#]` citations. It is bounded by step, per-turn cost and global budget limits. Its prompt holds general principles only (`app/graph/supervisor.py`).
+- **Supervisor.** An LLM with five tools (the four specialists above plus `remember`). It identifies every need in the message and calls specialists in parallel when needs are independent. It reads their structured observations (`status`, `coverage`, `answer`), retries a different way when a result is partial, and writes the final answer in the merchant's language with `[S#]` citations. It is bounded by step, per-turn cost and global budget limits. Its prompt holds general principles only (`app/graph/supervisor.py`).
 - **Specialists.** Each specialist is an agent with its own prompt, tools and loop (`app/agents/`). Tools have strict JSON schemas, typed errors (`not_found`, `invalid_argument`, `upstream_timeout`, ...), timeouts and retries, and a circuit breaker on public APIs. No tool takes a merchant id: data access is filtered by the token subject in `app/data/support_repo.py`.
 - **Writes and humans.** Agents only read. A ticket is a proposal until the merchant confirms it (`POST /tickets/{id}/confirm`, idempotent). Disputes, suspected fraud and requests for a person pause the graph and notify an operator through a webhook signed with HMAC. The operator answers through `/operator/handoffs/{id}/reply` (`reply`, `instruct` or `close`). The supervisor resumes, and the merchant gets the result via SSE (`/sessions/{id}/events`) and a webhook. No deadlines or refunds are ever promised.
-- **Memory.** The conversation is stored per `tenant:merchant:session` with LangGraph's SQLite checkpointer. It survives restarts, including a pending handoff, and `DELETE /sessions/{id}` resets it.
+- **Memory.** The conversation is stored per `tenant:merchant:session` with LangGraph's SQLite checkpointer. It survives restarts, including a pending handoff, and `DELETE /sessions/{id}` resets it. Past 8 turns, the oldest are folded into a rolling summary, so long chats keep their facts. Across sessions, the supervisor can `remember` a few allow-listed facts per merchant (business profile, communication preference, recurring context). They are redacted, scoped to the token's merchant, and can be listed or erased with `GET/DELETE /me/memory` ([ADR 009](docs/adr/009-summary-and-merchant-memory.md)).
 
 ## RAG pipeline (ingestion -> storage -> retrieval -> generation)
 

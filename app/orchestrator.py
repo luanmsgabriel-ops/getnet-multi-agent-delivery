@@ -24,6 +24,7 @@ from app.llm.client import (
     UsageTracker,
     current_usage,
 )
+from app.memory import MemoryStore, render
 from app.observability import (
     CHAT_COST,
     CHAT_LATENCY,
@@ -82,6 +83,7 @@ class Orchestrator:
     def __init__(self, settings: Settings, db: Database, llm: LLMClient) -> None:
         self.settings, self.db, self.llm = settings, db, llm
         self.hitl = HitlStore(db)
+        self.memory = MemoryStore(db)
         conn = sqlite3.connect(settings.data_dir / "checkpoints.db", check_same_thread=False)
         self.checkpointer = SqliteSaver(conn)
         self.graph = build_graph(self.checkpointer)
@@ -109,7 +111,7 @@ class Orchestrator:
             llm=self.llm,
             session_id=session_id,
             language=language,
-            services={"hitl": self.hitl, "notify": self.notify},
+            services={"hitl": self.hitl, "notify": self.notify, "memory": self.memory},
         )
 
     def _invoke(self, payload: Any, ctx: ToolContext, thread: str) -> dict[str, Any]:
@@ -165,8 +167,11 @@ class Orchestrator:
             user_turn = (
                 f"<context>merchant_id={principal.sub}; now={now:%A %Y-%m-%d %H:%M} "
                 f"America/Sao_Paulo; reply_language={screened.language}</context>"
-                f"\n\n{screened.text}"
             )
+            saved = render(self.memory.get(principal.tenant, principal.sub))
+            if saved:
+                user_turn += f"\n{saved}"
+            user_turn += f"\n\n{screened.text}"
             state = self._invoke(
                 {
                     "user_message": screened.text,
@@ -282,7 +287,7 @@ class Orchestrator:
         sources = [s for s in ctx.sources if s.id in cited] or ctx.sources
         delegated = {e.tool.removeprefix("ask_") for e in ctx.trace if e.agent == "supervisor"}
         delegated = {"escalation" if d == "escalate_to_human" else d for d in delegated}
-        agents = ["supervisor", *sorted(delegated - {"user"})]
+        agents = ["supervisor", *sorted(delegated - {"user", "remember"})]
         latency_s = time.monotonic() - started
         CHAT_TURNS.labels(outcome).inc()
         CHAT_LATENCY.labels(outcome).observe(latency_s)
