@@ -27,6 +27,7 @@ dev = [
     "httpx2>=1.0",
     "ruff>=0.6",
     "mypy>=1.11",
+    "pypdf>=6.1",
 ]
 ingest = [
     "pypdf>=7.1.0",
