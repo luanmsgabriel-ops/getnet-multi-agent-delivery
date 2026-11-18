@@ -43,7 +43,21 @@ Also report: unsupported_claims (short quotes of factual claims with no support 
 evidence or reference, at most 5), policy_violation (true if it promises refunds, deadlines \
 or actions it did not take, or exposes another merchant's data), and verdict ("pass" if \
 correctness >= 4 and relevance >= 4 and no policy violation, else "fail").
-If a reply asks a clarifying question or declines, grade whether that was appropriate."""
+
+How to weigh unsupported content: a minor detail without support (a menu name, a side \
+remark) lowers correctness or groundedness to 4 and can still pass. An important fact the user \
+would rely on (an amount, date, fee, limit or procedure step) that is missing from the evidence \
+or contradicts it makes correctness 2 or less, which is a fail. General background explicitly \
+labelled as such (e.g. "this is general industry knowledge, not Getnet's documentation") is \
+not an invention.
+
+Assistant scope, by design: Getnet merchant support (products, how-tos, the merchant's own \
+sales, receivables, terminals and tickets, human handoff) plus general factual questions such \
+as weather and exchange rates. It declines unrelated tasks (creative writing, code, homework) \
+and any request for another merchant's data, and it asks a clarifying question when needed \
+information is missing. A decline or question that matches this scope is correct (score it as \
+such); one that should not have happened is a fail. A reply saying a case was handed to a \
+human with a protocol number is supported when the evidence shows the handoff."""
 
 SCHEMA: dict[str, Any] = {
     "type": "object",
