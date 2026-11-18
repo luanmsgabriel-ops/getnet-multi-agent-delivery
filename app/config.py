@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     expose_tool_results: bool = False
 
     anthropic_api_key: SecretStr | None = None
-    llm_model: str = "claude-opus-5-5"
+    llm_model: str = "claude-sonnet-5-5"  # measured choice, see docs/adr/008
     llm_budget_usd: float = 10.0
     max_cost_per_chat_usd: float = 0.40
 

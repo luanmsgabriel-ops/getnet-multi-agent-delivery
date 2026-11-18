@@ -168,7 +168,7 @@ class AnthropicLLM:
         self,
         api_key: str,
         ledger: Ledger,
-        model: str = "claude-opus-5-5",
+        model: str = "claude-sonnet-5-5",
         timeout_s: float = 60.0,
         max_retries: int = 3,
     ) -> None:
