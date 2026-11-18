@@ -76,6 +76,8 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Retrieval, English questions over the Portuguese corpus | hybrid recall@5 0.90 vs lexical 0.60 | `docs/RAG.md` |
 | Retrieval, official FAQ holdout (102 questions) | hybrid recall@5 0.58, recall@10 0.70 | `docs/RAG.md` |
 | Retrieval, fresh holdout of Q&A inside help and product pages (121 questions) | hybrid recall@5 0.63, recall@10 0.73 | `docs/RAG.md` |
+| Long-term memory and long-chat summary (real model, in-process) | 6/6 checks. Lasting facts were saved with `remember` while the sales question was still answered with merchant data. A protocol from the first message was recalled after 10 turns, past the summary. Erasure worked. The saved "prefer short answers" did **not** visibly shorten a later answer: memory informs, but does not yet steer style. US$ 0.17 | `evals/memory_flow.py`, `evals/results/*-memory-flow` |
+| Validation of the `original` set after adding memory | 10/10 checks, judge 90%. The failure (PTAX sell rate reported as "could not confirm") was a figure-check bug: `6.372` from JSON was read as thousands. It was fixed with a regression test, and the rerun scored 5/5 | `evals/results/20261118T214724Z-original`, `...215048Z-original` |
 | Memory and handoff end to end (real model, Compose) | follow-up resolved from memory; dispute escalated, operator reply resumed the graph, merchant notified | `evals/results/*-e2e-flows` |
 
 ## Bugs the evals found, fixed with tests
@@ -88,3 +90,4 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Smoke run | Mock sales for "today" were generated in the future | Today's mock sales are mornings only |
 | Concurrent run with observability | The API was OOM-killed when concurrent requests loaded the embedding model | One locked warm-up at startup; readiness waits for it |
 | Human calibration | The judge did not know the assistant's scope or the caller | Scope and caller added to the judge packet |
+| Regression gate run after the memory change | The figure check read the JSON value `6.372` as 6372, so a correct exchange rate was withheld | Numbers compared by value, with both readings of a 3-digit group |
