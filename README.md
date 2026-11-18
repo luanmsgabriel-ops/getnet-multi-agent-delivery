@@ -146,6 +146,6 @@ Current limits:
 
 - **v1** (2026-11-12): rule-based router and editorial answers; weather and FX declined.
 - **v2** (2026-11-16): LLM supervisor added, but off by default and without real-run evidence.
-- **v3** (this version): rebuilt around an always-on supervisor with specialists as tools, hybrid RAG over 171 official documents, measured guardrails, human handoff with resume, OpenTelemetry/Prometheus, and committed real-model evals with a human-calibrated judge. About 3,600 lines of application code, down from 11,300.
+- **v3** (this version): rebuilt around an always-on supervisor with specialists as tools, hybrid RAG over 171 official documents, measured guardrails, human handoff with resume, OpenTelemetry/Prometheus, and committed real-model evals with a human-calibrated judge. About 3,900 non-blank lines of application code in `app/`, down from 11,300.
 
 AI assistance: Claude Code was used to plan, implement and test this version. Design decisions, the evaluation labels and the review are the author's.
