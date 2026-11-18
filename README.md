@@ -18,7 +18,11 @@ The supervisor reads the specialists' results, decides again and writes the answ
 | 12 multi-turn conversations (× 3) | 92% | 94% | 23 s | US$ 0.039 |
 | Human handoff: 8 must escalate, 8 must not (× 3) | **100%** | 100% | 13 s | US$ 0.024 |
 | Holdout: 20 official FAQ questions with official answers | 90% | 80% | 14 s | US$ 0.024 |
+| Fresh holdout: 20 official Q&A from help and product pages (after the RAG changes) | **100%** | 90% | 12 s | US$ 0.031 |
+| Long-term memory and long-chat summary (real model) | 6/6 | | | US$ 0.17 total |
 | Guardrail: 60 attacks + 60 benign look-alikes | 98.3% blocked, **0% false positives** | | | US$ 0.0016 |
+
+A prompt ablation keeps the current supervisor prompt. Without its guidance, answers carry 55% more unsupported claims, and correctness drops from 4.80 to 4.58. A regression gate (`evals/gates.json`) fails any run that drops below the thresholds, and `.github/workflows/eval.yml` runs eval, judge and gate weekly or on demand.
 
 ¹ The judge is from a different model family (GPT via OpenRouter) and grades a blind packet. Against 30 human labels it agrees 87% (Cohen's kappa 0.44) and is more lenient than the human, so read these rates as an upper bound. Details, the routing baseline and the bugs these evals found are in [docs/EVALUATION.md](docs/EVALUATION.md).
 
@@ -98,10 +102,11 @@ Every call is recorded in a spend ledger with a hard cap (`LLM_BUDGET_USD`).
 ## Tests and evaluation
 
 ```bash
-uv sync && uv run pytest        # 88 offline tests: unit, contract, scripted-LLM integration, chaos
+uv sync && uv run pytest        # 104 offline tests: unit, contract, scripted-LLM integration, chaos
 make lint                       # ruff + mypy --strict
 uv run python -m evals.run --split dev --repeats 3        # real model, costs money
 uv run python -m evals.judge evals/results/<run>          # independent judge (OPENROUTER_API_KEY)
+uv run python -m evals.gate evals/results/<run> --split dev   # regression gate
 ```
 
 CI runs on every push:
@@ -110,7 +115,7 @@ CI runs on every push:
 - pip-audit, bandit, gitleaks and Trivy;
 - `promtool` unit tests for the alert rules.
 
-Real-model evals are a deliberate, budgeted step. Their results are committed.
+Real-model evals are a deliberate, budgeted step. They run manually or weekly through `.github/workflows/eval.yml` and stop at the regression gate. Their results are committed.
 
 ## Observability and operations
 
@@ -132,7 +137,8 @@ Decisions with alternatives and consequences are in [docs/adr/](docs/adr/).
 
 Current limits:
 - Merchant data is fictitious: three merchants, regenerated daily relative to today.
-- FAQ answers buried in very long pages are sometimes missed (holdout 80%). The next step is question/answer-aware chunking, measured on a fresh holdout.
+- FAQ answers buried in very long pages are sometimes missed (first holdout 80%; retrieval recall@5 is about 0.6 on both holdouts). Question/answer-aware chunking was tried and gave no gain ([docs/RAG.md](docs/RAG.md)). A reranker is the next candidate.
+- Saved style preferences (for example, short answers) are remembered but do not yet visibly change the answer style.
 - Rate limits are in memory and the token signer is local. Production would use Redis and an OIDC provider.
 - Latency is dominated by LLM calls (about 12-15 s p50 per turn).
 
