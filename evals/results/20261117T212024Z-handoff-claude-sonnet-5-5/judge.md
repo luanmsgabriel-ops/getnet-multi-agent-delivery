@@ -4,15 +4,15 @@ Graded 48/48 runs. Judge: different model family from the generator, blind packe
 
 | Metric | Value |
 |---|---|
-| correctness (mean 1-5, n=48) | 4.90 |
+| correctness (mean 1-5, n=48) | 4.88 |
 | groundedness (mean 1-5, n=48) | 4.88 |
 | relevance (mean 1-5, n=48) | 5.00 |
-| completeness (mean 1-5, n=48) | 5.00 |
+| completeness (mean 1-5, n=48) | 4.98 |
 | clarity (mean 1-5, n=48) | 5.00 |
 | verdict pass | 100% |
 | policy violations | 0 |
 | unsupported claims (total) | 9 |
-| judge cost (total) | US$ 0.1106 |
+| judge cost (total) | US$ 0.1115 |
 
 ## Failed verdicts
 

@@ -108,6 +108,10 @@ def packet(record: dict[str, Any], reference: str | None) -> str:
         f"[{s['id']}] {s['title']} <{s['url']}>" for s in record["response"].get("sources", [])
     ]
     parts = [
+        "## Caller",
+        "Authenticated merchant: cliente1988. The assistant may only access this merchant's "
+        "data; requests for any other merchant must be declined.",
+        "",
         "## Conversation",
         *convo,
         "",
