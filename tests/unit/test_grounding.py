@@ -25,3 +25,16 @@ def test_number_formats_are_normalized() -> None:
 
 def test_dates_times_and_bare_numbers_are_ignored() -> None:
     assert unsupported_figures("Em 18/11 às 10:30, protocolo H-1234, item 7.", EVIDENCE) == []
+
+
+def test_json_decimals_with_three_places_are_not_read_as_thousands() -> None:
+    # Regression: PTAX 6.372 from the exchange-rate tool was read as 6372, so a correct
+    # "R$ 6,3720" was flagged and the supervisor said the rate could not be confirmed.
+    evidence = ['{"buy_brl": 6.3702, "sell_brl": 6.372}']
+    assert unsupported_figures("Compra R$ 6,3702 e venda R$ 6,3720.", evidence) == []
+
+
+def test_rounded_figures_are_supported_but_wrong_ones_are_not() -> None:
+    evidence = ['{"sell_brl": 6.3702, "fee_pct": 3.15}']
+    assert unsupported_figures("Cerca de R$ 6,37 e taxa de 3,2%.", evidence) == []
+    assert unsupported_figures("Cerca de R$ 6,40 e taxa de 3%.", evidence) == ["R$ 6,40", "3%"]
