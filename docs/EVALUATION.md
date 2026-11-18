@@ -13,6 +13,9 @@ Everything below was measured on 2026-11-17/18 with real model calls. Raw respon
 | Independent LLM judge | correctness, groundedness, relevance, completeness, policy | `uv run python -m evals.judge <run dir>` |
 | Human calibration of the judge | whether the judge can be trusted | `uv run python -m evals.calibration score` |
 | Retrieval and guardrail evals | recall@k / MRR on official questions; attack block and false-positive rates | `evals.retrieval`, `evals.security` |
+| Regression gate | a real-model run did not drop below the thresholds in `evals/gates.json` (checks, judge pass, policy violations, cost per case) | `uv run python -m evals.gate <run dir> --split original`; in CI, `.github/workflows/eval.yml` runs eval, judge and gate weekly or on demand |
+
+The gate thresholds sit below the committed results by more than the measured judge noise, so a failure points to a real regression. All committed Sonnet runs pass it. The paid workflow does not run on every push: one `original` run costs about US$ 0.33. Without the API key secrets, it reports that and stops.
 
 Datasets: `original` (the 10 challenge questions), `dev` (40: PT/EN knowledge, public data, merchant data, multi-intent, clarification, guardrail, isolation), `multi_turn` (12 conversations), `handoff` (8 that must escalate, 8 that must not) `holdout_answers` (20 official FAQ questions with the official answer as reference, run once) and `holdout_answers_v2` (20 more from inside help and product pages, run once). Deterministic checks on the last turn cover the expected outcome (answer, clarify, handoff or block), the agents and tools used, and required or forbidden terms. The judge is a different model family (`openai/gpt-5-mini` via OpenRouter). It receives a blind packet: the conversation, the reply, the evidence the system retrieved, and the official reference when there is one. It never sees the expected agents or tools, nor the generator model.
 
