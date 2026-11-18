@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-erros-maquininha/erro-idl-1-08/",
+ "title": "Erro IDL 1-08: erro de integração com as bandeiras/cartão",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "3b48e5db71817e79f4a17b393ab3b8e3b6bc1fc0c4f00a37080cce0c9f58f41e",
+ "text": "## Quando ocorre: Erro aparece sozinho (sem inserir o cartão).\n\n### Solução:\n\n1. Clique na tecla de Função\n\n2. Insira o número 60\n\n3. A tela ficará verde confirmando a ação\n\n4. Selecione a opção Configuração\n\n5. Depois Apagar memória\n\n6. Insira a Senha do Técnico\n\n7. A tela ficará verde confirmando a ação, novamente\n\n8. Selecione a Função 38\n\n9. Depois Inicialização\n\n10. A tela ficará verde confirmando a ação, novamente\n\n11. Então, faça uma venda teste."
+}

@@ -1,14 +1,36 @@
-FROM python:3.14-slim
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYDANTIC_AI_NO_BANNER=1
+# syntax=docker/dockerfile:1
+
+# ---- build: resolve the locked environment --------------------------------
+FROM python:3.12-slim AS builder
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never
+RUN pip install --no-cache-dir uv==0.13.9
 WORKDIR /app
-ARG ENABLE_SEMANTIC=0
-COPY requirements.txt constraints-tested.txt requirements-semantic.txt ./
-RUN case "$ENABLE_SEMANTIC" in 0) pip install --no-cache-dir -r requirements.txt -c constraints-tested.txt ;; 1) pip install --no-cache-dir --only-binary=:all: --index-url https://pypi.org/simple -r requirements.txt -r requirements-semantic.txt -c constraints-tested.txt ;; *) echo "ENABLE_SEMANTIC must be 0 or 1"; exit 1 ;; esac && pip check
-RUN useradd --uid 10001 --create-home appuser && mkdir /state && chown 10001:10001 /state && chmod 700 /state
-COPY app/ ./app/
-COPY corpus_publico/ ./corpus_publico/
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+# Download the embedding model and embed the knowledge base at build time (offline runtime).
+# Only the retrieval module and the corpus are copied first, so this layer stays cached
+# while the rest of the application changes.
+COPY app/__init__.py app/__init__.py
+COPY app/rag/__init__.py app/rag/store.py app/rag/
+COPY corpus ./corpus
+ENV EMBED_MODEL_DIR=/app/models HF_HUB_DISABLE_TELEMETRY=1
+RUN .venv/bin/python -m app.rag.store build && chmod -R a+rX /app/models
+COPY app ./app
+
+# ---- runtime: non-root, read-only friendly --------------------------------
+FROM python:3.12-slim
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH" \
+    DATA_DIR=/state \
+    EMBED_MODEL_DIR=/app/models \
+    HF_HUB_OFFLINE=1
+RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin app \
+    && mkdir /state && chown 10001:10001 /state
+WORKDIR /app
+COPY --from=builder /app /app
 USER 10001:10001
 EXPOSE 8000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=20s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health',timeout=2)"
-CMD ["python", "-m", "app.run", "--host", "0.0.0.0", "--port", "8000"]
-
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+CMD ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

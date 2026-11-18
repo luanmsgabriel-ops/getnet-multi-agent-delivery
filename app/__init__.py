@@ -1,1 +1,3 @@
-# Organizará o pacote da peça código do agente.
+"""Getnet multi-agent support system."""
+
+__version__ = "3.0.0"

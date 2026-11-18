@@ -1,34 +1,74 @@
+x-hardened: &hardened
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,noexec,nosuid
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 128
+  restart: unless-stopped
+
 services:
-  atendimento:
+  api:
+    <<: *hardened
     build: .
+    image: getnet-agents:local
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      DATA_DIR: /state
+      OPERATOR_WEBHOOK_URL: http://webhook-sink:9000/operator
+      MERCHANT_WEBHOOK_URL: http://webhook-sink:9000/merchant
+      # Set by `make obs` to export traces to Jaeger; empty means tracing off.
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
     ports:
       - "127.0.0.1:8000:8000"
-    environment:
-      GETNET_KNOWLEDGE: rag
-      GETNET_AUTH_MODE: required
-      GETNET_AUTH_DB: /state/local/access.db
-      GETNET_CONTEXT_DB: /state/local/state.db
-      GETNET_DEMO_TICKET_DB: /state/local/tickets.db
-      GETNET_DEMO_TICKETS: "0"
-      GETNET_ORCHESTRATION: deterministic
-      GETNET_CONTEXT_MODEL: "0"
-      GETNET_ALLOW_MODEL_NETWORK: "0"
-      GETNET_RAG_GENERATION: disabled
-      GETNET_RAG_RETRIEVAL: lexical
-      GETNET_PUBLIC_SEARCH: disabled
-      GETNET_WEB_SEARCH: "0"
     volumes:
       - getnet_state:/state
-    read_only: true
-    tmpfs:
-      - /tmp:size=16m,noexec,nosuid
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    pids_limit: 64
-    mem_limit: 768m
-    cpus: 1.0
-    restart: "no"
+    mem_limit: 1536m
+    cpus: 2.0
+    depends_on: [webhook-sink]
+
+  # Stands in for the operator's queue tool and the merchant app: logs signed notifications.
+  webhook-sink:
+    <<: *hardened
+    image: getnet-agents:local
+    command: ["python", "-m", "app.hitl.sink"]
+    env_file:
+      - path: .env
+        required: true
+    mem_limit: 128m
+    healthcheck:
+      disable: true
+
+  # ---- observability (docker compose --profile obs up -d, or `make obs`) ----------------
+  prometheus:
+    profiles: [obs]
+    image: prom/prometheus:v2.55.1
+    volumes:
+      - ./ops/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./ops/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports: ["127.0.0.1:9090:9090"]
+
+  grafana:
+    profiles: [obs]
+    image: grafana/grafana:11.3.1
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/getnet-agents.json
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on: [prometheus]
+
+  jaeger:
+    profiles: [obs]
+    image: jaegertracing/all-in-one:1.63.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports: ["127.0.0.1:16686:16686"]
+
 volumes:
   getnet_state:

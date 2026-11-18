@@ -1,0 +1,8 @@
+{
+ "url": "https://site.getnet.com.br/get-ajuda-maquininha/solucoes-get-smart/",
+ "title": "Soluções Get Smart",
+ "section": "help_center",
+ "captured_at": "2026-11-17",
+ "sha256": "26eb9c176f0eeb2ff58fa01f1c5dc06b869928caf65a05bc9758f956ee6ae829",
+ "text": "## O que é Get Smart em modo quiosque?\n\nEsta funcionalidade transforma o terminal em um sistema de autoatendimento com as seguintes características:\n\nApenas um aplicativo aberto por vez;\n\nConfigurações protegidas por senha;\n\nTela sempre ligada, ideal para totens de autoatendimento.\n\nO modo quiosque é gerenciado pelo aplicativo \"Configurar\" da Get Smart.\n\n## Como escolher a automação que será usada na Get Smart?\n\nVocê pode escolher diretamente pelo nosso site ou através da Getstore na Get Smart.\n\n## Após receber a Get Smart, como eu começo a usar o aplicativo escolhido?\n\n1. Acesse a Getstore;\n\n2. Selecione a aba “Todos os Aplicativos”;\n\n3. Escolha e instale o aplicativo validando o acesso com seu usuário e senha do Portal Minha Conta.\n\n## Quais aplicativos vêm instalados quando eu recebo o terminal?\n\nOs aplicativos de sistema, como Pagamento, Getstore e Configurar, já estão instalados. Eles não podem ser removidos nem ocultados.\n\n## Qual o fluxo de entrada de uma nova automação na Get Smart?\n\nEmpresas desenvolvedoras podem se cadastrar no Portal para Desenvolvedores, acessar documentação técnica e integrar suas soluções após validações e testes rigorosos realizados pelo time de tecnologia da Getnet."
+}

@@ -1,0 +1,257 @@
+[
+ {
+  "step": "merchant",
+  "session": "mem-a833c2",
+  "message": "Quanto eu vendi ontem no total?",
+  "response": {
+   "answer": "Ontem (segunda, 16/11/2026) você vendeu **R$ 2.984,53** em 13 vendas aprovadas.\n\n**Por forma de pagamento:**\n- Débito: 7 vendas, R$ 2.084,12\n- Crédito: 4 vendas, R$ 573,23\n- Pix: 2 vendas, R$ 327,18\n- Link de pagamento: nenhuma venda\n\n**Pontos de atenção:**\n- **Possível cobrança duplicada:** às 11h05 e 11h06 houve duas vendas no crédito de R$ 239,90 com o mesmo cartão, as duas na maquininha T-1988-02 (vendas S-1988-01225 e S-1988-01226). Se o cliente fez só uma compra, o total certo fica em R$ 2.744,63. Se for uma duplicidade, posso passar o caso para um especialista.\n- **Venda recusada:** às 17h40, uma venda no crédito de R$ 158,90 foi recusada (código 51) e não entra no total.",
+   "outcome": "answered",
+   "session_id": "mem-a833c2",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 17,
+     "arguments": {
+      "date_from": "2026-11-16",
+      "date_to": "2026-11-16"
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 11302,
+     "arguments": {
+      "request": "Informe o total de vendas do merchant cliente1988 em 2026-11-16 (segunda-feira, ontem), com o número de transações e, se possível, a divisão por forma de pagamento (crédito, débito, Pix, link)."
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": null,
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 5,
+    "input_tokens": 3275,
+    "output_tokens": 1216,
+    "cache_read_tokens": 3556,
+    "web_searches": 0,
+    "cost_usd": 0.05945
+   },
+   "latency_ms": 26959,
+   "request_id": "9106d0048a7f4604a32797dc4cc16e1f"
+  }
+ },
+ {
+  "step": "merchant",
+  "session": "mem-a833c2",
+  "message": "E no dia anterior a esse?",
+  "response": {
+   "answer": "No domingo, 15/11/2026, você vendeu **R$ 666,07** em 3 vendas aprovadas.\n\n**Por forma de pagamento:**\n- Crédito: 2 vendas, R$ 494,07\n- Pix: 1 venda, R$ 172,00\n- Débito e link de pagamento: nenhuma venda\n\n**Vendas do dia:**\n- 14h49: crédito à vista, R$ 307,51, na maquininha T-1988-02\n- 15h23: Pix, R$ 172,00, na maquininha T-1988-01\n- 19h58: crédito à vista, R$ 186,56, na maquininha T-1988-02\n\nNenhuma venda foi recusada nesse dia.",
+   "outcome": "answered",
+   "session_id": "mem-a833c2",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 5,
+     "arguments": {
+      "date_from": "2026-11-15",
+      "date_to": "2026-11-15"
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 5415,
+     "arguments": {
+      "request": "Merchant cliente1988: total de vendas aprovadas no domingo, 15/11/2026 (fuso America/Sao_Paulo), com quantidade de vendas, valores separados por forma de pagamento (débito, crédito, Pix, link de pagamento) e as vendas recusadas desse dia, se houver."
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": null,
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 5,
+    "input_tokens": 2631,
+    "output_tokens": 940,
+    "cache_read_tokens": 7819,
+    "web_searches": 0,
+    "cost_usd": 0.03089
+   },
+   "latency_ms": 13708,
+   "request_id": "06d4dbba3362496b9c8ba3b9d78125c8"
+  }
+ },
+ {
+  "step": "merchant",
+  "session": "hitl-7eae39",
+  "message": "Meu cliente foi cobrado duas vezes ontem no mesmo cartão, no valor de R$ 239,90. Quero que estornem uma das vendas.",
+  "response": {
+   "answer": "Encaminhei seu caso para um especialista da Getnet (protocolo H-3B4FC3). A resposta vai aparecer aqui nesta conversa assim que ele responder.",
+   "outcome": "handoff",
+   "session_id": "hitl-7eae39",
+   "agents_used": [
+    "supervisor",
+    "escalation",
+    "support"
+   ],
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 8,
+     "arguments": {
+      "date_from": "2026-11-16",
+      "date_to": "2026-11-16"
+     }
+    },
+    {
+     "agent": "support",
+     "tool": "get_recent_transactions",
+     "status": "ok",
+     "latency_ms": 5,
+     "arguments": {
+      "status": "any",
+      "limit": 20
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 10055,
+     "arguments": {
+      "request": "Para o merchant cliente1988, liste as vendas de ontem (segunda-feira, 2026-11-16) no valor de R$ 239,90, com horário, ID da transação, NSU/autorização, final do cartão (apenas últimos 4 dígitos), terminal e status. Verifique se há duas cobranças no mesmo cartão (possível duplicidade) e se alguma já foi estornada/cancelada."
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "escalate_to_human",
+     "status": "pending",
+     "latency_ms": 0,
+     "arguments": {
+      "reason": "charge_dispute",
+      "priority": "high"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": {
+    "id": "H-3B4FC3",
+    "status": "pending"
+   },
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 5,
+    "input_tokens": 6078,
+    "output_tokens": 1443,
+    "cache_read_tokens": 7819,
+    "web_searches": 0,
+    "cost_usd": 0.05474
+   },
+   "latency_ms": 18247,
+   "request_id": "220c4447732141bba2006f8d6456c41c"
+  }
+ },
+ {
+  "step": "operator_queue",
+  "response": [
+   {
+    "id": "H-3B4FC3",
+    "tenant": "demo",
+    "merchant_id": "cliente1988",
+    "session_id": "hitl-7eae39",
+    "reason": "charge_dispute",
+    "priority": "high",
+    "summary": "Merchant cliente1988 relata cobrança duplicada no mesmo cartão do cliente em 16/11/2026 e pede estorno de uma das vendas. Verificado: duas vendas aprovadas de R$ 239,90 cada, Mastercard final 8812, crédito à vista 1x, terminal T-1988-02: S-1988-01225 (11:05) e S-1988-01226 (11:06). Nenhuma consta como estornada/cancelada. NSU/autorização não disponíveis. Solicitação: estorno da venda duplicada (sugestão: S-1988-01226, a segunda).",
+    "language": "pt",
+    "status": "pending",
+    "created_at": "2026-11-17T19:23:36+00:00",
+    "operator": null,
+    "operator_action": null,
+    "operator_message": null,
+    "replied_at": null,
+    "final_answer": null
+   }
+  ]
+ },
+ {
+  "step": "operator_reply",
+  "handoff": "H-3B4FC3",
+  "response": {
+   "answer": "Um especialista confirmou que a cobrança foi duplicada e pediu ao time de cancelamentos o estorno da segunda venda. **Protocolo: H-3B4FC3.**\n\n**As duas vendas de ontem (16/11/2026):**\n- **S-1988-01225:** 11:05, R$ 239,90, Mastercard final 8812, crédito à vista, terminal T-1988-02. Esta venda continua valendo.\n- **S-1988-01226:** 11:06, mesmo valor, mesmo cartão e mesmo terminal. Esta é a venda que vai ser estornada.\n\n**Quando o dinheiro volta:** o valor vai aparecer de novo na fatura do seu cliente. O prazo depende do banco que emitiu o cartão, e não temos uma data exata. Se o cliente perguntar, ele pode consultar o banco dele, e você pode passar o número do protocolo.\n\nNa última consulta, as duas vendas ainda apareciam como aprovadas, e daqui não consigo acompanhar o andamento do estorno. Para saber como está, use o protocolo H-3B4FC3.",
+   "outcome": "handoff_resolved",
+   "session_id": "hitl-7eae39",
+   "agents_used": [
+    "supervisor"
+   ],
+   "tool_calls": [],
+   "sources": [],
+   "handoff": {
+    "id": "H-3B4FC3",
+    "status": "resolved"
+   },
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 1,
+    "input_tokens": 1502,
+    "output_tokens": 413,
+    "cache_read_tokens": 1672,
+    "web_searches": 0,
+    "cost_usd": 0.0146
+   },
+   "latency_ms": 4865,
+   "request_id": "d2f3212f3a5248d6bc4deee115952143"
+  }
+ },
+ {
+  "step": "merchant_sse",
+  "events": "id: 1\nevent: handoff.resolved\ndata: {\"handoff_id\": \"H-3B4FC3\", \"answer\": \"Um especialista confirmou que a cobrança foi duplicada e pediu ao time de cancelamentos o estorno da segunda venda. **Protocolo: H-3B4FC3.**\\n\\n**As duas vendas de ontem (16/11/2026):**\\n- **S-1988-01225:** 11:05, R$ 239,90, Mastercard final 8812, crédito à vista, terminal T-1988-02. Esta venda continua valendo.\\n- **S-1988-01226:** 11:06, mesmo valor, mesmo cartão e mesmo terminal. Esta é a venda que vai ser estornada.\\n\\n**Quando o dinheiro volta:** o valor vai aparecer de novo na fatura do seu cliente. O prazo depende do banco que emitiu o cartão, e não temos uma data exata. Se o cliente perguntar, ele pode consultar o banco dele, e você pode passar o número do protocolo.\\n\\nNa última consulta, as duas vendas ainda apareciam como aprovadas, e daqui não consigo acompanhar o andamento do estorno. Para saber como está, use o protocolo H-3B4FC3.\", \"request_id\": \"d2f3212f3a5248d6bc4deee115952143\"}\n\n: keep-alive\n\n"
+ }
+]

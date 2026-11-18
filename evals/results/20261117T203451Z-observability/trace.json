@@ -1,0 +1,2924 @@
+{
+ "data": [
+  {
+   "traceID": "d4ff823175462ea54c2e03b19bf38008",
+   "spans": [
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "e31841fef5be8059",
+     "operationName": "POST /chat",
+     "references": [],
+     "startTime": 1794947451960769,
+     "duration": 67949492,
+     "tags": [
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/chat"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "network.protocol.version",
+       "type": "string",
+       "value": "1.1"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "fastapi"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "0.163.1"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "127.0.0.1"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 8000
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "server"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/chat"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "http"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "81c3eb345b9874de",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "b36928dd1b5fcbe2"
+      }
+     ],
+     "startTime": 1794947474471289,
+     "duration": 2565509,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98npadgvrWnADJqJp97"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "low"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98npwxA2QgQmTJeNsHV"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 1884
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 2111
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 80
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "fc7125181ec0e8a0",
+     "operationName": "tool.search_kb",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947476837926,
+     "duration": 4001674,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "6f5c42e70237dd44",
+     "operationName": "llm.knowledge",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947498798576,
+     "duration": 12638719,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.0677192
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 6776
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 10341
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 1250
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "fb82399ec30b2216",
+     "operationName": "fastapi.serialization",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "ea81619c5a3d4269"
+      }
+     ],
+     "startTime": 1794947519841223,
+     "duration": 6197,
+     "tags": [
+      {
+       "key": "code.function.name",
+       "type": "string",
+       "value": "app.main.create_app.<locals>.chat"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "fastapi"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "0.163.1"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "db17841940eb030d",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "660e3e9f5cf5473f"
+      }
+     ],
+     "startTime": 1794947452030367,
+     "duration": 1970225,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98m9FjK3nQ9YGttCjG6"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.output.type",
+       "type": "string",
+       "value": "json"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 2000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "low"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98m9apKeCAs41gjvQNW"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 707
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 739
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 39
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "b36928dd1b5fcbe2",
+     "operationName": "llm.support",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "9e226c1fb47d6583"
+      }
+     ],
+     "startTime": 1794947474470497,
+     "duration": 2764092,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "support"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.0028848000000000003
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "low"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 1884
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 227
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 80
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "006f733fc5770f54",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "dd37f01461284779"
+      }
+     ],
+     "startTime": 1794947480643722,
+     "duration": 17456159,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98oHMwx6dDAJfPoMip8"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "low"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98oHqDNdF8QjZLvA114"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 1884
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 2526
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 522
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 46
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "e2526f8924d3f64a",
+     "operationName": "llm.supervisor",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "c79a357dd4dfec5c"
+      }
+     ],
+     "startTime": 1794947511462581,
+     "duration": 8172696,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "supervisor"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.026162400000000002
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 1672
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 2732
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 745
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "c016c4c8dbbf0a7b",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "b11c8495a0979276"
+      }
+     ],
+     "startTime": 1794947481197004,
+     "duration": 2456723,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98oHvBFDgMrMCqDHctH"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98oJHWJhQxWaARCiXxZ"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 6776
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 12237
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 169
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 27
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "f667f4b9e64a9dcc",
+     "operationName": "tool.search_kb",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947483761823,
+     "duration": 14416581,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "598dfa11d43d9839",
+     "operationName": "tool.ask_support",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "c79a357dd4dfec5c"
+      }
+     ],
+     "startTime": 1794947474338906,
+     "duration": 24446418,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "supervisor"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "364fef17a8a7d086",
+     "operationName": "tool.get_terminal_status",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "9e226c1fb47d6583"
+      }
+     ],
+     "startTime": 1794947477237143,
+     "duration": 101777,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "support"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "ea81619c5a3d4269",
+     "operationName": "POST /chat",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "e31841fef5be8059"
+      }
+     ],
+     "startTime": 1794947451970112,
+     "duration": 67883518,
+     "tags": [
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/chat"
+      },
+      {
+       "key": "http.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "request_id",
+       "type": "string",
+       "value": "91f148fdac49453a9e0ffbfd2954dfe1"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "e3d5f6fb89d9209b",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "e2526f8924d3f64a"
+      }
+     ],
+     "startTime": 1794947511466352,
+     "duration": 8128622,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98qXgiDEg6LvQxVMxnu"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98qY71cwFVvj83wfsBo"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 1672
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 4404
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 745
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 82
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "91186dd5761f851e",
+     "operationName": "fastapi.dependencies",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "ea81619c5a3d4269"
+      }
+     ],
+     "startTime": 1794947451988123,
+     "duration": 28666,
+     "tags": [
+      {
+       "key": "code.function.name",
+       "type": "string",
+       "value": "app.main.create_app.<locals>.chat"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "fastapi"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "0.163.1"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "ea0b74799d740d23",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "de637f727b972bf9"
+      }
+     ],
+     "startTime": 1794947474460505,
+     "duration": 2279157,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98noCHRrb27aeN1hyM3"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98nobLsw5SgiVPWxeU6"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 6776
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 6969
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 134
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "dd37f01461284779",
+     "operationName": "llm.support",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "9e226c1fb47d6583"
+      }
+     ],
+     "startTime": 1794947479385194,
+     "duration": 19320171,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "support"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.013384799999999999
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "low"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 1884
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 642
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 522
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "e65684b54015fea6",
+     "operationName": "tool.ask_knowledge",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "c79a357dd4dfec5c"
+      }
+     ],
+     "startTime": 1794947474266966,
+     "duration": 37173188,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "supervisor"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "de637f727b972bf9",
+     "operationName": "llm.knowledge",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947474455902,
+     "duration": 2377957,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.0048072
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 6776
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 193
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 134
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "4715b37d30529499",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "4ee8665e5b7f4574"
+      }
+     ],
+     "startTime": 1794947454183571,
+     "duration": 18581738,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98mJRtAy8jJFKC3juc1"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98mJohVXAwWnJmSeYta"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 1672
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 2306
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 329
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 44
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "b11c8495a0979276",
+     "operationName": "llm.knowledge",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947481124504,
+     "duration": 2614577,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.0265792
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 6776
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 5461
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 169
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "9e226c1fb47d6583",
+     "operationName": "agent.support",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "598dfa11d43d9839"
+      }
+     ],
+     "startTime": 1794947474339958,
+     "duration": 24372226,
+     "tags": [
+      {
+       "key": "agent.steps",
+       "type": "int64",
+       "value": 2
+      },
+      {
+       "key": "agent.stop",
+       "type": "string",
+       "value": "done"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "6a902bedfba96a73",
+     "operationName": "agent.knowledge",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "e65684b54015fea6"
+      }
+     ],
+     "startTime": 1794947474335526,
+     "duration": 37103144,
+     "tags": [
+      {
+       "key": "agent.steps",
+       "type": "int64",
+       "value": 3
+      },
+      {
+       "key": "agent.stop",
+       "type": "string",
+       "value": "done"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "660e3e9f5cf5473f",
+     "operationName": "llm.guardrail",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "c79a357dd4dfec5c"
+      }
+     ],
+     "startTime": 1794947452021959,
+     "duration": 2015273,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "guardrail"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.0010494
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "low"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 707
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 32
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 39
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "3c02432371fc816d",
+     "operationName": "tool.get_tickets",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "9e226c1fb47d6583"
+      }
+     ],
+     "startTime": 1794947477337196,
+     "duration": 942531,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "support"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "not_found"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "0ffdc3fc59f262e9",
+     "operationName": "tool.search_kb",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947483793374,
+     "duration": 14386892,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "c79a357dd4dfec5c",
+     "operationName": "fastapi.endpoint",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "ea81619c5a3d4269"
+      }
+     ],
+     "startTime": 1794947452017758,
+     "duration": 67810149,
+     "tags": [
+      {
+       "key": "code.function.name",
+       "type": "string",
+       "value": "app.main.create_app.<locals>.chat"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "fastapi"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "0.163.1"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "4ee8665e5b7f4574",
+     "operationName": "llm.supervisor",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "c79a357dd4dfec5c"
+      }
+     ],
+     "startTime": 1794947454175610,
+     "duration": 19989553,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "supervisor"
+      },
+      {
+       "key": "cost_usd",
+       "type": "float64",
+       "value": 0.0094504
+      },
+      {
+       "key": "effort",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.response.finish_reason",
+       "type": "string",
+       "value": "tool_use"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.system",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.usage.cache_read_tokens",
+       "type": "int64",
+       "value": 1672
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 634
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 329
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "web_searches",
+       "type": "int64",
+       "value": 0
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "ce306d9ef28bae42",
+     "operationName": "tool.search_kb",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6a902bedfba96a73"
+      }
+     ],
+     "startTime": 1794947476928484,
+     "duration": 3923091,
+     "tags": [
+      {
+       "key": "agent",
+       "type": "string",
+       "value": "knowledge"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "getnet.agents"
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "internal"
+      },
+      {
+       "key": "tool.status",
+       "type": "string",
+       "value": "ok"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    },
+    {
+     "traceID": "d4ff823175462ea54c2e03b19bf38008",
+     "spanID": "a8a2ac619edd3b63",
+     "operationName": "anthropic.messages.create",
+     "references": [
+      {
+       "refType": "CHILD_OF",
+       "traceID": "d4ff823175462ea54c2e03b19bf38008",
+       "spanID": "6f5c42e70237dd44"
+      }
+     ],
+     "startTime": 1794947498894969,
+     "duration": 12512810,
+     "tags": [
+      {
+       "key": "anthropic.beta",
+       "type": "string",
+       "value": "[\"server-side-fallback-2026-07-01\"]"
+      },
+      {
+       "key": "anthropic.message.stop_reason",
+       "type": "string",
+       "value": "end_turn"
+      },
+      {
+       "key": "anthropic.organization.id",
+       "type": "string",
+       "value": "5d9b9c8c-020e-4cd6-98ce-fb0ae2fc9161"
+      },
+      {
+       "key": "anthropic.request.id",
+       "type": "string",
+       "value": "req_011Ch98pboFB6UC6AJNdzT2F"
+      },
+      {
+       "key": "anthropic.response.service_tier",
+       "type": "string",
+       "value": "standard"
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_1h_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.usage.cache_creation.ephemeral_5m_input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "anthropic.workspace.id",
+       "type": "string",
+       "value": "wrkspc_018AyVPRQhxm1u3V8Rb1Q4Qb"
+      },
+      {
+       "key": "gen_ai.operation.name",
+       "type": "string",
+       "value": "chat"
+      },
+      {
+       "key": "gen_ai.provider.name",
+       "type": "string",
+       "value": "anthropic"
+      },
+      {
+       "key": "gen_ai.request.max_tokens",
+       "type": "int64",
+       "value": 16000
+      },
+      {
+       "key": "gen_ai.request.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.request.reasoning.level",
+       "type": "string",
+       "value": "medium"
+      },
+      {
+       "key": "gen_ai.response.id",
+       "type": "string",
+       "value": "msg_011Ch98pcAa1yAhobyjMbs95"
+      },
+      {
+       "key": "gen_ai.response.model",
+       "type": "string",
+       "value": "claude-opus-5-5"
+      },
+      {
+       "key": "gen_ai.usage.cache_read.input_tokens",
+       "type": "int64",
+       "value": 6776
+      },
+      {
+       "key": "gen_ai.usage.cache_write.input_tokens",
+       "type": "int64",
+       "value": 0
+      },
+      {
+       "key": "gen_ai.usage.input_tokens",
+       "type": "int64",
+       "value": 17117
+      },
+      {
+       "key": "gen_ai.usage.output_tokens",
+       "type": "int64",
+       "value": 1250
+      },
+      {
+       "key": "gen_ai.usage.reasoning.output_tokens",
+       "type": "int64",
+       "value": 118
+      },
+      {
+       "key": "http.request.method",
+       "type": "string",
+       "value": "POST"
+      },
+      {
+       "key": "http.response.status_code",
+       "type": "int64",
+       "value": 200
+      },
+      {
+       "key": "http.route",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "internal.span.format",
+       "type": "string",
+       "value": "otlp"
+      },
+      {
+       "key": "otel.scope.name",
+       "type": "string",
+       "value": "com.anthropic.sdk.python"
+      },
+      {
+       "key": "otel.scope.version",
+       "type": "string",
+       "value": "2.9.0"
+      },
+      {
+       "key": "otel.status_code",
+       "type": "string",
+       "value": "OK"
+      },
+      {
+       "key": "server.address",
+       "type": "string",
+       "value": "api.anthropic.com"
+      },
+      {
+       "key": "server.port",
+       "type": "int64",
+       "value": 443
+      },
+      {
+       "key": "span.kind",
+       "type": "string",
+       "value": "client"
+      },
+      {
+       "key": "url.full",
+       "type": "string",
+       "value": "https://api.anthropic.com/v1/messages"
+      },
+      {
+       "key": "url.path",
+       "type": "string",
+       "value": "/v1/messages"
+      },
+      {
+       "key": "url.scheme",
+       "type": "string",
+       "value": "https"
+      }
+     ],
+     "logs": [],
+     "processID": "p1",
+     "warnings": null
+    }
+   ],
+   "processes": {
+    "p1": {
+     "serviceName": "getnet-agents",
+     "tags": [
+      {
+       "key": "service.instance.id",
+       "type": "string",
+       "value": "585edffe-c36d-4229-b3fc-4f2fbd3c5cc0"
+      },
+      {
+       "key": "telemetry.sdk.language",
+       "type": "string",
+       "value": "python"
+      },
+      {
+       "key": "telemetry.sdk.name",
+       "type": "string",
+       "value": "opentelemetry"
+      },
+      {
+       "key": "telemetry.sdk.version",
+       "type": "string",
+       "value": "1.45.2"
+      }
+     ]
+    }
+   },
+   "warnings": null
+  }
+ ],
+ "total": 0,
+ "limit": 0,
+ "offset": 0,
+ "errors": null
+}

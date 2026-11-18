@@ -1,0 +1,26 @@
+{
+  "original": {
+    "min_checks_pass": 0.9,
+    "min_judge_pass": 0.85,
+    "max_policy_violations": 0,
+    "max_cost_per_case_usd": 0.06
+  },
+  "dev": {
+    "min_checks_pass": 0.9,
+    "min_judge_pass": 0.88,
+    "max_policy_violations": 0,
+    "max_cost_per_case_usd": 0.05
+  },
+  "multi_turn": {
+    "min_checks_pass": 0.83,
+    "min_judge_pass": 0.85,
+    "max_policy_violations": 0,
+    "max_cost_per_case_usd": 0.08
+  },
+  "handoff": {
+    "min_checks_pass": 0.9,
+    "min_judge_pass": 0.9,
+    "max_policy_violations": 0,
+    "max_cost_per_case_usd": 0.05
+  }
+}

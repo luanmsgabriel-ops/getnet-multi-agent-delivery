@@ -1,0 +1,66 @@
+# Each alert has a matching entry in RUNBOOK.md (same name).
+groups:
+  - name: getnet-agents
+    rules:
+      - alert: ChatErrorRateHigh
+        expr: |
+          sum(rate(http_requests_total{route="/chat", status=~"5.."}[5m]))
+            / sum(rate(http_requests_total{route="/chat"}[5m])) > 0.05
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "More than 5% of /chat requests are failing"
+
+      - alert: ChatLatencyP95High
+        expr: histogram_quantile(0.95, sum by (le) (rate(chat_turn_seconds_bucket[10m]))) > 60
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "p95 chat latency above 60s"
+
+      - alert: LLMProviderErrors
+        expr: sum(rate(llm_errors_total[5m])) > 0.1
+        for: 5m
+        labels: {severity: page}
+        annotations:
+          summary: "LLM calls failing (provider errors or refusals)"
+
+      - alert: LLMBudgetNearlyExhausted
+        expr: llm_budget_spent_usd / llm_budget_limit_usd > 0.8
+        for: 1m
+        labels: {severity: ticket}
+        annotations:
+          summary: "More than 80% of the LLM budget is spent"
+
+      - alert: CostPerChatHigh
+        expr: |
+          sum(rate(chat_turn_cost_usd_sum[1h])) / sum(rate(chat_turn_cost_usd_count[1h])) > 0.2
+        for: 30m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Average LLM cost per chat turn above US$ 0.20"
+
+      - alert: ToolFailureRateHigh
+        expr: |
+          sum by (tool) (rate(tool_calls_total{status="error"}[10m]))
+            / sum by (tool) (rate(tool_calls_total[10m])) > 0.2
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Tool {{ $labels.tool }} failing in more than 20% of calls"
+
+      - alert: HandoffsWaiting
+        expr: handoffs_pending > 5
+        for: 15m
+        labels: {severity: page}
+        annotations:
+          summary: "More than 5 merchants waiting for a human for 15 minutes"
+
+      - alert: GuardrailBlockSpike
+        expr: |
+          sum(rate(guardrail_decisions_total{stage="input", decision!="ok"}[10m]))
+            / sum(rate(guardrail_decisions_total{stage="input"}[10m])) > 0.3
+        for: 10m
+        labels: {severity: ticket}
+        annotations:
+          summary: "More than 30% of messages blocked (attack wave or false positives)"

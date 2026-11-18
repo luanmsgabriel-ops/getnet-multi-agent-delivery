@@ -1,133 +1,113 @@
-"""Content-free local operational events. No remote exporter or request bodies."""
-import asyncio
-import contextvars
-from contextlib import contextmanager
+"""Metrics (Prometheus), traces (OpenTelemetry) and structured JSON logs.
+
+Metrics are always on (`GET /metrics`). Traces are exported over OTLP/HTTP only when
+OTEL_EXPORTER_OTLP_ENDPOINT is set (e.g. Jaeger in `docker compose --profile obs`).
+Labels never carry merchant ids or message text (bounded cardinality, no PII).
+"""
+
 import json
 import logging
-import math
+import os
 import sys
-import time
-from uuid import uuid4
+from collections.abc import Callable
+from contextvars import ContextVar
+from typing import Any
 
-_REQUEST_ID = contextvars.ContextVar('operational_request_id', default=None)
-_LOG = logging.getLogger('getnet.operations')
-_LOG.setLevel(logging.INFO)
-_LOG.propagate = False
-class QuietHandler(logging.StreamHandler):
-    def handleError(self, record):
-        pass # No stderr traceback, record echo or operational failure.
+from opentelemetry import trace
+from prometheus_client import Counter, Gauge, Histogram
 
-if not _LOG.handlers:
-    handler = QuietHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter('%(message)s'))
-    _LOG.addHandler(handler)
+request_id_var: ContextVar[str] = ContextVar("request_id", default="-")
 
-ROUTES = frozenset(('/health','/configuration','/chat','/context/chat','/context/reset',
- '/demo/support/propose','/demo/support/confirm','/demo/support/status',
- '/demo/handoff/propose','/demo/handoff/confirm','/demo/handoff/status',
- '/context/human/updates','/context/human/ack','/demo/operator/queue',
- '/demo/operator/reply','/demo/operator/close','/demo/operator/status'))
-STAGES = frozenset(('tool','rag','model','supervisor','context','handoff','budget','router','knowledge','support','rag_plan',
- 'rag_draft','rag_verify','retrieval','knowledge_getnet','knowledge_public',
- 'support_receivables','support_terminal','support_ticket_prepare','support_ticket_status'))
-OUTCOMES = frozenset(('ok','partial','blocked','unavailable','timeout','error','invalid',
- 'limited','no_progress','cancelled','late_completed','late_failed','uncertain',
- 'absent','complete','evidencias','simulado','recusado','limitado','sem_evidencia',
- 'indisponivel','deadline','step_limit','tool_limit','model_timeout',
- 'model_or_decision_unavailable','lookup_plan_unavailable','finish','limit','clarify','input_policy','no_new_evidence'))
+LATENCY_BUCKETS = (0.25, 0.5, 1, 2, 5, 10, 15, 20, 30, 45, 60, 90)
 
-@contextmanager
-def request_context():
-    existing = _REQUEST_ID.get()
-    token = None if existing else _REQUEST_ID.set(uuid4().hex)
-    try:
-        yield _REQUEST_ID.get()
-    finally:
-        if token is not None:_REQUEST_ID.reset(token)
+HTTP_REQUESTS = Counter("http_requests_total", "HTTP requests", ["route", "status"])
+CHAT_TURNS = Counter("chat_turns_total", "Chat turns by outcome", ["outcome"])
+CHAT_LATENCY = Histogram(
+    "chat_turn_seconds", "End-to-end chat turn latency", ["outcome"], buckets=LATENCY_BUCKETS
+)
+CHAT_COST = Histogram(
+    "chat_turn_cost_usd",
+    "LLM cost per chat turn",
+    buckets=(0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.5),
+)
+LLM_CALLS = Counter("llm_calls_total", "LLM calls", ["agent", "model", "stop_reason"])
+LLM_ERRORS = Counter("llm_errors_total", "LLM call failures", ["agent", "code"])
+LLM_TOKENS = Counter("llm_tokens_total", "LLM tokens", ["agent", "kind"])
+LLM_COST = Counter("llm_cost_usd_total", "LLM spend in USD", ["agent", "model"])
+LLM_LATENCY = Histogram("llm_call_seconds", "LLM call latency", ["agent"], buckets=LATENCY_BUCKETS)
+TOOL_CALLS = Counter("tool_calls_total", "Tool executions", ["agent", "tool", "status"])
+TOOL_LATENCY = Histogram(
+    "tool_call_seconds",
+    "Tool latency",
+    ["tool"],
+    buckets=(0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 30, 60),
+)
+GUARDRAIL = Counter("guardrail_decisions_total", "Guardrail decisions", ["stage", "decision"])
+HANDOFFS = Counter("handoffs_total", "Human handoffs opened", ["reason", "priority"])
+HANDOFF_REPLY = Histogram(
+    "handoff_reply_seconds",
+    "Time from handoff to operator reply",
+    buckets=(30, 60, 300, 900, 1800, 3600, 7200, 14400, 43200),
+)
+FEEDBACK = Counter("feedback_total", "Merchant feedback on answers", ["rating"])
+BUDGET_SPENT = Gauge("llm_budget_spent_usd", "Total LLM spend recorded in the ledger")
+BUDGET_LIMIT = Gauge("llm_budget_limit_usd", "Configured LLM budget")
+HANDOFFS_PENDING = Gauge("handoffs_pending", "Handoffs waiting for an operator")
 
-def current_request_id():
-    return _REQUEST_ID.get()
+tracer = trace.get_tracer("getnet.agents")
 
-def _write(record):
-    try:
-        _LOG.info(json.dumps(record,separators=(',',':'),allow_nan=False))
-        return True
-    except Exception:
+
+def bind_gauge(gauge: Gauge, fn: Callable[[], float]) -> None:
+    gauge.set_function(fn)
+
+
+def setup_tracing(service: str = "getnet-agents") -> bool:
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+    if not endpoint:
         return False
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-EVENTS = frozenset(('stage_result','work_late','model_call','budget_reservation',
- 'budget_reconciliation','tool_call','retrieval','execution_completed','provider_http_error'))
+    provider = TracerProvider(resource=Resource.create({"service.name": service}))
+    provider.add_span_processor(
+        BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint.rstrip("/") + "/v1/traces"))
+    )
+    trace.set_tracer_provider(provider)
+    return True
 
-def capture_context():
-    """Capture before thread creation; use the returned context.run(function)."""
-    return contextvars.copy_context()
 
-def emit_event(event, *, stage=None, outcome=None, duration_ms=0, count=None,
-               cost_usd=None, cost_state=None, mode=None, http_status=None):
-    """Closed metadata only; explicit correlation copying for worker threads.
+def current_trace_id() -> str | None:
+    ctx = trace.get_current_span().get_span_context()
+    return format(ctx.trace_id, "032x") if ctx.is_valid else None
 
-    Unknown costs carry no amount. Reservations are NOT confirmed spend.
-    No event allocates a new request ID; outside HTTP correlation remains null.
-    """
-    if (not isinstance(event,str) or event not in EVENTS or not isinstance(stage,str)
-        or stage not in STAGES or not isinstance(outcome,str) or outcome not in OUTCOMES):
-        return False
-    if type(duration_ms) not in (float,int) or not math.isfinite(duration_ms) or not 0 <= duration_ms <= 86400000:
-        return False
-    if count is not None and (type(count) is not int or not 0 <= count <= 1000000):return False
-    if mode not in (None,'controlled','remote'):return False
-    if event in ('model_call','budget_reservation','budget_reconciliation') and mode is None:return False
-    if event=='provider_http_error':
-        if (stage!='model' or mode is None or type(http_status) is not int
-            or not 100 <= http_status <= 599 or http_status==200):return False
-    elif http_status is not None:return False
-    if cost_state not in (None,'confirmed','reserved','unknown'):return False
-    if cost_state in (None,'unknown') and cost_usd is not None:return False
-    if cost_state in ('confirmed','reserved') and (type(cost_usd) not in (float,int)
-        or not math.isfinite(cost_usd) or not 0 <= cost_usd <= 1000000):return False
-    return _write(dict(schema_version=1,event=event,request_id=current_request_id(),
-                       stage=stage,outcome=outcome,duration_ms=round(duration_ms,3),
-                       count=count,cost_usd=cost_usd,cost_state=cost_state,mode=mode,
-                       **({'http_status':http_status} if http_status is not None else {})))
 
-class ObservabilityMiddleware:
-    def __init__(self, app):self.app=app
-    async def __call__(self, scope, receive, send):
-        if scope['type']!='http':return await self.app(scope,receive,send)
-        rid=uuid4().hex
-        token=_REQUEST_ID.set(rid)
-        # State contains only a server-generated correlation value, never identity.
-        scope.setdefault('state',{})['operational_request_id']=rid
-        started=time.perf_counter();status=None;complete=False;disconnected=False;termination='incomplete'
-        async def observed_receive():
-            nonlocal disconnected
-            message=await receive()
-            if message['type']=='http.disconnect':disconnected=True
-            return message
-        async def observed_send(message):
-            nonlocal status,complete
-            if message['type']=='http.response.start':
-                status=message['status']
-                # Do not preserve an application/user-controlled correlation header.
-                message=dict(message)
-                message['headers']=[(k,v) for k,v in message.get('headers',[]) if k.lower()!=b'x-request-id']+[(b'x-request-id',rid.encode('ascii'))]
-            await send(message)
-            if message['type']=='http.response.body' and not message.get('more_body',False):complete=True
-        try:
-            await self.app(scope,observed_receive,observed_send)
-            termination='completed' if complete else 'disconnected' if disconnected else 'incomplete'
-        except asyncio.CancelledError:
-            termination='cancelled';raise
-        except BaseException:
-            termination='error';raise
-        finally:
-            try:
-                method=scope.get('method')
-                route=scope.get('path')
-                _write(dict(schema_version=1,event='http_request',request_id=rid,
-                    route=route if route in ROUTES else 'other',
-                    method=method if method in ('GET','POST','PUT','PATCH','DELETE','HEAD','OPTIONS') else 'other',
-                    http_status=status if type(status) is int and 100<=status<=599 else None,
-                    duration_ms=round(max(0,time.perf_counter()-started)*1000,3),termination=termination))
-            finally:
-                _REQUEST_ID.reset(token)
+class JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        entry: dict[str, Any] = {
+            "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%S"),
+            "level": record.levelname,
+            "logger": record.name,
+            "msg": record.getMessage(),
+            "request_id": request_id_var.get(),
+        }
+        if trace_id := current_trace_id():
+            entry["trace_id"] = trace_id
+        entry.update(getattr(record, "fields", {}))
+        if record.exc_info:
+            entry["error"] = self.formatException(record.exc_info)
+        return json.dumps(entry, ensure_ascii=False, default=str)
+
+
+def setup_logging(level: str = "INFO") -> None:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(JsonFormatter())
+    root = logging.getLogger()
+    root.handlers[:] = [handler]
+    root.setLevel(level)
+
+
+def log_event(logger: logging.Logger, msg: str, **fields: Any) -> None:
+    """Structured log line; callers pass only non-sensitive fields."""
+    logger.info(msg, extra={"fields": fields})

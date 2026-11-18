@@ -1,156 +1,151 @@
-# Getnet Brasil: protótipo de atendimento multiagente
+# Getnet Multi-Agent Support
 
-API FastAPI para atendimento demonstrativo sobre produtos Getnet Brasil, consultas sintéticas de suporte e perguntas públicas. A aplicação não é um canal oficial da Getnet e não realiza operações financeiras.
+[![CI](https://github.com/luanmsgabriel-ops/getnet-multi-agent-delivery/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/luanmsgabriel-ops/getnet-multi-agent-delivery/actions/workflows/ci.yml)
 
-## Vídeo de apresentação
+A support assistant for Getnet merchants. An LLM **supervisor** (the Router) decomposes each message and delegates to specialist agents, which it calls as tools:
+- **Knowledge**: hybrid RAG over Getnet's official site, plus web search, weather and the BCB exchange rate.
+- **Support**: the merchant's own sales, receivables, terminals and tickets.
+- **Escalation**: human handoff with pause and resume.
 
-[Assista ao vídeo de apresentação do projeto](https://drive.google.com/file/d/1SN1bn2YHrocRcfwGjcGXhKVZynGo3XQJ/view).
+The supervisor reads the specialists' results, decides again and writes the answer. Every route is authenticated, guarded, traced and costed.
 
-## Arquitetura atual
+## Results (real model calls, committed under `evals/results/`)
+
+| Eval set | Checks pass | Judge pass¹ | Latency p50 | Cost per case |
+|---|---:|---:|---:|---:|
+| The 10 challenge questions (× 3 repeats) | **100%** | 97% | 14 s | US$ 0.027 |
+| 40 dev cases: PT/EN, multi-intent, clarify, guardrail (× 3) | 98% | 98% | 12 s | US$ 0.022 |
+| 12 multi-turn conversations (× 3) | 92% | 94% | 23 s | US$ 0.039 |
+| Human handoff: 8 must escalate, 8 must not (× 3) | **100%** | 100% | 13 s | US$ 0.024 |
+| Holdout: 20 official FAQ questions with official answers | 90% | 80% | 14 s | US$ 0.024 |
+| Fresh holdout: 20 official Q&A from help and product pages (after the RAG changes) | **100%** | 90% | 12 s | US$ 0.031 |
+| Long-term memory and long-chat summary (real model) | 6/6 | | | US$ 0.17 total |
+| Guardrail: 60 attacks + 60 benign look-alikes | 98.3% blocked, **0% false positives** | | | US$ 0.0016 |
+
+A prompt ablation keeps the current supervisor prompt. Without its guidance, answers carry 55% more unsupported claims, and correctness drops from 4.80 to 4.58. A regression gate (`evals/gates.json`) fails any run that drops below the thresholds, and `.github/workflows/eval.yml` runs eval, judge and gate weekly or on demand.
+
+¹ The judge is from a different model family (GPT via OpenRouter) and grades a blind packet. Against 30 human labels it agrees 87% (Cohen's kappa 0.44) and is more lenient than the human, so read these rates as an upper bound. Details, the routing baseline and the bugs these evals found are in [docs/EVALUATION.md](docs/EVALUATION.md).
+
+## Quickstart
+
+Requires Docker with Compose v2. The first build downloads the embedding model and indexes the knowledge base (a few minutes).
+
+```bash
+make setup                    # creates .env with random secrets
+# edit .env: set ANTHROPIC_API_KEY
+make up                       # API on http://127.0.0.1:8000 (Swagger at /docs)
+TOKEN=$(make -s token)        # token for the fictitious merchant cliente1988
+curl -s http://127.0.0.1:8000/chat -H "Authorization: Bearer $TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "When will the money from yesterday'\''s sales be deposited?", "user_id": "cliente1988"}'
+```
+
+Without `make`, run `python scripts/setup_env.py`, then `docker compose up --build -d`, then `docker compose exec -T api python -m app.security.tokens issue --sub cliente1988`.
+
+To add Prometheus, Grafana (dashboard provisioned) and Jaeger with tracing on, run `make obs`. For the human-operator side, `make operator-token` issues a token with the `operator` scope.
+
+```jsonc
+// POST /chat response (abridged)
+{
+  "answer": "Yesterday's (16/11) approved sales come to R$ 2,934.66 net... Debit: today, 17/11 ...",
+  "outcome": "answered",            // answered | clarify | limit | blocked | handoff | handoff_resolved
+  "session_id": "default",
+  "agents_used": ["supervisor", "support"],
+  "tool_calls": [{"agent": "support", "tool": "get_receivables", "status": "ok", "latency_ms": 12}],
+  "sources": [],                     // [{"id": "S1", "title", "url", "retrieved_at"}] for knowledge answers
+  "guardrails": {"input": {"category": "ok", "redacted": []}, "output": {"flags": []}},
+  "usage": {"llm_calls": 4, "input_tokens": 4016, "output_tokens": 1506, "cost_usd": 0.0519},
+  "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736", "latency_ms": 13420, "request_id": "..."
+}
+```
+
+## Architecture and message flow
 
 ```text
-HTTP + autenticação → sessão e privacidade → supervisor LLM
-                                              ↓ escolhe capacidade
-                     Knowledge / Support / informação pública / handoff
-                                              ↓ observação
-                              supervisor decide continuar ou finalizar
+POST /chat {message, user_id} + Bearer JWT
+  -> auth: identity from the token; user_id must match; scopes; rate limit
+  -> input guardrail: redact card/CPF/secrets, then LLM classifier (injection, fraud, off-topic)
+  -> LangGraph turn (SQLite checkpointer per merchant session):
+       prepare (summary + last turns + saved merchant facts) -> SUPERVISOR --tool calls, parallel--> specialists -> SUPERVISOR -> ...
+                                   |                                   |
+                                   |  ask_knowledge: Knowledge Agent (search_kb, web_search,
+                                   |                 get_weather, get_exchange_rate)
+                                   |  ask_support:   Support Agent (sales, receivables, terminal,
+                                   |                 transactions, decline codes, tickets)
+                                   |  ask_user:      clarifying question, ends the turn
+                                   '- escalate_to_human: Escalation Agent -> handoff + signed webhook
+                                         -> interrupt() ... operator reply -> resume -> SUPERVISOR
+  -> output guardrail: citations exist, no prompt leak, no refund/deadline promises, redaction
+  -> JSON answer with agents, tool calls, sources, usage, cost and trace_id
 ```
 
-- **Supervisor** (`app/agentic.py`): quando habilitado, escolhe capacidades e decide novamente após observar seus resultados. Contratos Pydantic, limites e autorização continuam no servidor.
-- **Knowledge**: recupera snapshots públicos revisados, com URL, data e hash. O adaptador documental faz seleção por demanda. A geração validada opcional usa planejamento, redação fundamentada e checagem; não é a apresentação editorial legada por cenário.
-- **Support**: consulta recebíveis e terminal de demonstração. Identidade e permissões limitam acesso; dados são fictícios, não extratos ou diagnósticos bancários reais.
-- **Informação pública**: clima por Open-Meteo e câmbio de referência datado por BCB/PTAX. Não promete cotação negociável nem disponibilidade contínua de provedores.
-- **Memória e intervenção humana**: contexto persistido em SQLite, isolamento por sessão e reset; fila humana local com confirmação, resposta de operador e retorno à conversa. Nada é enviado à Getnet.
+- **Supervisor.** An LLM with five tools (the four specialists above plus `remember`). It identifies every need in the message and calls specialists in parallel when needs are independent. It reads their structured observations (`status`, `coverage`, `answer`), retries a different way when a result is partial, and writes the final answer in the merchant's language with `[S#]` citations. It is bounded by step, per-turn cost and global budget limits. Its prompt holds general principles only (`app/graph/supervisor.py`).
+- **Specialists.** Each specialist is an agent with its own prompt, tools and loop (`app/agents/`). Tools have strict JSON schemas, typed errors (`not_found`, `invalid_argument`, `upstream_timeout`, ...), timeouts and retries, and a circuit breaker on public APIs. No tool takes a merchant id: data access is filtered by the token subject in `app/data/support_repo.py`.
+- **Writes and humans.** Agents only read. A ticket is a proposal until the merchant confirms it (`POST /tickets/{id}/confirm`, idempotent). Disputes, suspected fraud and requests for a person pause the graph and notify an operator through a webhook signed with HMAC. The operator answers through `/operator/handoffs/{id}/reply` (`reply`, `instruct` or `close`). The supervisor resumes, and the merchant gets the result via SSE (`/sessions/{id}/events`) and a webhook. No deadlines or refunds are ever promised.
+- **Memory.** The conversation is stored per `tenant:merchant:session` with LangGraph's SQLite checkpointer. It survives restarts, including a pending handoff, and `DELETE /sessions/{id}` resets it. Past 8 turns, the oldest are folded into a rolling summary, so long chats keep their facts. Across sessions, the supervisor can `remember` a few allow-listed facts per merchant (business profile, communication preference, recurring context). They are redacted, scoped to the token's merchant, and can be listed or erased with `GET/DELETE /me/memory` ([ADR 009](docs/adr/009-summary-and-merchant-memory.md)).
 
-O caminho canônico é `python -m app.run`, que inicia `app.challenge_api:app`. Módulos legados permanecem no repositório, mas não são o caminho indicado para avaliar o supervisor atual.
+## RAG pipeline (ingestion -> storage -> retrieval -> generation)
 
-### RAG e busca
+1. **Ingestion** (`app/rag/ingest.py`): a crawler reads the sitemaps of `site.getnet.com.br` (help center, product pages, blog), the product manuals (PDF) and `getnet.net/en`. It strips repeated boilerplate.
+2. **Storage**: 171 snapshots in `corpus/docs/` with URL, capture date and SHA-256, committed so builds are reproducible and offline.
+3. **Retrieval** (`app/rag/store.py`): 1,058 section-aware chunks, BM25 plus local multilingual embeddings (`paraphrase-multilingual-MiniLM-L12-v2`, ONNX, built into the image), fused by reciprocal rank. On English questions over the Portuguese corpus, hybrid recall@5 is 0.90 versus 0.60 for lexical. On the strict official-FAQ holdout it is 0.58 ([docs/RAG.md](docs/RAG.md)).
+4. **Generation**: the Knowledge Agent answers only from retrieved passages and cites them. If they do not cover the question it reports `not_found`, and the supervisor can use web search.
 
-Ingestão HTTPS → extração → snapshot JSON revisado em `corpus_publico/` → recuperação → resposta com fontes. Novas capturas exigem revisão antes do uso. A recuperação lexical é padrão; o modo semântico é opcional e exige dependências de `requirements-semantic.txt` e modelo local provisionado em `GETNET_LOCAL_EMBEDDING_DIR`.
+## How the LLMs are used
 
-A busca pública geral não equivale à consulta de clima/câmbio: `GETNET_PUBLIC_SEARCH=disabled` é o padrão; `mwmbl` é uma alternativa experimental com contador local. Brave real é bloqueado e Tavily está pausado nesta configuração. `GETNET_WEB_SEARCH` controla a busca complementar documental. Falha ou ausência de evidência deve aparecer como limitação, não como fato inventado.
+All agents use Claude through the official `anthropic` SDK inside LangGraph nodes (`app/llm/client.py`). The calls use tool use, strict schemas, structured outputs (guardrail), prompt caching, a per-agent effort level and server-side fallback on refusals.
 
-## Execução local
+The default model is **Claude Sonnet 5.5**. On the same cases it matched Claude Opus 5.5 at about a quarter of the cost and half the latency ([ADR 008](docs/adr/008-model-per-agent-by-measurement.md)). Switch with `LLM_MODEL`.
 
-Requer Python 3.11+; o Docker usa Python 3.14. Instale as versões fixadas:
+Every call is recorded in a spend ledger with a hard cap (`LLM_BUDGET_USD`).
+
+## Tests and evaluation
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt -c constraints-tested.txt
-pip check
+uv sync && uv run pytest        # 104 offline tests: unit, contract, scripted-LLM integration, chaos
+make lint                       # ruff + mypy --strict
+uv run python -m evals.run --split dev --repeats 3        # real model, costs money
+uv run python -m evals.judge evals/results/<run>          # independent judge (OPENROUTER_API_KEY)
+uv run python -m evals.gate evals/results/<run> --split dev   # regression gate
 ```
 
-No PowerShell, ative com `.\.venv\Scripts\Activate.ps1`. Guarde credenciais e bancos fora do repositório e de pastas sincronizadas.
+CI runs on every push:
+- lint, types and the full offline test suite;
+- an image build plus a smoke test of the hardened container;
+- pip-audit, bandit, gitleaks and Trivy;
+- `promtool` unit tests for the alert rules.
 
-### Demonstração sem modelo pago
+Real-model evals are a deliberate, budgeted step. They run manually or weekly through `.github/workflows/eval.yml` and stop at the regression gate. Their results are committed.
 
-```bash
-export GETNET_AUTH_MODE=demo
-export GETNET_CONTEXT_DB=/tmp/getnet-demo/state.db
-python -m app.run --preflight
-python -m app.run --host 127.0.0.1 --port 8000
-```
+## Observability and operations
 
-No PowerShell, use `$env:GETNET_AUTH_MODE='demo'` e defina `GETNET_CONTEXT_DB` em uma pasta local gravável fora do checkout. Esse modo é explicitamente anônimo e sintético. **Não comprova raciocínio de modelo real.** O preflight verifica configuração local sem chamar provedores; não certifica conectividade ou qualidade.
+- **Tracing:** OpenTelemetry spans per agent, tool and LLM call, with tokens and cost, exported to Jaeger.
+- **Metrics:** Prometheus at `/metrics`, with no merchant ids in labels.
+- **Logs:** JSON, with `request_id` and `trace_id`.
+- **Dashboard:** a provisioned Grafana dashboard.
+- **Alerts:** 8 alert rules, each with a runbook entry ([RUNBOOK.md](RUNBOOK.md)).
 
-```bash
-curl http://127.0.0.1:8000/health
-curl -X POST http://127.0.0.1:8000/chat \
-  -H 'Content-Type: application/json' \
-  -d '{"user_id":"cliente1988","message":"Como funciona a antecipação de recebíveis?"}'
-```
+On the first concurrent run these signals caught an OOM kill and CPU contention in retrieval. Both are fixed ([docs/OBSERVABILITY.md](docs/OBSERVABILITY.md)).
 
-A interface interativa de contratos está em `/docs`. `/context/chat` oferece contexto; `/configuration` informa a configuração efetiva conforme as permissões. A API é o produto entregue, não uma interface gráfica de chat.
+## Security
 
-### Autenticação local
+JWT with scopes, expiry and revocation. Identity comes from the token. Every data read is scoped and filtered by merchant. Rate limits. PII and secrets are redacted before the model. The prompt-injection classifier is measured (98.3% blocked, 0% false positives), and an end-to-end indirect-injection test passes. The container runs non-root and read-only with all capabilities dropped. See [docs/SECURITY.md](docs/SECURITY.md) for the STRIDE table.
 
-O padrão é `GETNET_AUTH_MODE=required`. Inicialize um cadastro externo e emita uma credencial local:
+## Design decisions and limits
 
-```bash
-python -m app.access_admin --db /caminho/privado/access.db init
-python -m app.access_admin --db /caminho/privado/access.db issue \
-  --subject cliente1988 --tenant demo --scope chat:use \
-  --scope context:reset --scope recebiveis:read --scope terminal:read \
-  --ttl 3600 --output /caminho/privado/token.txt
-```
+Decisions with alternatives and consequences are in [docs/adr/](docs/adr/).
 
-Configure `GETNET_AUTH_DB` e envie `Authorization: Bearer <token local>` nas requisições. O token é salvo em arquivo, não impresso. A identidade efetiva vem da credencial; isto não verifica identidade perante a Getnet. Existem limites de taxa por usuário e globais. Nunca reutilize a chave OpenRouter como token da API.
+Current limits:
+- Merchant data is fictitious: three merchants, regenerated daily relative to today.
+- FAQ answers buried in very long pages are sometimes missed (first holdout 80%; retrieval recall@5 is about 0.6 on both holdouts). Question/answer-aware chunking was tried and gave no gain ([docs/RAG.md](docs/RAG.md)). A reranker is the next candidate.
+- Saved style preferences (for example, short answers) are remembered but do not yet visibly change the answer style.
+- Rate limits are in memory and the token signer is local. Production would use Redis and an OIDC provider.
+- Latency is dominated by LLM calls (about 12-15 s p50 per turn).
 
-### Supervisor com modelo real
+## Changelog
 
-A ativação é explícita. `python -m app.run --env-file /caminho/privado/config.env` carrega somente o arquivo solicitado, sem sobrescrever variáveis já definidas no processo.
+- **v1** (2026-11-12): rule-based router and editorial answers; weather and FX declined.
+- **v2** (2026-11-16): LLM supervisor added, but off by default and without real-run evidence.
+- **v3** (this version): rebuilt around an always-on supervisor with specialists as tools, hybrid RAG over 171 official documents, measured guardrails, human handoff with resume, OpenTelemetry/Prometheus, and committed real-model evals with a human-calibrated judge. About 3,600 lines of application code, down from 11,300.
 
-| Variável | Finalidade |
-|---|---|
-| `GETNET_ORCHESTRATION=supervisor` | Ativa o ciclo de decisão do LLM |
-| `GETNET_ALLOW_MODEL_NETWORK=1` | Libera transporte de modelo configurado |
-| `OPENROUTER_API_KEY` | Credencial privada do provedor |
-| `GETNET_SUPERVISOR_MODEL` | Identificador do modelo; template usa `openai/gpt-6-sol` |
-| `GETNET_SUPERVISOR_PRICES` | Arquivo de metadados públicos de preço e capacidades atualizado |
-| `GETNET_SUPERVISOR_LEDGER` | Banco de orçamento previamente inicializado |
-| `GETNET_SUPERVISOR_MAX_CALLS`, `GETNET_SUPERVISOR_COST_CAP` | Limites explicitamente aprovados |
-| `GETNET_RAG_GENERATION=validated` | Geração documental validada, também consome o orçamento |
-
-O arquivo de preços exige `checked_at` ISO UTC com menos de 24 horas e `model` com `id`, `supported_parameters` incluindo `structured_outputs`, e `pricing.prompt`/`pricing.completion` em USD por token. Confirme preços e suporte atuais no provedor antes de provisionar; números antigos não são autorização de gasto.
-
-`python -m app.budget_admin --ledger CAMINHO --max-calls LIMITE --max-cost TETO_USD` cria um **novo** ledger; não reseta um existente. Inicializá-lo não autoriza gasto. Cada atendimento pode precisar de várias chamadas. Reservas incertas continuam bloqueadas; não há retry ou troca automática de provedor para contornar falhas.
-
-## Docker
-
-```bash
-docker compose build
-```
-
-O Compose mantém autenticação obrigatória, volume persistente `/state`, usuário não-root, filesystem somente leitura e modelo desligado. Antes de iniciar, provisione o cadastro no volume:
-
-```bash
-docker compose run --rm atendimento python -m app.access_admin --db /state/local/access.db init
-docker compose run --rm atendimento python -m app.access_admin --db /state/local/access.db issue --subject cliente1988 --tenant demo --scope chat:use --scope recebiveis:read --scope terminal:read --output /state/local/client-token.txt
-docker compose up
-```
-
-Recupere o token por um canal local seguro, sem colocá-lo no Git. Compose não passa automaticamente o `.env` ao servidor; para modelo real, forneça explicitamente variáveis, arquivos privados de preço/ledger e mounts necessários. Não exponha a porta publicamente para demonstrar o protótipo.
-
-## Handoff e observabilidade
-
-Rotas `/demo/handoff/propose`, `/demo/handoff/confirm` e `/demo/handoff/status` mantêm o fluxo local. Um operador com escopo apropriado usa `/demo/operator/queue` e `/demo/operator/reply`; `/context/human/updates` permite obter o retorno. Confirmação de protocolo não significa resolução ou contato com uma equipe externa.
-
-`app/observability.py` emite eventos estruturados minimizados; `app/observability_report.py` agrega registros offline. Há identificação de requisição, etapas, duração, chamadas e estados de orçamento. Não há painel de produção, plantão ou SLA. Logs operacionais não substituem avaliação semântica.
-
-## Testes e avaliação
-
-Testes controlados usam mocks e fixtures: comprovam contratos, não qualidade de respostas de um LLM. Execute os testes focais publicados:
-
-```bash
-GETNET_AUTH_MODE=demo GETNET_CONTEXT_DB=/tmp/getnet-tests/state.db PYTHONPATH=.:tests python -m unittest test_original_request_boundaries test_eval_judging test_remote_judge
-```
-
-No PowerShell, defina também GETNET_AUTH_MODE=demo e GETNET_CONTEXT_DB fora do checkout. Use: `$env:PYTHONPATH='.;tests'` e o mesmo comando Python. A suíte histórica completa contém testes de interfaces anteriores; não use seu volume como nota de qualidade. A publicação de testes não implica CI aprovado.
-
-**Juiz opcional em chamada separada:** `evals/judging.py` monta um pacote cego com pergunta, resposta visível, conversa permitida e referências independentes. O contrato exclui resposta esperada, nota anterior e identidade do gerador. Chamadas separadas não comprovam independência de família de modelo ou revisão humana; a proveniência informa essa limitação explicitamente. `judge(packet)` sem transporte retorna inconclusivo e não faz rede. `evals/remote_judge.py` fornece `RemoteJudge`, adaptador explícito para `openai/gpt-5-mini` via OpenRouter, com chave e ledger fornecidos pelo chamador, sem fallback ou retry. Não roda ao iniciar o servidor.
-
-Para uma avaliação autorizada, monte o pacote com `make_packet(case, response, references, opaque_id=...)`, construa `RemoteJudge(key=..., budget=...)` e chame `judge(packet, transport=adaptador)`. Referências devem ser verificadas separadamente, não copiadas cegamente das citações da resposta. O adaptador tem preços/modelo fixados no código: revise disponibilidade e valores antes de nova utilização real. Não envie dados pessoais ou segredos ao juiz.
-
-O juiz classifica correção, relevância, completude, fundamentação e utilidade; **não calcula sozinho a nota ponderada dos onze critérios V4**, nem comprova autenticação, HITL, implantação ou execução real. Esses critérios exigem evidência de código/execução própria. Para o escopo das dez perguntas originais, avalie as respostas atuais e confronte os itens do feedback, sem usar ausência de campanhas antigas como falha da resposta atual. A recomendação do feedback de ampliar dataset/repetições não é uma campanha automática deste repositório.
-
-## Limites e decisões
-
-- Protótipo: suporte, identidades de exemplo e fila humana são locais/sintéticos; sem integração financeira ou atendimento oficial.
-- Fontes são datadas e podem estar incompletas. Modelo, retrieval e APIs externas podem falhar; status de limitação não equivale a sucesso.
-- O modo determinístico é para uso controlado sem LLM; validar o supervisor exige configuração e execução reais, explicitamente autorizadas.
-- Guardrails, autenticação local e testes reduzem riscos, mas não certificam uso em produção.
-- Documentos históricos em `docs/` podem descrever versões anteriores. Este README descreve o caminho de execução atual, sem atribuir nota ou declarar aprovação ainda não comprovada.
-
-ChatGPT apoiou planejamento e discussão de arquitetura; Codex apoiou implementação e testes. Esse apoio ao desenvolvimento é distinto do uso de LLM pela aplicação e não substitui revisão dos resultados.
-
-O catálogo estático em evals/ mantém 40 casos e referências para reprodutibilidade; sua presença não dispara execuções nem amplia a rodada autorizada das dez perguntas. `python scripts/evaluate_quality.py validate` valida esse catálogo offline, sem coletar respostas ou pontuar o modelo.
-
-## Operação e manutenção focal
-
-- `RUNBOOK.md` descreve consulta offline de desvios, limites e ações manuais. Não é um monitor hospedado nem remediação automática.
-- `MAINTENANCE.md` identifica caminhos ativos e critérios para reduzir duplicação sem apagar histórico ou cobertura.
-- `evals/exposure_registry.json` registra quais casos já foram vistos; casos sem comprovação não são apresentados como holdout inédito.
-- `python scripts/check_judge_ci.py` executa a suíte focal offline, sem chamadas pagas. Os testes de memória usam decisões controladas e não certificam estabilidade de um modelo real.
-- O juiz mantém citações literais e permite declarar uma afirmação sem suporte sem fabricar uma fonte. Isso continua impedindo aprovação de fundamentação; não transforma insuficiência em evidência positiva.
-- Avaliações reais revelaram variabilidade, falsos descontos e limites de saída em respostas longas. As correções de contrato não demonstram que todos esses problemas semânticos foram resolvidos.
+AI assistance: Claude Code was used to plan, implement and test this version. Design decisions, the evaluation labels and the review are the author's.

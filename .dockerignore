@@ -1,12 +1,15 @@
-# Allowlist: nao enviar .env, historico ou backups ao build.
-**
-!Dockerfile
-!requirements.txt
-!constraints-tested.txt
-!app/
-!app/**
-!corpus_publico/
-!corpus_publico/*.json
-**/__pycache__/
-**/*.pyc
-!requirements-semantic.txt
+.git
+.github
+.venv
+.data
+.env
+.env.*
+**/__pycache__
+.pytest_cache
+.mypy_cache
+.ruff_cache
+tests
+evals/results
+planning
+.claude
+docs

@@ -1,0 +1,98 @@
+name: Eval (real model)
+
+# Paid run against the real LLM, the independent judge and the regression gate
+# (evals/gates.json). Manual or weekly, never on every push: one `original` run costs about
+# US$ 0.30 in Claude calls plus US$ 0.03 for the judge. The run has its own hard cap
+# (LLM_BUDGET_USD). Without the API key secrets, the job reports that and stops.
+
+on:
+  workflow_dispatch:
+    inputs:
+      split:
+        description: Dataset split
+        type: choice
+        options: [original, dev, multi_turn, handoff]
+        default: original
+      repeats:
+        description: Repeats per case (pass^k)
+        type: number
+        default: 1
+      judge:
+        description: Run the independent judge (needs OPENROUTER_API_KEY)
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 9 * * 1" # Mondays 09:00 UTC, split original
+
+permissions:
+  contents: read
+
+concurrency:
+  group: eval
+  cancel-in-progress: false
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SPLIT: ${{ inputs.split || 'original' }}
+      REPEATS: ${{ inputs.repeats || 1 }}
+      RUN_JUDGE: ${{ github.event_name == 'schedule' || inputs.judge }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      LLM_BUDGET_USD: "3"
+      EMBED_MODEL_DIR: ${{ github.workspace }}/.data/models
+    steps:
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::notice::ANTHROPIC_API_KEY is not set; skipping the paid eval."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v6
+        if: steps.secrets.outputs.ready == 'true'
+        with:
+          enable-cache: true
+      - name: Cache embedding model
+        if: steps.secrets.outputs.ready == 'true'
+        uses: actions/cache@v4
+        with:
+          path: .data/models
+          key: embed-paraphrase-multilingual-MiniLM-L12-v2
+      - name: Install and build the retrieval index
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          uv sync --frozen --python 3.12
+          uv run python -m app.rag.store build
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+      - name: Run eval
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          uv run python -m evals.run --split "$SPLIT" --repeats "$REPEATS"
+          echo "RUN_DIR=$(ls -d evals/results/*-"$SPLIT" | sort | tail -n 1)" >> "$GITHUB_ENV"
+      - name: Judge
+        if: steps.secrets.outputs.ready == 'true' && env.RUN_JUDGE == 'true'
+        run: |
+          if [ -z "$OPENROUTER_API_KEY" ]; then
+            echo "::warning::OPENROUTER_API_KEY is not set; gating on checks and cost only."
+          else
+            uv run python -m evals.judge "$RUN_DIR"
+          fi
+      - name: Regression gate
+        if: steps.secrets.outputs.ready == 'true'
+        run: uv run python -m evals.gate "$RUN_DIR" --split "$SPLIT"
+      - name: Upload results
+        if: always() && steps.secrets.outputs.ready == 'true' && env.RUN_DIR != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-${{ env.SPLIT }}-${{ github.run_id }}
+          path: ${{ env.RUN_DIR }}
+          retention-days: 30

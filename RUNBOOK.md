@@ -1,44 +1,25 @@
-# Operação e avaliação offline do protótipo
+# Runbook
 
-Este procedimento consulta provas existentes. Não é um monitor hospedado, não dispara alertas, não corrige dados, não chama provedores nem autoriza gastos. Mantenha relatórios, respostas e logs sanitizados fora do Git. Nunca publique chave, token, dados pessoais ou conteúdo de conta real.
+Signals: Grafana dashboard **Getnet Multi-Agent Support** (`make obs`, http://127.0.0.1:3000), traces in Jaeger (http://127.0.0.1:16686, search by the `trace_id` returned by `/chat`), JSON logs (`docker compose logs api`, with `request_id` and `trace_id` on every line). Alert rules live in `ops/prometheus/alerts.yml` and are unit-tested in `ops/prometheus/alerts_test.yml`.
 
-## Comandos de consulta (Bash ou PowerShell, na raiz)
+| Alert | What it means | First actions |
+|---|---|---|
+| **ChatErrorRateHigh** (page) | More than 5% of `/chat` calls return 5xx | Check the error `code` in the logs (`llm_unavailable`, `budget_exceeded`). Provider down: check `LLMProviderErrors` and the provider status page. Budget: see below. |
+| **LLMProviderErrors** (page) | Claude calls failing (5xx, timeouts, refusals) | The SDK already retries 429/5xx and refusals fall back server-side. Check `llm_errors_total` by `code`. A persistent `provider_error_529` means overload: lower traffic or wait. A burst of `model_refusal` means you should inspect the traces of the affected requests. |
+| **LLMBudgetNearlyExhausted** (ticket) | More than 80% of `LLM_BUDGET_USD` spent | Check `llm_cost_usd_total` by agent to find what grew. Raise the budget deliberately or reduce load. At 100% the API answers 503 `budget_exceeded` by design. |
+| **CostPerChatHigh** (ticket) | Average cost per turn above US$ 0.20 over an hour | Look for many `web_search` calls or long agent loops in traces (`agent.steps`). Compare with the baseline in the latest eval report. |
+| **ChatLatencyP95High** (ticket) | p95 turn latency above 60 s | Find the slowest span in Jaeger (usually `llm.knowledge` or a slow public API). Check `tool_call_seconds` for Open-Meteo or BCB timeouts. |
+| **ToolFailureRateHigh** (ticket) | One tool fails in more than 20% of calls | Check `tool_calls_total{status="error"}`. External APIs (Open-Meteo, BCB) have a circuit breaker; answers degrade with an explicit message. For a database tool, check `/ready` and disk space on the `getnet_state` volume. |
+| **HandoffsWaiting** (page) | More than 5 merchants waiting for a human for 15 min | Staff the operator queue (`GET /operator/handoffs`). Check that operator webhooks are delivered (`webhook event=... delivered=false` in the logs). |
+| **GuardrailBlockSpike** (ticket) | More than 30% of messages blocked | Either an attack wave (same pattern, few senders) or false positives after a change. Sample the blocked requests in the logs (`guardrail` field) and compare with `evals/results/*-guardrail`. |
 
-```text
-python -B scripts/review_offline_evidence.py exposure
-python -B scripts/review_offline_evidence.py stability --input /caminho/privado/records.json
-python -B scripts/review_offline_evidence.py deviations --input /caminho/privado/events.jsonl
-```
+## Routine operations
 
-Use caminhos locais Windows quando aplicável. `--output /caminho/privado/novo.json` grava somente arquivo novo; nunca sobrescreve. Sem `--output`, imprime resumo. Falha de leitura/validação retorna código 2 sem remediação. Código 0 significa análise concluída, não saúde aprovada: examine `findings`, `missing_executions` e limitações. O arquivo de eventos deve ser JSONL sanitizado produzido por `app.observability`, não um dump de conversas.
-
-## Exposição do catálogo (8.2)
-
-`evals/cases.json` continua com 40 casos: 10 originais, 10 regressões, 20 rotulados historicamente como holdout. `evals/exposure_registry.json` informa que originais e regressões são conhecidos e os 20 restantes **não têm condição de inéditos verificada**. O catálogo é público e parte foi inspecionada no desenvolvimento. Não há alegação de 20 novos testes cegos. Quando um caso for usado para correção, registre como `known_regression` com base factual; preserve o split histórico para rastreabilidade. Nova revisão de código não apaga exposição. Para avaliar generalização inédita futuramente, é preciso conjunto realmente separado, congelado antes de inspeção; isso não foi executado por este patch.
-
-## Réplicas e estabilidade (8.3)
-
-O modo `stability` reutiliza `evals.quality.quality_report`. Entrada é uma lista JSON de registros já coletados no contrato existente: `case_id`, `replicate`(1–3), `execution_kind`, `dataset_hash`, `manifest_hash`, `packet`, `judgment`. Consulte `scripts/evaluate_quality.py` e `evals/examples` para o fluxo de coleta/importação. Não copie notas para preencher réplicas. Recibos de provedor e vínculo de manifesto precisam ser conferidos separadamente; importação estrutural não atesta execução real.
-
-Agrupamento separa dataset, revisão congelada e execução controlada/real. Versões diferentes não completam três réplicas. Duplicata é rejeitada. Parecer inconclusivo e réplica ausente não entram como aprovação. O denominador previsto é 40×3, com faltantes explícitos; isso não inicia uma campanha. A concordância de três falhas continua falha estável, não acurácia. Três observações tampouco certificam estabilidade universal. Qualquer futura chamada paga requer autorização e teto próprios.
-
-## Desvios e ação do operador (9.5)
-
-| Código | Verificação e próximo passo manual |
+| Task | Command |
 |---|---|
-| NO_USABLE_EVENTS / INCOMPLETE_CAPTURE | Preserve o arquivo. Confira truncamento, rejeições e correlação. Reúna logs sanitizados faltantes; não invente sucesso ou custo de eventos ausentes. |
-| PROVIDER_429 | Pause novas chamadas pagas; confira mensagem limitada do provedor e cota/quota vigente. Não suponha falta de saldo nem troque conta/modelo para contornar limite. Não há retry automático. |
-| PROVIDER_5XX | Preserve a tentativa e a reserva incerta. Verifique disponibilidade; nova tentativa só dentro de autorização/teto, sem apagar a falha. |
-| CLIENT_HTTP_NON_SUCCESS | Confira rota, credencial/escopo e entrada localmente. Nunca exponha token. HTTP do provedor é contado separado do HTTP cliente. |
-| BUDGET_UNCERTAIN | Consulte ledger autoritativo somente leitura. Preserve provisão conservadora; não marque pago/conciliado sem recibo. Não derive saldo da soma de logs. Pare antes de ultrapassar teto. |
-| FUNCTIONAL_REVIEW | Leia a resposta e o motivo do componente. Esclarecimento necessário pode estar correto; HTTP 200 ou `finish` não bastam para sucesso funcional. Separe erro do juiz de erro da resposta. |
-
-Antes de retomar, registre privadamente: revisão/hash, horário, código do desvio, evidência sanitizada, decisão e limite autorizado. Se precisar corrigir, use nova revisão e testes focais offline; não altere snapshot de avaliação em andamento. Retomada requer resolução concreta ou limitação assumida, não simplesmente ausência de alerta.
-
-## Verificação offline desta ferramenta
-
-```text
-python -B -m unittest discover -s tests -p test_offline_readiness.py -v
-```
-
-Testes controlados verificam exposição, três réplicas, separação de versões, rejeição de duplicatas e alertas dry-run. Não provam estabilidade semântica, uma campanha 40×3 ou envio real de notificações. Podem rodar em Docker com `--network none` e montagem somente leitura, como os demais testes do projeto.
+| Issue a merchant token | `make token MERCHANT=cliente1988` |
+| Issue an operator token | `make operator-token OPERATOR=ana` |
+| Revoke a token | `docker compose exec api python -m app.security.tokens revoke --token <jwt>` |
+| Refresh the knowledge base | `uv run --group ingest python -m app.rag.ingest`, review the diff of `corpus/`, rebuild the image |
+| Re-run the evals | `uv run python -m evals.run --split original --repeats 3` (costs money; check the budget first) |
+| Reset a conversation | `DELETE /sessions/{session_id}` with the merchant token |
