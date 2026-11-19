@@ -9,6 +9,8 @@ A support assistant for Getnet merchants. An LLM **supervisor** (the Router) dec
 
 The supervisor reads the specialists' results, decides again and writes the answer. Every route is authenticated, guarded, traced and costed.
 
+**Presentation video (v3, about 4.5 min, Portuguese):** [watch on Google Drive](https://drive.google.com/drive/folders/1zeak-GvFBgDZp9MjQNwX-xRvVy_HyQbq)
+
 ## Results (real model calls, committed under `evals/results/`)
 
 | Eval set | Checks pass | Judge pass¹ | Latency p50 | Cost per case |
