@@ -3,9 +3,10 @@
 from datetime import date, datetime
 from functools import lru_cache
 from pathlib import Path
+from typing import Self
 from zoneinfo import ZoneInfo
 
-from pydantic import SecretStr, field_validator
+from pydantic import SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,7 +20,12 @@ class Settings(BaseSettings):
     redis_url: str | None = None
     timezone: str = "America/Sao_Paulo"
 
-    jwt_secret: SecretStr
+    # Tokens from an external OIDC issuer, checked against its JWKS (the compose default).
+    oidc_issuer: str | None = None
+    oidc_audience: str = "getnet-chat"
+    oidc_jwks_url: str | None = None  # unset = read from the issuer's discovery document
+    # Local HS256 tokens, used only when OIDC_ISSUER is unset (offline tests, quick local run).
+    jwt_secret: SecretStr | None = None
     jwt_issuer: str = "getnet-agents"
     jwt_audience: str = "getnet-chat"
     jwt_default_ttl_seconds: int = 3600
@@ -45,10 +51,23 @@ class Settings(BaseSettings):
 
     @field_validator("jwt_secret")
     @classmethod
-    def _strong_secret(cls, value: SecretStr) -> SecretStr:
+    def _strong_secret(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None or not value.get_secret_value():
+            return None
         if len(value.get_secret_value()) < 32:
             raise ValueError("JWT_SECRET must have at least 32 characters (run `make setup`).")
         return value
+
+    @field_validator("oidc_issuer", "oidc_jwks_url")
+    @classmethod
+    def _blank_url_is_none(cls, value: str | None) -> str | None:
+        return (value.strip() or None) if value is not None else None
+
+    @model_validator(mode="after")
+    def _token_source(self) -> Self:
+        if self.oidc_issuer is None and self.jwt_secret is None:
+            raise ValueError("Set OIDC_ISSUER, or JWT_SECRET for local tokens (run `make setup`).")
+        return self
 
     @field_validator("anthropic_api_key", "webhook_secret")
     @classmethod

@@ -131,7 +131,7 @@ On the first concurrent run these signals caught an OOM kill and CPU contention 
 
 ## Security
 
-JWT with scopes, expiry and revocation. Identity comes from the token. Every data read is scoped and filtered by merchant. Rate limits. PII and secrets are redacted before the model. The prompt-injection classifier is measured (98.3% blocked, 0% false positives), and an end-to-end indirect-injection test passes. The container runs non-root and read-only with all capabilities dropped. See [docs/SECURITY.md](docs/SECURITY.md) for the STRIDE table.
+Tokens come from an OIDC issuer and are checked against its JWKS (a development provider runs in compose, [ADR 015](docs/adr/015-oidc-tokens-via-jwks.md)), with scopes, expiry and revocation. Identity comes from the token. Every data read is scoped and filtered by merchant. Rate limits. PII and secrets are redacted before the model. The prompt-injection classifier is measured (98.3% blocked, 0% false positives), and an end-to-end indirect-injection test passes. The container runs non-root and read-only with all capabilities dropped. See [docs/SECURITY.md](docs/SECURITY.md) for the STRIDE table.
 
 ## Design decisions and limits
 
@@ -141,7 +141,7 @@ Current limits:
 - Merchant data is fictitious: three merchants, regenerated daily relative to today.
 - FAQ answers buried in very long pages are sometimes missed (first holdout 80%; retrieval recall@5 is about 0.6 on both holdouts). Question/answer-aware chunking was tried and gave no gain ([docs/RAG.md](docs/RAG.md)). A reranker is the next candidate.
 - Saved style preferences (for example, short answers) are remembered but do not yet visibly change the answer style.
-- Rate limits are in memory and the token signer is local. Production would use Redis and an OIDC provider.
+- The OIDC provider in compose is a development stand-in that issues tokens to any client; production points `OIDC_ISSUER` at the company's identity provider.
 - Latency is dominated by LLM calls (about 12-15 s p50 per turn).
 
 ## Changelog

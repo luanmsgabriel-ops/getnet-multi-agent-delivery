@@ -46,7 +46,14 @@ from app.schemas import (
     OperatorReply,
     ReadyResponse,
 )
-from app.security.auth import AuthError, Principal, decode_token, require_scope
+from app.security.auth import (
+    AuthError,
+    OidcVerifier,
+    Principal,
+    decode_token,
+    require_scope,
+    verifier_for,
+)
 from app.security.guardrails import redact
 from app.security.ratelimit import make_limiter
 
@@ -72,14 +79,20 @@ def _error(
     return JSONResponse(body.model_dump(), status_code=status, headers=headers)
 
 
-def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -> FastAPI:
-    """Build the app. `llm` overrides the provider (tests inject a scripted fake)."""
+def create_app(
+    settings: Settings | None = None,
+    llm: LLMClient | None = None,
+    verifier: OidcVerifier | None = None,
+) -> FastAPI:
+    """Build the app. `llm` overrides the provider (tests inject a scripted fake), and
+    `verifier` the OIDC token check (tests inject one with their own keys)."""
     settings = settings or get_settings()
     setup_logging()
     tracing = setup_tracing()
     db = Database(settings.db_path)
     state_db = Database(settings.state_database_url) if settings.state_database_url else db
     limiter = make_limiter(settings)
+    verifier = verifier or verifier_for(settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -159,7 +172,7 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     ) -> Principal:
         if creds is None:
             raise AuthError(401, "missing_token", "Authorization: Bearer <token> is required.")
-        p = decode_token(settings, creds.credentials)
+        p = decode_token(settings, creds.credentials, verifier)
         if state_db.is_revoked(p.jti):
             raise AuthError(401, "token_revoked", "Token revoked.")
         return p
@@ -188,6 +201,8 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
         }
         if settings.warm_knowledge_index:
             checks["knowledge_index"] = retriever_loaded()
+        if verifier is not None:
+            checks["identity_provider"] = verifier.ready()
         body = ReadyResponse(ready=all(checks.values()), checks=checks)
         return JSONResponse(body.model_dump(), status_code=200 if body.ready else 503)
 

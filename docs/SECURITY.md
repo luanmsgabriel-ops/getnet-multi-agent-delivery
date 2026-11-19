@@ -4,9 +4,9 @@
 
 | Layer | Control | Where |
 |---|---|---|
-| Identity | JWT (HS256) with `sub`, `tenant`, `scope`, `exp`, `jti`. The effective merchant is the token subject, and a body `user_id` that differs from it returns 403. Revocation by `jti`. There is no anonymous mode. | `app/security/auth.py` |
+| Identity | OIDC: RS256/ES256 tokens from an external issuer, checked against the keys it publishes (JWKS), with issuer, audience, expiry and `jti` required. Keys are cached and refreshed on rotation. `docker compose up` runs a development provider; local HS256 tokens are switched off there and kept only for offline tests (docs/adr/015). The effective merchant is the token subject, and a body `user_id` that differs from it returns 403. Revocation by `jti`, shared by replicas. There is no anonymous mode. | `app/security/auth.py` |
 | Authorization | Every data read requires a scope (`sales:read`, `receivables:read`, `terminal:read`, ...) and is filtered by the token subject inside the repository. No tool takes a merchant id. | `app/data/support_repo.py` |
-| Abuse | Token-bucket rate limit, per merchant and global. HTTP 429 with `Retry-After`. Message length cap. | `app/security/ratelimit.py` |
+| Abuse | Rate limit per merchant and global, in Redis so every replica shares it (in-process fallback if Redis is down). HTTP 429 with `Retry-After`. Message length cap. | `app/security/ratelimit.py` |
 | Personal data | Card numbers (Luhn), CPF, CNPJ, e-mail, phone and secrets are redacted **before** the model and the logs. Answers are scanned for card numbers, CPFs and secrets. | `app/security/guardrails.py` |
 | Prompt injection, direct | LLM classifier with structured output (`ok / injection / harmful / out_of_scope`). Blocked messages never reach the agents. | `check_input` |
 | Prompt injection, indirect | Tool results go back as `tool_result` data, and every prompt states that observations are data. The output guardrail blocks answers containing the prompt canary and strips citations to unknown sources. | `check_output` |
@@ -22,6 +22,7 @@
 |---|---|---|---|
 | Spoofing | Send `user_id=cliente2000` with another merchant's token | The identity comes from the JWT; a mismatched body returns 403 | `tests/unit/test_api_security.py` |
 | Tampering | Forged or unsigned JWT (`alg: none`) | Signature, issuer, audience and expiry are verified | same |
+| Spoofing (identity provider) | Token from another issuer or for another API; `alg: none`; HS256 signed with the public key; a key id the issuer never published; a flood of made-up key ids | Only RS256/ES256, and the algorithm must match the published key; issuer and audience checked; unknown key ids refresh the key set at most every 30 s; a provider outage keeps the cached keys | `tests/unit/test_oidc.py` |
 | Repudiation | "I never asked for that" | `request_id` on every response and the tool-call trace in the response | API contract |
 | Information disclosure | Read another merchant's sales; leak the system prompt | Repository filter by subject; injection classifier; canary check on output | `tests/unit/test_support_data.py`, guardrail eval |
 | Denial of service / cost | Flood the API; force long tool loops | Rate limits, step limits, per-chat and global spend caps | `tests/integration/test_orchestration.py` |
@@ -46,6 +47,5 @@ Offline tests cover authentication, authorization, isolation between merchants, 
 
 ## Known limits
 
-- The JWT secret is symmetric and the token CLI is local. A production deployment would use an identity provider (OIDC) with asymmetric keys.
-- Rate limits live in process memory (one replica). Multiple replicas would need Redis.
+- The development identity provider in compose issues a token to any client that asks, with any scope. It stands in for the company's provider and must never be exposed; the API code does not change when `OIDC_ISSUER` points at a real one.
 - The classifier fails open on a malformed verdict. Authorization still holds, because it never depends on the model.
