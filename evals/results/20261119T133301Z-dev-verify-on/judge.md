@@ -4,18 +4,18 @@ Graded 40/40 runs. Judge: different model family from the generator, blind packe
 
 | Metric | Value |
 |---|---|
-| correctness (mean 1-5, n=40) | 4.85 |
-| groundedness (mean 1-5, n=36) | 4.75 |
-| relevance (mean 1-5, n=40) | 4.97 |
+| correctness (mean 1-5, n=40) | 4.78 |
+| groundedness (mean 1-5, n=36) | 4.64 |
+| relevance (mean 1-5, n=40) | 4.95 |
 | completeness (mean 1-5, n=40) | 4.92 |
 | clarity (mean 1-5, n=40) | 5.00 |
 | verdict pass | 98% |
 | policy violations | 0 |
-| unsupported claims (total) | 15 |
-| judge cost (total) | US$ 0.1087 |
+| unsupported claims (total) | 27 |
+| judge cost (total) | US$ 0.0941 |
 
 ## Failed verdicts
 
 | Case | Repeat | Scores | Rationale |
 |---|---|---|---|
-| D22 | 1 | corr=3 grou=3 rele=5 comp=5 clar=5 | The reply correctly reports the approved total (R$15.056,12), the number of approved transactions (61), and the per-method breakdown, all of which match the provided get_sales_summary data. It also correctly reports 7 de |
+| D31 | 1 | corr=3 grou=4 rele=4 comp=3 clar=5 | The reply correctly reports per-method fees for Pix (R$10,99) and Débito (R$0,98), the potential duplicate Mastercard sales, the refused sale (code 51), and the net total R$2.024,15 — all supported by the provided eviden |

@@ -104,6 +104,8 @@ def packet(record: dict[str, Any], reference: str | None) -> str:
                     f"- escalate_to_human({args}) -> handoff created by the system, "
                     "status pending; the protocol id is the one in the reply"
                 )
+            elif call["tool"] == "verify_answer":
+                continue  # the system's own verdict on its answer is not evidence (blind packet)
             elif call.get("result") and not call["tool"].startswith("ask_"):
                 evidence.append(f"- {call['tool']}({args}) -> {call['result'][:6000]}")
     cited = [

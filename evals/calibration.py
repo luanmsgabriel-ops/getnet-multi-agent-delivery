@@ -38,6 +38,8 @@ def _evidence(record: dict[str, Any]) -> str:
                 parts += [f"[site Getnet] {h.chunk.title}: {h.chunk.text[:700]}" for h in hits]
             elif call["tool"] == "escalate_to_human":
                 parts.append("[sistema] encaminhamento humano criado (protocolo na resposta)")
+            elif call["tool"] == "verify_answer":
+                continue  # the system's own verdict is not evidence
             elif call.get("result") and not call["tool"].startswith("ask_"):
                 parts.append(f"[{call['tool']}] {call['result'][:1200]}")
     return "\n\n".join(parts)[:5000]
@@ -115,6 +117,93 @@ def export(run_dirs: list[Path], n: int, seed: int = 7) -> None:
     print(f"wrote {ROOT / 'labels.md'} and labels.csv with {len(picked)} items")
 
 
+def export_v4(run_dirs: list[Path], n: int = 70, measure: int = 50, seed: int = 11) -> None:
+    """v4 calibration set: n new answers from v4 runs (the evidence must be rebuildable with the
+    current index), one per question (case_id), never a question already in the v3 labels.
+
+    Stratified, because v4 answers rarely fail and a near-constant label makes kappa unstable:
+    every judge 'fail', then judge passes that are doubtful (correctness <= 4 or unsupported
+    claims listed), then clean passes. Strata are split proportionally between the measurement
+    half (labelled by two people, never used to tune the judge) and the tuning half (joins the
+    30 v3 labels). The judge's grades are hidden from labellers. Writes labels_v4.csv."""
+    refs = {}
+    for path in (Path(__file__).resolve().parent / "datasets").glob("*.jsonl"):
+        for line in path.read_text("utf-8").splitlines():
+            row = json.loads(line) if line else {}
+            if row.get("reference"):
+                refs[row["id"]] = row["reference"]
+    used = {r["case_id"] for r in csv.DictReader((ROOT / "labels.csv").open(encoding="utf-8-sig"))}
+    rank = {"fail": 0, "doubtful": 1, "clean": 2}
+    best: dict[str, tuple[int, dict[str, Any]]] = {}
+    for d in run_dirs:
+        grades = {}
+        for line in (d / "judge.jsonl").read_text("utf-8").splitlines():
+            g = json.loads(line)
+            grades[(g["case_id"], g["repeat"])] = g
+        for line in (d / "raw.jsonl").read_text("utf-8").splitlines():
+            r = json.loads(line)
+            g = grades.get((r["case_id"], r["repeat"]))
+            if r["http_status"] != 200 or r["case_id"] in used or not g or "error" in g:
+                continue
+            if g.get("verdict") == "fail":
+                stratum = "fail"
+            elif (g.get("correctness") or 5) <= 4 or g.get("unsupported_claims"):
+                stratum = "doubtful"
+            else:
+                stratum = "clean"
+            if r["case_id"] in best and best[r["case_id"]][0] <= rank[stratum]:
+                continue
+            best[r["case_id"]] = (rank[stratum], {"_stratum": stratum, "_dir": d, "_rec": r})
+    rng = random.Random(seed)
+    strata: dict[str, list[dict[str, Any]]] = {"fail": [], "doubtful": [], "clean": []}
+    for _, item in best.values():
+        strata[item["_stratum"]].append(item)
+    for rows in strata.values():
+        rng.shuffle(rows)
+    take = {"fail": len(strata["fail"])}
+    take["doubtful"] = min(len(strata["doubtful"]), round(n * 0.45) - take["fail"])
+    take["clean"] = n - take["fail"] - take["doubtful"]
+    picked: list[dict[str, Any]] = []
+    for name in ("fail", "doubtful", "clean"):
+        chosen = strata[name][: take[name]]
+        cut = round(len(chosen) * measure / n)
+        for i, item in enumerate(chosen):
+            item["_half"] = "measure" if i < cut else "tune"
+        picked += chosen
+    measure_rows = [x for x in picked if x["_half"] == "measure"]
+    tune_rows = [x for x in picked if x["_half"] == "tune"]
+    rng.shuffle(measure_rows)
+    rng.shuffle(tune_rows)
+    out = []
+    for item in measure_rows + tune_rows:  # items 1..k = measurement half, same order for both
+        r = item["_rec"]
+        evidence = _evidence(r)
+        if r["case_id"] in refs:
+            evidence = f"[resposta oficial] {refs[r['case_id']]}\n\n{evidence}"
+        out.append(
+            {
+                "run_dir": item["_dir"].name,
+                "case_id": r["case_id"],
+                "repeat": r["repeat"],
+                "question": " || ".join(t["message"] for t in r["turns"]),
+                "answer": r["response"].get("answer", ""),
+                "evidence": evidence,
+                "human_verdict": "",
+                "human_correctness": "",
+                "half": item["_half"],
+                "stratum": item["_stratum"],
+            }
+        )
+    with (ROOT / "labels_v4.csv").open("w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=[*FIELDS, "half", "stratum"])
+        writer.writeheader()
+        writer.writerows(out)
+    counts = {h: {s: 0 for s in strata} for h in ("measure", "tune")}
+    for row in out:
+        counts[row["half"]][row["stratum"]] += 1
+    print(f"wrote labels_v4.csv: {len(out)} items; strata per half: {counts}")
+
+
 def import_answers(text_file: Path) -> None:
     """Parse lines like '7 F 2 comment' into labels.csv (row order = item number)."""
     rows = list(csv.DictReader((ROOT / "labels.csv").open(encoding="utf-8-sig")))
@@ -189,12 +278,16 @@ def main() -> None:
     exp = sub.add_parser("export")
     exp.add_argument("run_dirs", nargs="+", type=Path)
     exp.add_argument("--n", type=int, default=30)
+    v4 = sub.add_parser("export-v4")
+    v4.add_argument("run_dirs", nargs="+", type=Path)
     sub.add_parser("score")
     imp = sub.add_parser("import")
     imp.add_argument("text_file", type=Path)
     args = parser.parse_args()
     if args.cmd == "export":
         export(args.run_dirs, args.n)
+    elif args.cmd == "export-v4":
+        export_v4(args.run_dirs)
     elif args.cmd == "import":
         import_answers(args.text_file)
     else:

@@ -59,15 +59,15 @@ The same 40 dev cases were run with a **minimal** supervisor prompt, keeping onl
 
 The verifier ([ADR 012](adr/012-final-answer-verifier.md)) was measured on the 40 dev cases with the verifier off and on. It was then tuned on an offline bench that re-checks recorded answers against the judge (`evals/verifier_bench.py`, a few cents per run).
 
-| Dev | Off | **Tuned verifier** |
+| Dev | Off | Tuned verifier |
 |---|---:|---:|
-| Unsupported claims (judge) | 20 | **15 (−25%)** |
-| Groundedness / correctness | 4.72 / 4.85 | **4.79 / 4.90** |
+| Unsupported claims (judge) | 20 | 19 |
+| Groundedness / correctness | 4.72 / 4.85 | 4.67 / 4.85 |
 | Deterministic checks | 95% | **98%** |
 | Latency p50 / p95 | 10.7 s / 18.8 s | 12.8 s / 32.2 s |
 | Cost per case | US$ 0.024 | US$ 0.029 |
 
-On the bench, false alarms on answers the judge found fully supported fell from 10/25 to 2/25 after the tuning. The tail latency comes from the replan path.
+Measured cleanly, the judge sees no change on dev. On the bench, the verifier catches errors in the merchant's figures and dates, and its false alarms on answers the judge found fully supported fell from 10/25 to 2/25 after tuning.
 
 ## Judge calibration against a human
 
@@ -106,4 +106,5 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Concurrent run with observability | The API was OOM-killed when concurrent requests loaded the embedding model | One locked warm-up at startup; readiness waits for it |
 | Human calibration | The judge did not know the assistant's scope or the caller | Scope and caller added to the judge packet |
 | v4 regression run | The judge rebuilt 5 passages per search while the agent had received 8 since late v3, so it flagged supported facts (fees on the rental page) as invented | The judge uses the agent's `KB_PASSAGES`. Re-judged: original 90% → 100%, holdout v3 95% → 97%. v3 runs judged after the switch to 8 passages were slightly understated. |
+| v4 calibration export | The judge packet listed the verifier's own verdict (`verify_answer`) as evidence, which flattered the verifier (15 unsupported claims instead of 19) | The verdict is excluded from the packet and the labelling evidence; verifier runs re-judged |
 | Regression gate run after the memory change | The figure check read the JSON value `6.372` as 6372, so a correct exchange rate was withheld | Numbers compared by value, with both readings of a 3-digit group |
