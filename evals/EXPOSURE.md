@@ -14,6 +14,8 @@ once for the reported number and never used to choose prompts, parameters or mod
 | `holdout_answers.jsonl` | answer | 20 official FAQ questions with the official answer (Getnet site) | **no** | 2026-11-17 21:21 UTC, once. Five of six judge failures were "not found in the knowledge base"; that weakness is documented, not tuned on this set. |
 | `retrieval_holdout_v2.jsonl` | retrieval | 121 Q&A pairs written inside help-center and product pages (Getnet site) | **no** | 2026-11-18, once, after the RAG changes below were fixed on dev |
 | `holdout_answers_v2.jsonl` | answer | 20 of those pairs with the official answer | **no** | 2026-11-18 21:09 UTC, once |
+| `retrieval_holdout_v3.jsonl` | retrieval | 261 Q&A pairs written inside blog posts and manuals (Getnet site), sources never used before | **no** | frozen 2026-11-19 before any v4 retrieval change (sha256 `9c58f1e3107e5d2e…`, LF); not run yet |
+| `holdout_answers_v3.jsonl` | answer | 60 of those pairs about products and payments (fixed keyword rule `PRODUCT_TERMS`), with the official answer | **no** | frozen 2026-11-19 (sha256 `a4873f7af82115c7…`, LF); not run yet |
 
 ## Retrieval decisions made on dev (before the holdout run)
 
@@ -35,3 +37,7 @@ A first calibration attempt used labels that the returned file itself marks as A
 ## RAG changes after the first holdouts (2026-11-18)
 
 The first retrieval and answer holdouts became dev sets once used. Q&A-aware chunking was tried on them and on the original dev sets, and reverted (no gain). Retrieving 8 passages instead of 5 and the figure check were kept. Fresh holdouts were then built from Q&A inside help and product pages and run once.
+
+## v4 retrieval work (2026-11-19)
+
+All earlier retrieval and answer holdouts (`retrieval_holdout`, `retrieval_holdout_v2`, `holdout_answers`, `holdout_answers_v2`) are now **dev** sets. The reranker, the context prefix and the query-rewrite ablation are chosen on them. The v3 holdouts above were committed before any of that code existed and are run once at the end.
