@@ -45,6 +45,7 @@ Each change answers a point from the v3 evaluation and was decided by the author
 | Streaming | none | `POST /chat/stream` (SSE). The input classifier runs in parallel with the first supervisor step | [ADR 013](docs/adr/013-parallel-classifier-and-streaming.md) |
 | Judge calibration | 30 labels, one rater, kappa 0.44 | 70 + 50 labels, two independent raters, stratified sample, kappa and AC1 with intervals | [docs/EVALUATION.md](docs/EVALUATION.md) |
 | State and identity | SQLite, in-process rate limit, local HS256 signer | Postgres (conversations, handoffs, memory, ledger), Redis (shared rate limits), OIDC tokens checked against the issuer's JWKS | [ADR 014](docs/adr/014-postgres-state-redis-rate-limits.md), [ADR 015](docs/adr/015-oidc-tokens-via-jwks.md) |
+| Saved style preference | saved, but the answer did not change (v3 gap) | followed: with "short answers, no tables" saved, answers are 33-41% of their usual length, 3-5 lines, no tables, facts and citations kept (two runs, `evals.style_preference`) | `evals/results/20261119T235309Z-style-preference-run1`, `20261119T235502Z-style-preference-run2` |
 | Human oversight | API only | Operator console, Telegram channel with replies, 15/60 min deadlines with reminders, audit trail. The operator's text is screened too; tested end to end with a real bot | [ADR 016](docs/adr/016-operator-console-telegram-deadlines.md), [docs/HITL.md](docs/HITL.md) |
 | Actions | tickets only | Anticipation of receivables and terminal service, in two phases: the model proposes, only the merchant confirms, idempotent and audited | [ADR 017](docs/adr/017-two-phase-actions.md) |
 | Security evidence | our own 120 prompts | Public datasets, indirect injection at scale, multi-turn attacks, memory poisoning | [docs/SECURITY.md](docs/SECURITY.md) |
@@ -184,7 +185,6 @@ Current limits:
 - Merchant data is fictitious: three merchants, regenerated daily relative to today.
 - Retrieval recall@5 is 0.73 on the frozen holdout (target 0.8, not met). Cross-encoder rerankers would help but take 15-50 s per query on CPU, so they wait for a GPU or a hosted reranker ([ADR 011](docs/adr/011-embedding-model-instead-of-reranker.md)).
 - The input classifier blocks 90.6% of public attack prompts (target 95%). The misses do not reach any data, because authorization does not depend on the classifier ([docs/SECURITY.md](docs/SECURITY.md)).
-- Saved style preferences (for example, short answers) are remembered but do not yet visibly change the answer style.
 - The OIDC provider in compose is a development stand-in that issues tokens to any client; production points `OIDC_ISSUER` at the company's identity provider.
 - Latency is dominated by model calls in sequence: under 10 concurrent merchants, p50 14.7 s and p95 27.3 s per turn (`make load`, [ADR 018](docs/adr/018-latency-levers-under-load.md)). The first specialist starts within 7.9 s at p95, above the 5 s target ([docs/SLO.md](docs/SLO.md)).
 

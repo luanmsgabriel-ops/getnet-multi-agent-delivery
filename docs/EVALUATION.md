@@ -125,6 +125,17 @@ Notes:
 - **Real misses elsewhere.** D29 explained decline code 05 from general knowledge instead of calling the decline-code tool. H45 (holdout) asked a clarifying question on an ambiguous official question ("which step?").
 - **Latency.** These are in-process runs with three conversations in parallel. Latency under concurrent load is in the next section.
 
+## Saved style preference (v4)
+
+The v3 evaluation noted that a saved communication preference was stored but did not change the answer. `uv run python -m evals.style_preference` asks three questions (product comparison, yesterday's sales, Pix setup) twice: with no memory, and with `communication_preference` = "short and direct answers, at most 3 lines, no tables".
+
+| Run | Median length with the preference | Lines with / without | Tables |
+|---|---:|---|---|
+| `20261119T235309Z-style-preference-run1` | 33% | 3-5 / 14-17 | none |
+| `20261119T235502Z-style-preference-run2` | 41% | 3-4 / 7-13 | none |
+
+The facts and citations are kept: the totals, the decline code and the possible duplicate charge in the sales answer. No prompt change was needed; the preference reaches the supervisor in the memory block. US$ 0.36 for both runs.
+
 ## Load and latency (v4)
 
 `make load` runs 10 concurrent merchants for 5 minutes over `/chat/stream` against the full compose stack (Postgres, Redis, OIDC) with the real model. The conversations come from the 10 scenarios and the 40 dev cases, with 5 s between turns.
