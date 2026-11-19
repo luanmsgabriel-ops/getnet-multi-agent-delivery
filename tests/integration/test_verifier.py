@@ -46,12 +46,14 @@ def test_high_risk_answer_is_checked_by_the_verifier_model(
 def test_unsupported_figure_makes_the_supervisor_replan(
     settings: Settings, token: Callable[..., str]
 ) -> None:
+    verdict = text(json.dumps({"unsupported": [{"claim": "taxa é 2,99%", "reason": "absent"}]}))
     llm = ScriptedLLM(
         {
             "supervisor": [
                 text("A taxa do crédito à vista é 2,99%."),
                 text("Não consegui confirmar a taxa nas fontes oficiais."),
-            ]
+            ],
+            "verifier": [verdict],
         }
     )
     with TestClient(create_app(settings, llm=llm)) as c:
@@ -59,8 +61,21 @@ def test_unsupported_figure_makes_the_supervisor_replan(
     assert body["answer"] == "Não consegui confirmar a taxa nas fontes oficiais."
     feedback = llm.requests["supervisor"][1]["messages"][-1]["content"]
     assert "<verification>" in feedback and "2,99%" in feedback
-    assert "verifier" not in llm.requests  # caught by the free rule check, no model call
+    # the figure the string match could not find is passed to the model as a suspect
+    assert "<suspects>2,99%</suspects>" in llm.requests["verifier"][0]["messages"][0]["content"]
     assert [e["arguments"]["result"] for e in _verifier_events(body)] == ["replan", "skipped"]
+
+
+def test_figure_from_arithmetic_is_not_rejected_by_the_string_match(
+    settings: Settings, token: Callable[..., str]
+) -> None:
+    # A total the agent computed is absent from the evidence as a string; the model check (here
+    # scripted to accept it) decides, not the string match.
+    llm = ScriptedLLM({"supervisor": [text("Somando as duas vendas: R$ 300,00 no total.")]})
+    with TestClient(create_app(settings, llm=llm)) as c:
+        body = _chat(c, token(), "Vendi R$ 100,00 e R$ 200,00, quanto deu?")
+    assert body["answer"].startswith("Somando")
+    assert [e["arguments"]["result"] for e in _verifier_events(body)] == ["pass"]
 
 
 def test_claim_unsupported_twice_is_removed_with_a_limitation(

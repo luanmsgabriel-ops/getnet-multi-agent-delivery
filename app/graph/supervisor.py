@@ -32,7 +32,7 @@ from app.agents.base import (
 )
 from app.agents.knowledge import run_knowledge
 from app.agents.support import run_support
-from app.graph.verify import feedback, is_high_risk, strip_unsupported, verify
+from app.graph.verify import date_facts, feedback, is_high_risk, strip_unsupported, verify
 from app.memory import Category, summarize
 from app.observability import HANDOFFS, VERIFY
 from app.rag.grounding import unsupported_figures
@@ -406,6 +406,7 @@ def _evidence(state: State, ctx: ToolContext) -> list[str]:
     """What the answer may rely on: tool outputs and cited web passages (ctx.evidence), the
     merchant's own words and request context, and an operator reply if the turn resumed."""
     found = list(ctx.evidence)
+    found.append(date_facts(ctx.now))
     found.append(str(state.get("user_turn", "")))
     found += [str(t.get("user", "")) for t in state.get("turns", [])]
     for msg in state.get("messages", []):
