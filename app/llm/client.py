@@ -8,7 +8,6 @@ Responses are converted to plain dicts so agent state stays serializable and tes
 """
 
 import contextvars
-import sqlite3
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -18,7 +17,7 @@ from typing import Any, Protocol
 import anthropic
 from opentelemetry import trace
 
-from app.data.db import Database
+from app.data.db import DB_ERRORS, Database
 from app.llm.pricing import cost_usd
 from app.observability import (
     LLM_CALLS,
@@ -157,7 +156,7 @@ class Ledger:
                     "INSERT INTO llm_ledger VALUES (?, ?, ?, ?)",
                     (datetime.now(UTC).isoformat(), agent, model, cost),
                 )
-        except sqlite3.Error:  # accounting must never break an answer already paid for
+        except DB_ERRORS:  # accounting must never break an answer already paid for
             pass
 
 

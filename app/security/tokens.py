@@ -32,8 +32,8 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.write(token + "\n")
         return 0
     principal = decode_token(settings, args.token)
-    db = Database(settings.db_path)
-    db.init()
+    db = Database(settings.state_database_url or settings.db_path)
+    db.init_state()
     db.revoke(principal.jti, datetime.now(UTC).isoformat())
     sys.stdout.write(f"revoked jti={principal.jti}\n")
     return 0

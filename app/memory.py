@@ -51,7 +51,7 @@ class MemoryStore:
                 "ORDER BY category",
                 (tenant, merchant_id),
             ).fetchall()
-        return {str(r[0]): str(r[1]) for r in rows}
+        return {str(r["category"]): str(r["value"]) for r in rows}
 
     def put(self, tenant: str, merchant_id: str, category: str, value: str) -> str:
         if category not in CATEGORIES:

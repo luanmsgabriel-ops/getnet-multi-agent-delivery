@@ -15,6 +15,9 @@ def main() -> int:
     template = (ROOT / ".env.example").read_text(encoding="utf-8")
     content = template.replace("JWT_SECRET=", f"JWT_SECRET={secrets.token_urlsafe(48)}", 1)
     content = content.replace("WEBHOOK_SECRET=", f"WEBHOOK_SECRET={secrets.token_urlsafe(32)}", 1)
+    content = content.replace(
+        "POSTGRES_PASSWORD=", f"POSTGRES_PASSWORD={secrets.token_urlsafe(24)}", 1
+    )
     env.write_text(content, encoding="utf-8")
     print("Created .env. Add your ANTHROPIC_API_KEY to it.")
     return 0

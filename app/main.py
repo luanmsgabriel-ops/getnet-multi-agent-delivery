@@ -48,7 +48,7 @@ from app.schemas import (
 )
 from app.security.auth import AuthError, Principal, decode_token, require_scope
 from app.security.guardrails import redact
-from app.security.ratelimit import RateLimiter
+from app.security.ratelimit import make_limiter
 
 log = logging.getLogger("getnet")
 bearer = HTTPBearer(auto_error=False)
@@ -78,21 +78,24 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     setup_logging()
     tracing = setup_tracing()
     db = Database(settings.db_path)
-    limiter = RateLimiter(settings.rate_limit_per_minute, settings.rate_limit_global_per_minute)
+    state_db = Database(settings.state_database_url) if settings.state_database_url else db
+    limiter = make_limiter(settings)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         db.init()
+        if state_db is not db:
+            state_db.init_state()
         ensure_seed(db, settings.today(), settings.tz)
         client = llm
         if client is None and settings.anthropic_api_key is not None:
-            ledger = Ledger(db, settings.llm_budget_usd)
+            ledger = Ledger(state_db, settings.llm_budget_usd)
             bind_gauge(BUDGET_SPENT, ledger.spent)
             BUDGET_LIMIT.set(settings.llm_budget_usd)
             client = AnthropicLLM(
                 settings.anthropic_api_key.get_secret_value(), ledger, model=settings.llm_model
             )
-        app.state.orchestrator = Orchestrator(settings, db, client) if client else None
+        app.state.orchestrator = Orchestrator(settings, db, client, state_db) if client else None
         if settings.warm_knowledge_index:  # load the embedding model once, off the request path
             threading.Thread(target=default_retriever, name="kb-warmup", daemon=True).start()
         log_event(log, "startup", llm_configured=client is not None, tracing=tracing)
@@ -157,7 +160,7 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
         if creds is None:
             raise AuthError(401, "missing_token", "Authorization: Bearer <token> is required.")
         p = decode_token(settings, creds.credentials)
-        if db.is_revoked(p.jti):
+        if state_db.is_revoked(p.jti):
             raise AuthError(401, "token_revoked", "Token revoked.")
         return p
 
@@ -179,7 +182,10 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
         responses={503: {"model": ReadyResponse}},
     )
     def ready() -> JSONResponse:
-        checks = {"database": db.ping(), "llm": app.state.orchestrator is not None}
+        checks = {
+            "database": db.ping() and state_db.ping(),
+            "llm": app.state.orchestrator is not None,
+        }
         if settings.warm_knowledge_index:
             checks["knowledge_index"] = retriever_loaded()
         body = ReadyResponse(ready=all(checks.values()), checks=checks)
@@ -195,7 +201,7 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
         """Merchant rating of an answer: an online quality signal next to the offline evals."""
         require_scope(p, "chat:use")
         comment = redact(body.comment)[0] if body.comment else None
-        db.add_feedback(body.request_id, p.sub, body.rating, comment)
+        state_db.add_feedback(body.request_id, p.sub, body.rating, comment)
         FEEDBACK.labels(body.rating).inc()
         return Response(status_code=204)
 

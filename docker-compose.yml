@@ -21,13 +21,51 @@ services:
       MERCHANT_WEBHOOK_URL: http://webhook-sink:9000/merchant
       # Set by `make obs` to export traces to Jaeger; empty means tracing off.
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      # App state (conversations, handoffs, memory, ledger) and rate limits shared by replicas.
+      STATE_DATABASE_URL: postgresql://getnet:${POSTGRES_PASSWORD:?run make setup}@postgres:5432/getnet
+      REDIS_URL: redis://redis:6379/0
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
       - getnet_state:/state
     mem_limit: 2560m
     cpus: 2.0
-    depends_on: [webhook-sink]
+    depends_on:
+      webhook-sink:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: getnet
+      POSTGRES_DB: getnet
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run make setup}
+    volumes:
+      - getnet_pg:/var/lib/postgresql/data
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U getnet -d getnet"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    read_only: true
+    mem_limit: 128m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
 
   # Stands in for the operator's queue tool and the merchant app: logs signed notifications.
   webhook-sink:
@@ -71,4 +109,5 @@ services:
     ports: ["127.0.0.1:16686:16686"]
 
 volumes:
+  getnet_pg:
   getnet_state:

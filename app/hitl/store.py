@@ -78,7 +78,7 @@ class HitlStore:
                 "operator_message = ?, replied_at = ? WHERE id = ? AND status = 'pending'",
                 (operator, action, message, _now(), handoff_id),
             )
-        return cur.rowcount == 1
+        return bool(cur.rowcount == 1)
 
     def resolve(self, handoff_id: str, final_answer: str, status: str = "resolved") -> None:
         with self.db.connect() as conn:
@@ -100,12 +100,12 @@ class HitlStore:
         self, merchant_id: str, session_id: str, kind: str, payload: dict[str, Any]
     ) -> int:
         with self.db.connect() as conn:
-            cur = conn.execute(
+            row = conn.execute(
                 "INSERT INTO session_events (merchant_id, session_id, type, payload, created_at) "
-                "VALUES (?, ?, ?, ?, ?)",
+                "VALUES (?, ?, ?, ?, ?) RETURNING id",
                 (merchant_id, session_id, kind, json.dumps(payload, ensure_ascii=False), _now()),
-            )
-        return int(cur.lastrowid or 0)
+            ).fetchone()
+        return int(row["id"])
 
     def events_after(self, merchant_id: str, session_id: str, after: int) -> list[dict[str, Any]]:
         with self.db.connect() as conn:

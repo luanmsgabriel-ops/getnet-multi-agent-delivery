@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     data_dir: Path = Path(".data")
+    # App state in Postgres (shared by replicas); unset = the local SQLite file (docs/adr/014)
+    state_database_url: str | None = None
+    # Rate limit counters in Redis (shared by replicas); unset = in-process buckets
+    redis_url: str | None = None
     timezone: str = "America/Sao_Paulo"
 
     jwt_secret: SecretStr

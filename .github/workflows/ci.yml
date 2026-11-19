@@ -34,6 +34,39 @@ jobs:
       - name: Tests (offline, full suite)
         run: uv run pytest
 
+  state-backends:
+    # App state in Postgres and rate limits in Redis, against real services (docs/adr/014).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: getnet
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test" --health-interval 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 3s --health-retries 20
+    env:
+      TEST_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/getnet
+      TEST_REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --python 3.12
+      - name: Postgres and Redis integration tests
+        run: uv run pytest -rA tests/integration/test_state_backends.py
+
   container:
     runs-on: ubuntu-latest
     timeout-minutes: 30

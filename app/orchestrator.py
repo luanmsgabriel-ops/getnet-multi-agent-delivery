@@ -71,6 +71,27 @@ HANDOFF_WAIT = {
 SCREENING = ThreadPoolExecutor(max_workers=8, thread_name_prefix="screen")
 
 
+def make_checkpointer(settings: Settings, state: Database) -> Any:
+    """Conversation state per thread: Postgres when state lives there, else a local SQLite file."""
+    if state.url is not None:
+        from langgraph.checkpoint.postgres import PostgresSaver
+        from psycopg.rows import dict_row
+        from psycopg_pool import ConnectionPool
+
+        pool: ConnectionPool[Any] = ConnectionPool(
+            state.url,
+            min_size=1,
+            max_size=10,
+            kwargs={"autocommit": True, "prepare_threshold": 0, "row_factory": dict_row},
+            open=True,
+        )
+        saver = PostgresSaver(pool)
+        saver.setup()
+        return saver
+    conn = sqlite3.connect(settings.data_dir / "checkpoints.db", check_same_thread=False)
+    return SqliteSaver(conn)
+
+
 class TurnLimit(Exception):
     """The per-turn cost cap was reached: answer honestly instead of failing."""
 
@@ -94,12 +115,14 @@ def _pick(texts: dict[str, str], language: str) -> str:
 
 
 class Orchestrator:
-    def __init__(self, settings: Settings, db: Database, llm: LLMClient) -> None:
+    def __init__(
+        self, settings: Settings, db: Database, llm: LLMClient, state_db: Database | None = None
+    ) -> None:
         self.settings, self.db, self.llm = settings, db, llm
-        self.hitl = HitlStore(db)
-        self.memory = MemoryStore(db)
-        conn = sqlite3.connect(settings.data_dir / "checkpoints.db", check_same_thread=False)
-        self.checkpointer = SqliteSaver(conn)
+        state = state_db or db
+        self.hitl = HitlStore(state)
+        self.memory = MemoryStore(state)
+        self.checkpointer = make_checkpointer(settings, state)
         self.graph = build_graph(self.checkpointer)
         bind_gauge(HANDOFFS_PENDING, lambda: float(len(self.hitl.handoffs("pending"))))
 
