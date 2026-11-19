@@ -13,3 +13,5 @@ Who decided what, and why. The full reasoning for each technical choice is in `d
 | 2026-11-19 | v4 · 1 | Query rewriting only as an ablation | always on; not tested | Luan | "to check whether the number improves" |
 | 2026-11-19 | v4 · 1 | Answer holdout v3 with 60 questions | larger | Luan | "60, and we increase it if needed" |
 | 2026-11-19 | v4 · 1 | Replace the planned reranker with the `google/embeddinggemma-300m` embedding model | `intfloat/multilingual-e5-large` (MIT); keep MiniLM | Luan | "best overall recall@5 on the dev sets and 48 ms per query on the tested CPU, against 159 ms for e5-large" (both rerankers took 15–50 s per query on CPU) |
+| 2026-11-19 | v4 · 2 | Final-answer verifier on Claude Haiku 5.5, only for higher-risk claims (figures, amounts, dates, merchant data), checked against the same evidence the agent used, without a new search | a model from another family via OpenRouter; verify every answer | Luan | "Haiku to check higher-risk claims against the same evidence as the agent, without redoing the search" |
+| 2026-11-19 | v4 · 2 | Streaming over SSE | WebSocket | Luan | "reuse the existing event flow with less complexity" |

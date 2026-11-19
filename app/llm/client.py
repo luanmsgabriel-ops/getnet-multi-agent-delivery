@@ -30,6 +30,8 @@ from app.observability import (
 )
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
+# Claude Haiku 5.5 has no server-side refusal fallback: sending the parameter would fail.
+NO_SERVER_FALLBACK = ("claude-haiku",)
 RESERVE_USD = 0.05  # headroom kept before each call so a single call cannot overshoot
 
 
@@ -123,6 +125,7 @@ class LLMClient(Protocol):
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
         output_schema: dict[str, Any] | None = None,
+        model: str | None = None,
     ) -> LLMResult: ...
 
 
@@ -189,7 +192,9 @@ class AnthropicLLM:
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
         output_schema: dict[str, Any] | None = None,
+        model: str | None = None,
     ) -> LLMResult:
+        model = model or self.model
         tracker = current_usage.get()
         self.ledger.check()
         if tracker is not None and tracker.cost_usd + RESERVE_USD > tracker.max_cost_usd:
@@ -198,7 +203,7 @@ class AnthropicLLM:
             span.set_attributes(
                 {
                     "gen_ai.system": "anthropic",
-                    "gen_ai.request.model": self.model,
+                    "gen_ai.request.model": model,
                     "agent": agent,
                     "effort": effort,
                 }
@@ -214,6 +219,7 @@ class AnthropicLLM:
                     tool_choice,
                     output_schema,
                     tracker,
+                    model,
                 )
             except LLMUnavailable as exc:
                 LLM_ERRORS.labels(agent, str(exc)).inc()
@@ -233,20 +239,22 @@ class AnthropicLLM:
         tool_choice: dict[str, Any] | None,
         output_schema: dict[str, Any] | None,
         tracker: "UsageTracker | None",
+        model: str,
     ) -> LLMResult:
         started = time.monotonic()
         try:
             request: dict[str, Any] = {
-                "model": self.model,
+                "model": model,
                 "max_tokens": max_tokens,
                 "system": [
                     {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
                 ],
                 "messages": messages,
                 "output_config": {"effort": effort},
-                "betas": [FALLBACK_BETA],
-                "fallbacks": "default",
             }
+            if not model.startswith(NO_SERVER_FALLBACK):
+                request["betas"] = [FALLBACK_BETA]
+                request["fallbacks"] = "default"
             if tools:
                 request["tools"] = tools
                 request["tool_choice"] = tool_choice or {"type": "auto"}

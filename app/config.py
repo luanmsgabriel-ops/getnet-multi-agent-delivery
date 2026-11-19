@@ -29,6 +29,8 @@ class Settings(BaseSettings):
 
     anthropic_api_key: SecretStr | None = None
     llm_model: str = "claude-sonnet-5-5"  # measured choice, see docs/adr/008
+    verifier_model: str = "claude-haiku-5-5"  # final-answer verifier, see docs/adr/012
+    verify_answers: bool = True
     llm_budget_usd: float = 10.0
     max_cost_per_chat_usd: float = 0.40
 

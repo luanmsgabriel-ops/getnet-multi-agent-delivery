@@ -111,7 +111,14 @@ class Orchestrator:
             llm=self.llm,
             session_id=session_id,
             language=language,
-            services={"hitl": self.hitl, "notify": self.notify, "memory": self.memory},
+            services={
+                "hitl": self.hitl,
+                "notify": self.notify,
+                "memory": self.memory,
+                "verifier_model": self.settings.verifier_model
+                if self.settings.verify_answers
+                else None,
+            },
         )
 
     def _invoke(self, payload: Any, ctx: ToolContext, thread: str) -> dict[str, Any]:
@@ -182,6 +189,7 @@ class Orchestrator:
                     "pending": [],
                     "escalation": None,
                     "handoff_id": None,
+                    "verify_attempts": 0,
                 },
                 ctx,
                 self.thread_id(principal, session_id),

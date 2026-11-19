@@ -227,6 +227,20 @@ def web_citations(content: list[dict[str, Any]], retrieved_at: str) -> list[Sour
     return found
 
 
+def cited_evidence(content: list[dict[str, Any]], ctx: "ToolContext") -> None:
+    """Keep the text of each web citation as evidence (web page bodies arrive encrypted, so the
+    cited passages are the only readable proof of a web-sourced claim)."""
+    cited = [
+        f"[web {c.get('url')}] {c['cited_text']}"
+        for b in content
+        for c in (b.get("citations") or [])
+        if c.get("cited_text")
+    ]
+    if cited:
+        with ctx._lock:
+            ctx.evidence.extend(cited)
+
+
 def run_agent(
     *,
     llm: LLMClient,
@@ -268,6 +282,7 @@ def _loop(
         )
         messages.append({"role": "assistant", "content": result.content})
         web += [s for s in web_citations(result.content, retrieved) if s not in web]
+        cited_evidence(result.content, ctx)
         if result.stop_reason == "pause_turn":
             continue
         if result.stop_reason != "tool_use":
@@ -288,4 +303,5 @@ def _loop(
         tool_choice={"type": "none"},
     )
     web += [s for s in web_citations(final.content, retrieved) if s not in web]
+    cited_evidence(final.content, ctx)
     return AgentRun(text_of(final.content), "max_steps", max_steps, web)

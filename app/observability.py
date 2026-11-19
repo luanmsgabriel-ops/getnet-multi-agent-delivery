@@ -22,6 +22,7 @@ LATENCY_BUCKETS = (0.25, 0.5, 1, 2, 5, 10, 15, 20, 30, 45, 60, 90)
 
 HTTP_REQUESTS = Counter("http_requests_total", "HTTP requests", ["route", "status"])
 CHAT_TURNS = Counter("chat_turns_total", "Chat turns by outcome", ["outcome"])
+VERIFY = Counter("answer_verifications_total", "Final-answer checks", ["result", "checked_by"])
 CHAT_LATENCY = Histogram(
     "chat_turn_seconds", "End-to-end chat turn latency", ["outcome"], buckets=LATENCY_BUCKETS
 )

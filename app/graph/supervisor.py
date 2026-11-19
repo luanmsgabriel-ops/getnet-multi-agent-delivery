@@ -32,8 +32,9 @@ from app.agents.base import (
 )
 from app.agents.knowledge import run_knowledge
 from app.agents.support import run_support
+from app.graph.verify import feedback, strip_unsupported, verify
 from app.memory import Category, summarize
-from app.observability import HANDOFFS
+from app.observability import HANDOFFS, VERIFY
 from app.rag.grounding import unsupported_figures
 from app.security.guardrails import PROMPT_CANARY
 
@@ -210,6 +211,7 @@ class State(TypedDict, total=False):
     user_turn: str  # the same message with request context, as sent to the model
     turns: list[dict[str, str]]  # persisted conversation memory (last MAX_TURNS turns)
     summary: str  # rolling summary of the turns that no longer fit in `turns`
+    verify_attempts: int  # final-answer checks already failed in this turn
     messages: list[dict[str, Any]]  # model transcript of the current turn
     steps: int
     pending: list[dict[str, Any]]  # tool results waiting for the human reply
@@ -369,7 +371,68 @@ def finalize_node(state: State, config: RunnableConfig) -> State:
 
 
 def _after_supervisor(state: State) -> str:
-    return "finalize" if state.get("answer") is not None else "specialists"
+    if state.get("answer") is None:
+        return "specialists"
+    return "verify" if state.get("outcome") == "answered" else "finalize"
+
+
+def _evidence(state: State, ctx: ToolContext) -> list[str]:
+    """What the answer may rely on: tool outputs and cited web passages (ctx.evidence), the
+    merchant's own words and request context, and an operator reply if the turn resumed."""
+    found = list(ctx.evidence)
+    found.append(str(state.get("user_turn", "")))
+    found += [str(t.get("user", "")) for t in state.get("turns", [])]
+    for msg in state.get("messages", []):
+        if msg.get("role") == "user" and isinstance(msg.get("content"), list):
+            for block in msg["content"]:
+                if block.get("type") == "tool_result" and "operator" in str(block.get("content")):
+                    found.append(str(block.get("content")))
+    return found
+
+
+def verify_node(state: State, config: RunnableConfig) -> State:
+    """Check higher-risk claims before sending; one replan, then remove what stays unsupported."""
+    ctx = _ctx(config)
+    model = ctx.services.get("verifier_model")
+    answer = str(state.get("answer") or "")
+    if not model:
+        return {}
+    verdict = verify(answer, _evidence(state, ctx), ctx.llm, model)
+    attempts = state.get("verify_attempts", 0)
+    result = "pass" if verdict.status != "fail" else ("replan" if attempts == 0 else "limited")
+    if verdict.status == "skipped":
+        result = "skipped"
+    elif verdict.status == "pass" and attempts:
+        result = "fixed"
+    VERIFY.labels(result, verdict.checked_by).inc()
+    ctx.record(
+        TraceEvent(
+            "verifier",
+            "verify_answer",
+            "ok" if verdict.status != "fail" else "unsupported",
+            0,
+            {"result": result},
+            json.dumps({"unsupported": verdict.unsupported}, ensure_ascii=False)[:2000],
+        )
+    )
+    if verdict.status != "fail":
+        return {}
+    if attempts == 0 and state.get("steps", 0) < MAX_SUPERVISOR_STEPS:
+        return {
+            "messages": [*state["messages"], {"role": "user", "content": feedback(verdict)}],
+            "answer": None,
+            "outcome": None,
+            "verify_attempts": 1,
+            "steps": state.get("steps", 0) + 1,
+        }
+    return {
+        "answer": strip_unsupported(answer, verdict, ctx.language),
+        "verify_attempts": attempts + 1,
+    }
+
+
+def _after_verify(state: State) -> str:
+    return "supervisor" if state.get("answer") is None else "finalize"
 
 
 def _after_specialists(state: State) -> str:
@@ -383,10 +446,14 @@ def build_graph(checkpointer: Any = None) -> Any:
     graph.add_node("specialists", specialists_node)
     graph.add_node("escalate", escalate_node)
     graph.add_node("await_human", await_human_node)
+    graph.add_node("verify", verify_node)
     graph.add_node("finalize", finalize_node)
     graph.add_edge(START, "prepare")
     graph.add_edge("prepare", "supervisor")
-    graph.add_conditional_edges("supervisor", _after_supervisor, ["specialists", "finalize"])
+    graph.add_conditional_edges(
+        "supervisor", _after_supervisor, ["specialists", "verify", "finalize"]
+    )
+    graph.add_conditional_edges("verify", _after_verify, ["supervisor", "finalize"])
     graph.add_conditional_edges("specialists", _after_specialists, ["escalate", "supervisor"])
     graph.add_edge("escalate", "await_human")
     graph.add_edge("await_human", "supervisor")
