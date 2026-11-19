@@ -418,4 +418,5 @@ def run_support(ctx: ToolContext, request: str) -> AgentRun:
         ctx=ctx,
         effort="low",
         max_steps=4,
+        model=ctx.services.get("support_model"),
     )

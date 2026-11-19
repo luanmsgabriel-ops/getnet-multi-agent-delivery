@@ -107,6 +107,7 @@ class ToolContext:
     evidence: list[str] = field(default_factory=list)  # full tool outputs, for grounding checks
     trace: list[TraceEvent] = field(default_factory=list)
     sources: list[Source] = field(default_factory=list)
+    started: float = field(default_factory=time.monotonic)  # turn start, for time budgets
     _lock: Lock = field(default_factory=Lock)
 
     def add_source(self, source: Source) -> Source:
@@ -283,10 +284,12 @@ def run_agent(
     effort: str,
     max_steps: int = 4,
     server_tools: list[dict[str, Any]] | None = None,
+    model: str | None = None,
 ) -> AgentRun:
-    """Tool-use loop for a specialist: call model, run tools, repeat until it answers."""
+    """Tool-use loop for a specialist: call model, run tools, repeat until it answers.
+    `model` overrides the default model for this agent (None = LLM_MODEL)."""
     with tracer.start_as_current_span(f"agent.{agent}") as span:
-        run = _loop(llm, agent, system, task, tools, ctx, effort, max_steps, server_tools)
+        run = _loop(llm, agent, system, task, tools, ctx, effort, max_steps, server_tools, model)
         span.set_attributes({"agent.steps": run.steps, "agent.stop": run.stop})
         return run
 
@@ -301,6 +304,7 @@ def _loop(
     effort: str,
     max_steps: int,
     server_tools: list[dict[str, Any]] | None,
+    model: str | None = None,
 ) -> AgentRun:
     by_name = {t.name: t for t in tools}
     schemas = [t.schema() for t in tools] + (server_tools or [])
@@ -309,7 +313,12 @@ def _loop(
     retrieved = ctx.now.date().isoformat()
     for step in range(1, max_steps + 1):
         result = llm.create(
-            agent=agent, system=system, messages=messages, tools=schemas, effort=effort
+            agent=agent,
+            system=system,
+            messages=messages,
+            tools=schemas,
+            effort=effort,
+            model=model,
         )
         messages.append({"role": "assistant", "content": result.content})
         web += [s for s in web_citations(result.content, retrieved) if s not in web]
@@ -332,6 +341,7 @@ def _loop(
         tools=schemas,
         effort=effort,
         tool_choice={"type": "none"},
+        model=model,
     )
     web += [s for s in web_citations(final.content, retrieved) if s not in web]
     cited_evidence(final.content, ctx)

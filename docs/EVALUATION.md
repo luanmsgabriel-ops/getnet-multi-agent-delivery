@@ -105,6 +105,18 @@ Measured cleanly, the judge sees no change on dev. On the bench, the verifier ca
 
 Run `evals/results/20261119T163642Z-tools`: Claude Sonnet 5.5, one run, US$ 0.27. The one miss was ambiguous wording ("the next 60 days, starting tomorrow" read as tomorrow + 60); the case was kept as written. With 4 cases per tool, these are smoke-level numbers per tool, not tight estimates.
 
+## Load and latency (v4)
+
+`make load` runs 10 concurrent merchants for 5 minutes over `/chat/stream` against the full compose stack (Postgres, Redis, OIDC) with the real model. The conversations come from the 10 scenarios and the 40 dev cases, with 5 s between turns.
+
+| Run | Change | Availability | p95 | First specialist p95 | Cost/turn |
+|---|---|---:|---:|---:|---:|
+| `20261119T191921Z-load-10` | baseline | 93.6% | 33.5 s | 5.3 s | US$ 0.026 |
+| `20261119T194315Z-load-10-infra` | + 4 CPUs, keep-alive 75 s | 100% | 44.0 s | 11.0 s | US$ 0.027 |
+| `20261119T200036Z-load-10-replan-deadline` | + replan deadline 12 s | 100% | **27.3 s** | 7.9 s | US$ 0.026 |
+
+How each lever was found and measured, and the quality check behind the replan deadline, are in [ADR 018](adr/018-latency-levers-under-load.md). SLO targets and alerts are in [SLO.md](SLO.md). Screenshots from the first run are in `docs/observability/`.
+
 ## Judge calibration against a human (v3)
 
 A person labelled 30 sampled answers (pass/fail plus a 1-5 correctness score) without seeing the judge's grades. They used the same rules and exactly the same evidence the judge receives (`evals/calibration/labels.csv`, `evals/calibration/calibration.md`).

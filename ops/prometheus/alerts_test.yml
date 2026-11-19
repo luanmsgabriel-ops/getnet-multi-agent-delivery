@@ -70,3 +70,57 @@ tests:
         exp_alerts:
           - exp_labels: {severity: ticket, channel: telegram}
             exp_annotations: {summary: "Operator notifications failing on telegram"}
+
+  - interval: 1m
+    input_series:
+      - series: 'chat_turns_total{outcome="answered"}'
+        values: '0+100x80'
+      - series: 'chat_turn_errors_total{code="llm_unavailable"}'
+        values: '0+10x80'
+    alert_rule_test:
+      - eval_time: 70m
+        alertname: ChatSLOFastBurn
+        exp_alerts:
+          - exp_labels: {severity: page}
+            exp_annotations: {summary: "Chat error budget burning 14x too fast (2% of the month's budget in 1 h)"}
+
+  - interval: 1m
+    input_series:
+      - series: 'chat_turns_total{outcome="answered"}'
+        values: '0+100x80'
+      - series: 'chat_turn_errors_total{code="llm_unavailable"}'
+        values: '0+1x80'
+    alert_rule_test:
+      - eval_time: 70m
+        alertname: ChatSLOFastBurn
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'chat_turns_total{outcome="answered"}'
+        values: '0+100x420'
+      - series: 'chat_turn_errors_total{code="budget_exceeded"}'
+        values: '0+4x420'
+    alert_rule_test:
+      - eval_time: 400m
+        alertname: ChatSLOSlowBurn
+        exp_alerts:
+          - exp_labels: {severity: ticket}
+            exp_annotations: {summary: "Chat error budget burning 6x too fast (5% of the month's budget in 6 h)"}
+      - eval_time: 400m
+        alertname: ChatSLOFastBurn
+        exp_alerts: []
+
+  - interval: 1m
+    input_series:
+      - series: 'chat_turn_seconds_bucket{outcome="answered", le="30.0"}'
+        values: '0+9x90'
+      - series: 'chat_turn_seconds_count{outcome="answered"}'
+        values: '0+10x90'
+    alert_rule_test:
+      - eval_time: 85m
+        alertname: ChatLatencySLOBreached
+        exp_alerts:
+          - exp_labels: {severity: ticket}
+            exp_annotations: {summary: "More than 5% of chat turns took over 30 s in the last hour (p95 SLO)"}
+

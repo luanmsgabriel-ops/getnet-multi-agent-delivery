@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     llm_model: str = "claude-sonnet-5-5"  # measured choice, see docs/adr/008
     verifier_model: str = "claude-haiku-5-5"  # final-answer verifier, see docs/adr/012
     verify_answers: bool = True
+    # A failed check replans only while the turn is younger than this; later, unsupported
+    # sentences are removed instead (latency tail, docs/adr/018). 0 = always replan.
+    replan_deadline_s: float = 12.0
+    # Model for the Customer Support Agent; unset = LLM_MODEL (docs/DECISIONS.md, v4 phase 8).
+    support_model: str | None = None
     llm_budget_usd: float = 10.0
     max_cost_per_chat_usd: float = 0.40
 

@@ -138,3 +138,18 @@ def test_haiku_requests_carry_no_server_side_fallback(tmp_path: Path) -> None:
             llm.create(agent="x", system="s", messages=[], tools=[], effort="low", model=model)
         assert sent["model"] == model
         assert ("fallbacks" in sent) is expects_fallback
+
+
+def test_late_turn_removes_instead_of_replanning(
+    settings: Settings, token: Callable[..., str]
+) -> None:
+    # Past the replan deadline, a failed check trims the answer at once: no second round.
+    verdict = text(json.dumps({"unsupported": [{"claim": "limite é 5000", "reason": "no data"}]}))
+    answer = "Seu limite é 5000 reais por dia.\nPosso ajudar em algo mais?"
+    llm = ScriptedLLM({"supervisor": [text(answer)], "verifier": [verdict]})
+    late = settings.model_copy(update={"replan_deadline_s": 0.001})
+    with TestClient(create_app(late, llm=llm)) as c:
+        body = _chat(c, token(), "Qual meu limite diário?")
+    assert "5000" not in body["answer"] and "não puderam ser confirmadas" in body["answer"]
+    assert len(llm.requests["supervisor"]) == 1
+    assert [e["arguments"]["result"] for e in _verifier_events(body)] == ["deadline"]

@@ -74,6 +74,7 @@ def run_case(case: dict[str, Any], llm: Any, today_override: date | None = None)
                 "hitl": HitlStore(db),
                 "actions": ActionStore(db, db),
                 "request_id": f"eval-{case['id']}",
+                "support_model": settings.support_model,
                 "notify": lambda *a, **k: None,
             },
         )

@@ -12,6 +12,9 @@ services:
     <<: *hardened
     build: .
     image: getnet-agents:local
+    # Same as the image's CMD; repeated so an image built before that change gets it too.
+    command: ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000",
+              "--timeout-keep-alive", "75"]
     env_file:
       - path: .env
         required: true
@@ -33,7 +36,8 @@ services:
     volumes:
       - getnet_state:/state
     mem_limit: 2560m
-    cpus: 2.0
+    # 4 CPUs: query embedding runs on CPU and queued behind other work at 2 (load test, v4).
+    cpus: 4.0
     depends_on:
       webhook-sink:
         condition: service_started

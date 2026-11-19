@@ -294,9 +294,11 @@ class Orchestrator:
             services={
                 "hitl": self.hitl,
                 "actions": self.actions,
+                "support_model": self.settings.support_model,
                 "request_id": request_id,
                 "notify": self.notify,
                 "memory": self.memory,
+                "replan_deadline_s": self.settings.replan_deadline_s,
                 "verifier_model": self.settings.verifier_model
                 if self.settings.verify_answers
                 else None,

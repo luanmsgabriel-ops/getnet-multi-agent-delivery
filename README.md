@@ -142,7 +142,7 @@ Current limits:
 - FAQ answers buried in very long pages are sometimes missed (first holdout 80%; retrieval recall@5 is about 0.6 on both holdouts). Question/answer-aware chunking was tried and gave no gain ([docs/RAG.md](docs/RAG.md)). A reranker is the next candidate.
 - Saved style preferences (for example, short answers) are remembered but do not yet visibly change the answer style.
 - The OIDC provider in compose is a development stand-in that issues tokens to any client; production points `OIDC_ISSUER` at the company's identity provider.
-- Latency is dominated by LLM calls (about 12-15 s p50 per turn).
+- Latency is dominated by model calls in sequence: under 10 concurrent merchants, p50 14.7 s and p95 27.3 s per turn (`make load`, [ADR 018](docs/adr/018-latency-levers-under-load.md)). The first specialist starts within 7.9 s at p95, above the 5 s target ([docs/SLO.md](docs/SLO.md)).
 
 ## Changelog
 

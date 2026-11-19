@@ -33,6 +33,7 @@ dev = [
     "mypy>=1.11",
     "pypdf>=6.1",
     "fakeredis>=2.26",
+    "locust>=2.32",
 ]
 ingest = [
     "pypdf>=7.1.0",

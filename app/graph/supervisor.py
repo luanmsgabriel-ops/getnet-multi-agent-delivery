@@ -13,6 +13,7 @@ user, a human) and writes the answer. A checkpointer persists the conversation p
 import json
 import logging
 import re
+import time
 from typing import Any, Literal, TypedDict
 
 from langchain_core.runnables import RunnableConfig
@@ -433,7 +434,8 @@ def _evidence(state: State, ctx: ToolContext) -> list[str]:
 
 
 def verify_node(state: State, config: RunnableConfig) -> State:
-    """Check higher-risk claims before sending; one replan, then remove what stays unsupported."""
+    """Check higher-risk claims before sending; one replan if the turn still has time, then
+    remove what stays unsupported."""
     ctx = _ctx(config)
     _gate(ctx)
     model = ctx.services.get("verifier_model")
@@ -444,7 +446,12 @@ def verify_node(state: State, config: RunnableConfig) -> State:
         ctx.status("verifying")
     verdict = verify(answer, _evidence(state, ctx), ctx.llm, model)
     attempts = state.get("verify_attempts", 0)
-    result = "pass" if verdict.status != "fail" else ("replan" if attempts == 0 else "limited")
+    deadline = float(ctx.services.get("replan_deadline_s") or 0)
+    late = bool(deadline) and time.monotonic() - ctx.started > deadline
+    can_replan = attempts == 0 and not late and state.get("steps", 0) < MAX_SUPERVISOR_STEPS
+    result = "pass" if verdict.status != "fail" else ("replan" if can_replan else "limited")
+    if verdict.status == "fail" and attempts == 0 and late:
+        result = "deadline"  # removed instead of replanning: the turn is already slow
     if verdict.status == "skipped":
         result = "skipped"
     elif verdict.status == "pass" and attempts:
@@ -462,7 +469,7 @@ def verify_node(state: State, config: RunnableConfig) -> State:
     )
     if verdict.status != "fail":
         return {}
-    if attempts == 0 and state.get("steps", 0) < MAX_SUPERVISOR_STEPS:
+    if can_replan:
         return {
             "messages": [*state["messages"], {"role": "user", "content": feedback(verdict)}],
             "answer": None,

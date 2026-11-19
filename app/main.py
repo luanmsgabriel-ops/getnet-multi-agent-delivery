@@ -28,6 +28,7 @@ from app.llm.client import AnthropicLLM, Ledger, LLMClient
 from app.observability import (
     BUDGET_LIMIT,
     BUDGET_SPENT,
+    CHAT_ERRORS,
     FEEDBACK,
     HTTP_REQUESTS,
     bind_gauge,
@@ -299,6 +300,8 @@ def create_app(
                 p, body.message, request.state.request_id, body.session_id or "default"
             )
         except OrchestratorError as exc:
+            if exc.status >= 500:
+                CHAT_ERRORS.labels(exc.code).inc()
             raise ApiError(exc.status, exc.code, exc.message) from exc
 
     def check_chat(body: ChatRequest, p: Principal) -> None:
@@ -333,8 +336,11 @@ def create_app(
                 )
                 events.put(("final", result.model_dump(mode="json")))
             except OrchestratorError as exc:
+                if exc.status >= 500:
+                    CHAT_ERRORS.labels(exc.code).inc()
                 events.put(("error", {"code": exc.code, "message": exc.message}))
             except Exception:  # the stream must always end with an event
+                CHAT_ERRORS.labels("internal_error").inc()
                 log.exception("stream_failed")
                 events.put(("error", {"code": "internal_error", "message": "Unexpected error."}))
 
