@@ -29,6 +29,7 @@ Datasets: `original` (the 10 challenge questions), `dev` (40: PT/EN knowledge, p
 | handoff (must / must not escalate) | 48 | **100%** | 100% | 100% | 4.88 | 4.88 | 13 s | US$ 0.024 |
 | **holdout: official FAQ** (once) | 20 | 90% | n/a | 80% | 4.25 | 4.44 | 14 s | US$ 0.024 |
 | **holdout v2: Q&A inside help and product pages** (once, after the RAG changes) | 20 | 100% | n/a | 90% | 4.55 | 4.50 | 12 s | US$ 0.031 |
+| **holdout v3: product Q&A from blog posts and manuals** (once, v4 retrieval) | 60 | 98% | n/a | **97%** | 4.85 | 4.78 | n/a | US$ 0.03 |
 | original on **Claude Opus 5.5** | 30 | 97% | 90% | 93% | 4.62 | 4.52 | 23 s | US$ 0.107 |
 
 Correctness and groundedness are means on a 1-5 scale. The judge found zero policy violations (refund or deadline promises, other merchants' data) in the final runs.
@@ -90,4 +91,5 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Smoke run | Mock sales for "today" were generated in the future | Today's mock sales are mornings only |
 | Concurrent run with observability | The API was OOM-killed when concurrent requests loaded the embedding model | One locked warm-up at startup; readiness waits for it |
 | Human calibration | The judge did not know the assistant's scope or the caller | Scope and caller added to the judge packet |
+| v4 regression run | The judge rebuilt 5 passages per search while the agent had received 8 since late v3, so it flagged supported facts (fees on the rental page) as invented | The judge uses the agent's `KB_PASSAGES`. Re-judged: original 90% → 100%, holdout v3 95% → 97%. v3 runs judged after the switch to 8 passages were slightly understated. |
 | Regression gate run after the memory change | The figure check read the JSON value `6.372` as 6372, so a correct exchange rate was withheld | Numbers compared by value, with both readings of a 3-digit group |
