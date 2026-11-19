@@ -9,11 +9,12 @@ import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import Depends, FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
@@ -21,6 +22,7 @@ from app import __version__
 from app.config import Settings, get_settings
 from app.data.db import Database
 from app.data.seed import ensure_seed
+from app.hitl.store import due_at
 from app.llm.client import AnthropicLLM, Ledger, LLMClient
 from app.observability import (
     BUDGET_LIMIT,
@@ -59,6 +61,40 @@ from app.security.ratelimit import make_limiter
 
 log = logging.getLogger("getnet")
 bearer = HTTPBearer(auto_error=False)
+STATIC = Path(__file__).parent / "static"
+# The console loads only its own files; nothing inline, no third-party origins.
+CONSOLE_HEADERS = {
+    "Content-Security-Policy": "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; "
+    "form-action 'none'",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Cache-Control": "no-store",
+}
+
+
+def _background(orchestrator: Orchestrator, settings: Settings, stop: threading.Event) -> None:
+    """Deadline sweep for pending handoffs and, when configured, the Telegram command poller."""
+
+    def sweep() -> None:
+        while not stop.wait(settings.handoff_sweep_seconds):
+            try:
+                orchestrator.sweep_overdue()
+            except Exception:  # keep sweeping; the next pass retries
+                log.exception("handoff_sweep_failed")
+
+    threading.Thread(target=sweep, name="handoff-sweep", daemon=True).start()
+    bot = orchestrator.telegram
+    if bot is not None and settings.telegram_polling:
+        threading.Thread(
+            target=bot.run,
+            args=(
+                stop,
+                orchestrator.operator_command,
+                lambda: orchestrator.hitl.handoffs("pending"),
+            ),
+            name="telegram-poll",
+            daemon=True,
+        ).start()
 
 
 class ApiError(Exception):
@@ -111,8 +147,18 @@ def create_app(
         app.state.orchestrator = Orchestrator(settings, db, client, state_db) if client else None
         if settings.warm_knowledge_index:  # load the embedding model once, off the request path
             threading.Thread(target=default_retriever, name="kb-warmup", daemon=True).start()
-        log_event(log, "startup", llm_configured=client is not None, tracing=tracing)
+        stop = threading.Event()
+        if app.state.orchestrator is not None:
+            _background(app.state.orchestrator, settings, stop)
+        log_event(
+            log,
+            "startup",
+            llm_configured=client is not None,
+            tracing=tracing,
+            telegram=bool(app.state.orchestrator and app.state.orchestrator.telegram),
+        )
         yield
+        stop.set()
 
     app = FastAPI(
         title="Getnet Multi-Agent Support",
@@ -369,8 +415,43 @@ def create_app(
         require_scope(p, "operator")
         hidden = {"scopes", "thread_id"}
         return [
-            {k: v for k, v in h.items() if k not in hidden} for h in orch().hitl.handoffs(status)
+            {**{k: v for k, v in h.items() if k not in hidden}, "due_at": due_at(h)}
+            for h in orch().hitl.handoffs(status)
         ]
+
+    def _handoff_or_404(handoff_id: str) -> dict[str, Any]:
+        handoff = orch().hitl.handoff(handoff_id)
+        if handoff is None:
+            raise ApiError(404, "not_found", "Handoff not found.")
+        return handoff
+
+    @app.get("/operator/handoffs/{handoff_id}", tags=["operator"])
+    def operator_case(
+        handoff_id: str, p: Annotated[Principal, Depends(principal)]
+    ) -> dict[str, Any]:
+        """The case: summary, conversation, facts already checked (redacted) and audit trail."""
+        require_scope(p, "operator")
+        return orch().case(_handoff_or_404(handoff_id))
+
+    @app.get("/operator/handoffs/{handoff_id}/audit", tags=["operator"])
+    def operator_audit(
+        handoff_id: str, p: Annotated[Principal, Depends(principal)]
+    ) -> list[dict[str, Any]]:
+        """Created, notified (per channel), deadline breaches, blocked and accepted replies
+        (redacted text and who sent them) and the resume result."""
+        require_scope(p, "operator")
+        return orch().hitl.audit_trail(_handoff_or_404(handoff_id)["id"])
+
+    @app.get("/operator", include_in_schema=False)
+    def operator_console() -> FileResponse:
+        """Static console; it calls the operator API with the token the operator pastes."""
+        return FileResponse(STATIC / "operator.html", headers=CONSOLE_HEADERS)
+
+    @app.get("/operator/assets/{name}", include_in_schema=False)
+    def operator_asset(name: str) -> FileResponse:
+        if name not in ("console.js", "console.css"):
+            raise ApiError(404, "not_found", "Not found.")
+        return FileResponse(STATIC / name, headers=CONSOLE_HEADERS)
 
     @app.post(
         "/operator/handoffs/{handoff_id}/reply", tags=["operator"], response_model=ChatResponse
@@ -382,9 +463,7 @@ def create_app(
         p: Annotated[Principal, Depends(principal)],
     ) -> ChatResponse:
         require_scope(p, "operator")
-        handoff = orch().hitl.handoff(handoff_id)
-        if handoff is None:
-            raise ApiError(404, "not_found", "Handoff not found.")
+        handoff = _handoff_or_404(handoff_id)
         try:
             return orch().resume(
                 handoff, p.sub, body.action, body.message, request.state.request_id

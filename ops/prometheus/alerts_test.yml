@@ -45,3 +45,28 @@ tests:
         exp_alerts:
           - exp_labels: {severity: page}
             exp_annotations: {summary: "More than 5 merchants waiting for a human for 15 minutes"}
+
+  - interval: 1m
+    input_series:
+      - series: 'handoff_sla_breached_total{priority="high"}'
+        values: '0x5 1x10'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: HandoffDeadlineMissed
+        exp_alerts: []
+      - eval_time: 7m
+        alertname: HandoffDeadlineMissed
+        exp_alerts:
+          - exp_labels: {severity: page}
+            exp_annotations: {summary: "A handoff passed its answer deadline (15 min high, 60 min normal)"}
+
+  - interval: 1m
+    input_series:
+      - series: 'operator_notifications_total{channel="telegram", delivered="false"}'
+        values: '0 1 2 3 4 5 6 7 8 9 10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: OperatorNotificationsFailing
+        exp_alerts:
+          - exp_labels: {severity: ticket, channel: telegram}
+            exp_annotations: {summary: "Operator notifications failing on telegram"}

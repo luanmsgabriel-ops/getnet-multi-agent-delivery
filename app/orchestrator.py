@@ -1,10 +1,12 @@
 """Runs chat turns through the supervisor graph: guardrails, memory, handoff and resume."""
 
 import contextvars
+import json
 import logging
 import re
 import sqlite3
 import time
+import uuid
 from collections.abc import Callable
 from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import UTC, datetime
@@ -18,7 +20,8 @@ from app.config import Settings
 from app.data.db import Database
 from app.graph.supervisor import InputBlocked, build_graph
 from app.hitl import notify
-from app.hitl.store import HitlStore
+from app.hitl.store import HitlStore, due_at
+from app.hitl.telegram import TelegramBot
 from app.llm.client import (
     BudgetExceeded,
     ConversationBudgetExceeded,
@@ -34,7 +37,9 @@ from app.observability import (
     CHAT_TURNS,
     GUARDRAIL,
     HANDOFF_REPLY,
+    HANDOFF_SLA_BREACHED,
     HANDOFFS_PENDING,
+    OPERATOR_NOTIFICATIONS,
     bind_gauge,
     current_trace_id,
     log_event,
@@ -44,6 +49,7 @@ from app.security.auth import Principal
 from app.security.guardrails import (
     InputDecision,
     OutputDecision,
+    check_operator,
     check_output,
     classify,
     detect_language,
@@ -110,6 +116,19 @@ class OrchestratorError(Exception):
         self.status, self.code, self.message = status, code, message
 
 
+def _readable(content: Any) -> str:
+    """A tool result as the operator should read it: a specialist's answer as plain text,
+    anything else as compact JSON."""
+    try:
+        parsed = json.loads(content) if isinstance(content, str) else content
+    except ValueError:
+        return str(content)
+    data = parsed.get("data") if isinstance(parsed, dict) else None
+    if isinstance(data, dict) and isinstance(data.get("answer"), str):
+        return str(data["answer"])
+    return json.dumps(data if data is not None else parsed, ensure_ascii=False)
+
+
 def _pick(texts: dict[str, str], language: str) -> str:
     return texts.get(language, texts["en"])
 
@@ -125,16 +144,130 @@ class Orchestrator:
         self.checkpointer = make_checkpointer(settings, state)
         self.graph = build_graph(self.checkpointer)
         bind_gauge(HANDOFFS_PENDING, lambda: float(len(self.hitl.handoffs("pending"))))
+        token = settings.telegram_bot_token
+        self.telegram = (
+            TelegramBot(
+                token.get_secret_value(),
+                settings.telegram_chat_ids,
+                settings.operator_console_url,
+            )
+            if token is not None and settings.telegram_chat_ids
+            else None
+        )
 
     # -- helpers ------------------------------------------------------------------------
     def notify(self, target: str, event: str, payload: dict[str, Any]) -> None:
+        """Signed webhook to the operator queue or the merchant app; operator events also go to
+        Telegram. Each delivery attempt on a handoff is written to its audit trail."""
         url = (
             self.settings.operator_webhook_url
             if target == "operator"
             else self.settings.merchant_webhook_url
         )
         secret = self.settings.webhook_secret
-        notify.send(url, secret.get_secret_value() if secret else None, event, payload)
+        channels: list[tuple[str, bool]] = []
+        if url:
+            ok = notify.send(url, secret.get_secret_value() if secret else None, event, payload)
+            channels.append(("webhook", ok))
+        if target == "operator" and self.telegram is not None:
+            channels.append(("telegram", self.telegram.notify(event, payload)))
+        handoff_id = payload.get("handoff_id")
+        for channel, ok in channels:
+            OPERATOR_NOTIFICATIONS.labels(channel, str(ok).lower()).inc()
+            if handoff_id:
+                self.hitl.audit(
+                    str(handoff_id),
+                    "notified",
+                    "system",
+                    channel=channel,
+                    event=event,
+                    target=target,
+                    delivered=ok,
+                )
+
+    # -- operator side ------------------------------------------------------------------
+    def sweep_overdue(self, now: datetime | None = None) -> list[str]:
+        """Raise overdue handoffs to urgent and remind the operators (once per handoff)."""
+        raised = []
+        for h in self.hitl.overdue(now or datetime.now(UTC)):
+            if not self.hitl.mark_breached(h["id"]):
+                continue  # another replica got it first
+            HANDOFF_SLA_BREACHED.labels(h["priority"]).inc()
+            self.hitl.audit(
+                h["id"],
+                "sla_breached",
+                "system",
+                priority_before=h["priority"],
+                due_at=due_at(h),
+            )
+            self.notify(
+                "operator",
+                "handoff.sla_breached",
+                {
+                    "handoff_id": h["id"],
+                    "reason": h["reason"],
+                    "priority": "urgent",
+                    "merchant_id": h["merchant_id"],
+                    "summary": h["summary"],
+                },
+            )
+            raised.append(h["id"])
+        return raised
+
+    def case(self, handoff: dict[str, Any]) -> dict[str, Any]:
+        """What the operator sees: the handoff, the conversation, the facts the assistant
+        already checked (tool results, redacted) and the audit trail. No scopes or thread id."""
+        snapshot = self.graph.get_state({"configurable": {"thread_id": handoff["thread_id"]}})
+        values = snapshot.values or {}
+        conversation = [
+            {"merchant": t.get("user", ""), "assistant": t.get("assistant", "")}
+            for t in values.get("turns", [])
+        ]
+        last = str(values.get("user_message") or "")
+        if last and (not conversation or conversation[-1]["merchant"] != last):
+            conversation.append({"merchant": last, "assistant": None})  # turn still paused
+        names: dict[str, str] = {}
+        facts = []
+        # Results gathered before the pause wait in `pending` until the operator replies.
+        held = [{"role": "user", "content": values.get("pending") or []}]
+        for msg in [*values.get("messages", []), *held]:
+            content = msg.get("content")
+            if not isinstance(content, list):
+                continue
+            for block in content:
+                if block.get("type") == "tool_use":
+                    names[str(block.get("id"))] = str(block.get("name"))
+                elif block.get("type") == "tool_result":
+                    tool = names.get(str(block.get("tool_use_id")), "tool")
+                    if tool == "escalate_to_human":
+                        continue
+                    text, _ = redact(_readable(block.get("content", "")))
+                    facts.append({"tool": tool, "result": text[:1500]})
+        hidden = {"scopes", "thread_id"}
+        return {
+            **{k: v for k, v in handoff.items() if k not in hidden},
+            "due_at": due_at(handoff),
+            "conversation": conversation,
+            "facts": facts,
+            "audit": self.hitl.audit_trail(handoff["id"]),
+        }
+
+    def operator_command(self, operator: str, action: str, handoff_id: str, text: str) -> str:
+        """Telegram commands land here and use the same resume path as the console."""
+        handoff = self.hitl.handoff(handoff_id)
+        if handoff is None:
+            return f"{handoff_id} não encontrado."
+        try:
+            result = self.resume(handoff, operator, action, text, f"tg-{uuid.uuid4().hex[:12]}")
+        except OrchestratorError as exc:
+            messages = {
+                "handoff_not_pending": f"{handoff_id} já foi respondido.",
+                "operator_message_blocked": "Mensagem bloqueada pelo filtro de segurança "
+                "(tentativa de mudar regras, acessar outro lojista ou confirmar ação). "
+                "Nada foi enviado ao lojista.",
+            }
+            return messages.get(exc.code, f"Não foi possível concluir: {exc.message}")
+        return f"✅ {handoff_id} resolvido. O lojista recebeu:\n{result.answer[:1500]}"
 
     @staticmethod
     def thread_id(principal: Principal, session_id: str) -> str:
@@ -301,42 +434,87 @@ class Orchestrator:
     def resume(
         self, handoff: dict[str, Any], operator: str, action: str, message: str, request_id: str
     ) -> ChatResponse:
-        if not self.hitl.claim_reply(handoff["id"], operator, action, message):
+        """Operator reply -> guardrail -> claim -> resume the paused graph -> notify."""
+        if handoff["status"] != "pending":
             raise OrchestratorError(409, "handoff_not_pending", "Handoff already answered.")
         started = time.monotonic()
-        merchant = Principal(
-            handoff["merchant_id"],
-            handoff["tenant"],
-            frozenset(handoff["scopes"].split()),
-            jti=f"handoff:{handoff['id']}",
-        )
         tracker = UsageTracker(max_cost_usd=self.settings.max_cost_per_chat_usd)
         token = current_usage.set(tracker)
-        ctx = self._context(merchant, handoff["session_id"], handoff["language"])
         try:
-            state = self._invoke(
-                Command(resume={"operator_action": action, "operator_message": message}),
-                ctx,
-                handoff["thread_id"],
+            # The operator is authenticated, but the text still goes through redaction and its
+            # own classifier: it must not become a way into another merchant or around rules.
+            try:
+                screened = check_operator(self.llm, message, handoff["language"])
+            except BudgetExceeded as exc:
+                raise OrchestratorError(503, "budget_exceeded", str(exc)) from exc
+            except LLMUnavailable as exc:
+                raise OrchestratorError(503, "llm_unavailable", str(exc)) from exc
+            GUARDRAIL.labels("operator", screened.category).inc()
+            if screened.blocked:
+                self.hitl.audit(
+                    handoff["id"],
+                    "reply_blocked",
+                    operator,
+                    action=action,
+                    category=screened.category,
+                    reason=screened.reason,
+                )
+                raise OrchestratorError(
+                    422,
+                    "operator_message_blocked",
+                    "The message was blocked by the operator guardrail; nothing was sent.",
+                )
+            message = screened.text
+            if not self.hitl.claim_reply(handoff["id"], operator, action, message):
+                raise OrchestratorError(409, "handoff_not_pending", "Handoff already answered.")
+            self.hitl.audit(
+                handoff["id"],
+                "replied",
+                operator,
+                action=action,
+                message=message,
+                redacted=screened.redacted,
             )
-        except TurnLimit as exc:
-            self.hitl.release(handoff["id"])
-            raise OrchestratorError(503, "turn_limit", "Per-turn cost cap reached.") from exc
-        except Exception:
-            self.hitl.release(handoff["id"])
-            raise
+            merchant = Principal(
+                handoff["merchant_id"],
+                handoff["tenant"],
+                frozenset(handoff["scopes"].split()),
+                jti=f"handoff:{handoff['id']}",
+            )
+            ctx = self._context(merchant, handoff["session_id"], handoff["language"])
+            try:
+                state = self._invoke(
+                    Command(resume={"operator_action": action, "operator_message": message}),
+                    ctx,
+                    handoff["thread_id"],
+                )
+            except TurnLimit as exc:
+                self.hitl.release(handoff["id"])
+                self.hitl.audit(handoff["id"], "resume_failed", "system", error="turn_limit")
+                raise OrchestratorError(503, "turn_limit", "Per-turn cost cap reached.") from exc
+            except Exception as exc:
+                self.hitl.release(handoff["id"])
+                self.hitl.audit(handoff["id"], "resume_failed", "system", error=type(exc).__name__)
+                raise
         finally:
             current_usage.reset(token)
         checked = check_output(
             str(state.get("answer") or "").strip(), {s.id for s in ctx.sources}, handoff["language"]
         )
         self.hitl.resolve(handoff["id"], checked.text)
+        self.hitl.audit(
+            handoff["id"],
+            "resolved",
+            "assistant",
+            answer_chars=len(checked.text),
+            output_flags=checked.flags,
+            cost_usd=round(tracker.cost_usd, 5),
+        )
         opened = datetime.fromisoformat(handoff["created_at"])
         HANDOFF_REPLY.observe((datetime.now(UTC) - opened).total_seconds())
         event = {"handoff_id": handoff["id"], "answer": checked.text, "request_id": request_id}
         self.hitl.add_event(merchant.sub, handoff["session_id"], "handoff.resolved", event)
         self.notify("merchant", "handoff.resolved", {**event, "merchant_id": merchant.sub})
-        screened = InputDecision(message, "ok", handoff["language"])
         return self._response(
             checked.text,
             "handoff_resolved",

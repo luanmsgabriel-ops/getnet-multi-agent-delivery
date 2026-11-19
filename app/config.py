@@ -48,6 +48,14 @@ class Settings(BaseSettings):
     operator_webhook_url: str | None = None
     merchant_webhook_url: str | None = None
     webhook_secret: SecretStr | None = None
+    # Operator console link used in notifications, and how often overdue handoffs are checked.
+    operator_console_url: str = "http://127.0.0.1:8000/operator"
+    handoff_sweep_seconds: float = 30.0
+    # Telegram channel for operators (app/hitl/telegram.py): bot token from BotFather and the
+    # chat ids allowed to receive handoffs and send commands (comma-separated).
+    telegram_bot_token: SecretStr | None = None
+    telegram_operator_chat_ids: str = ""
+    telegram_polling: bool = True  # read commands in this replica (enable in one replica only)
 
     @field_validator("jwt_secret")
     @classmethod
@@ -69,12 +77,18 @@ class Settings(BaseSettings):
             raise ValueError("Set OIDC_ISSUER, or JWT_SECRET for local tokens (run `make setup`).")
         return self
 
-    @field_validator("anthropic_api_key", "webhook_secret")
+    @field_validator("anthropic_api_key", "webhook_secret", "telegram_bot_token")
     @classmethod
     def _empty_is_none(cls, value: SecretStr | None) -> SecretStr | None:
         if value is not None and not value.get_secret_value().strip():
             return None
         return value
+
+    @property
+    def telegram_chat_ids(self) -> frozenset[int]:
+        return frozenset(
+            int(x) for x in self.telegram_operator_chat_ids.replace(" ", "").split(",") if x
+        )
 
     @property
     def db_path(self) -> Path:

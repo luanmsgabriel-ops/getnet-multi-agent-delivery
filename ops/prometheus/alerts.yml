@@ -56,6 +56,19 @@ groups:
         annotations:
           summary: "More than 5 merchants waiting for a human for 15 minutes"
 
+      - alert: HandoffDeadlineMissed
+        expr: sum(increase(handoff_sla_breached_total[15m])) > 0
+        labels: {severity: page}
+        annotations:
+          summary: "A handoff passed its answer deadline (15 min high, 60 min normal)"
+
+      - alert: OperatorNotificationsFailing
+        expr: sum by (channel) (increase(operator_notifications_total{delivered="false"}[15m])) > 0
+        for: 5m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Operator notifications failing on {{ $labels.channel }}"
+
       - alert: GuardrailBlockSpike
         expr: |
           sum(rate(guardrail_decisions_total{stage="input", decision!="ok"}[10m]))
