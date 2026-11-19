@@ -131,7 +131,7 @@ On the first concurrent run these signals caught an OOM kill and CPU contention 
 
 ## Security
 
-Tokens come from an OIDC issuer and are checked against its JWKS (a development provider runs in compose, [ADR 015](docs/adr/015-oidc-tokens-via-jwks.md)), with scopes, expiry and revocation. Identity comes from the token. Every data read is scoped and filtered by merchant. Rate limits. PII and secrets are redacted before the model. The prompt-injection classifier is measured (98.3% blocked, 0% false positives), and an end-to-end indirect-injection test passes. The container runs non-root and read-only with all capabilities dropped. See [docs/SECURITY.md](docs/SECURITY.md) for the STRIDE table.
+Tokens come from an OIDC issuer and are checked against its JWKS (a development provider runs in compose, [ADR 015](docs/adr/015-oidc-tokens-via-jwks.md)), with scopes, expiry and revocation. Identity comes from the token. Every data read is scoped and filtered by merchant. Rate limits. PII and secrets are redacted before the model. The prompt-injection classifier is measured on our own set (98.3% blocked, 0% false positives) and on public sets we did not write (90.6% blocked, 0% false positives, [docs/SECURITY.md](docs/SECURITY.md)). Indirect injection at scale (0/20 obeyed), multi-turn attacks (0/6) and memory poisoning (0 stored) are measured end to end. The container runs non-root and read-only with all capabilities dropped. See [docs/SECURITY.md](docs/SECURITY.md) for the STRIDE table.
 
 ## Design decisions and limits
 

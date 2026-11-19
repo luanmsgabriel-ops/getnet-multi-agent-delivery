@@ -1,0 +1,702 @@
+[
+ {
+  "step": "merchant",
+  "session": "mem-4f7581",
+  "message": "Quanto eu vendi ontem no total?",
+  "response": {
+   "answer": "Ontem (18/11) você vendeu **R$ 2.063,96**, em 10 transações aprovadas.\n\nPor método:\n- Crédito: 5 vendas, R$ 882,98\n- Pix: 4 vendas, R$ 1.109,49\n- Débito: 1 venda, R$ 71,49\n\nHouve também uma tentativa recusada de R$ 158,90 no crédito (código 51). Ela não entra no total.\n\nAtenção: duas vendas de R$ 239,90 no crédito foram feitas às 11:05 e às 11:06, no mesmo cartão (final 8812) e no mesmo terminal. Pode ter havido cobrança duplicada. Vale confirmar com o cliente. Se ele contestar, posso acionar um especialista.",
+   "outcome": "answered",
+   "session_id": "mem-4f7581",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "trace_id": null,
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 46,
+     "arguments": {
+      "date_from": "2026-11-18",
+      "date_to": "2026-11-18"
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 4416,
+     "arguments": {
+      "request": "Qual foi o total vendido pelo lojista ontem (2026-11-18)? Inclua o valor total e o número de transações, se disponível."
+     }
+    },
+    {
+     "agent": "verifier",
+     "tool": "verify_answer",
+     "status": "ok",
+     "latency_ms": 0,
+     "arguments": {
+      "result": "pass"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": null,
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 6,
+    "input_tokens": 4561,
+    "output_tokens": 1245,
+    "cache_read_tokens": 11267,
+    "web_searches": 0,
+    "cost_usd": 0.01455
+   },
+   "latency_ms": 12912,
+   "request_id": "5ecdad71f0be4315948755eed4e8d1bb"
+  }
+ },
+ {
+  "step": "merchant",
+  "session": "mem-4f7581",
+  "message": "E no dia anterior a esse?",
+  "response": {
+   "answer": "Em 17/11 você vendeu **R$ 857,69**, em 5 transações aprovadas.\n\nPor método:\n- Pix: 3 vendas, R$ 684,85\n- Crédito: 1 venda, R$ 158,12\n- Débito: 1 venda, R$ 14,72\n\nHouve uma tentativa recusada de R$ 287,23 no crédito (código 55). Ela não entra no total. Não encontrei cobrança duplicada nesse dia.\n\nA possível duplicidade continua sendo a de 18/11. São duas vendas de R$ 239,90 no mesmo cartão, às 11:05 e às 11:06. Se quiser, posso acionar um especialista para analisar.",
+   "outcome": "answered",
+   "session_id": "mem-4f7581",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "trace_id": null,
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 4,
+     "arguments": {
+      "date_from": "2026-11-17",
+      "date_to": "2026-11-17"
+     }
+    },
+    {
+     "agent": "support",
+     "tool": "get_recent_transactions",
+     "status": "ok",
+     "latency_ms": 3,
+     "arguments": {
+      "status": "any",
+      "limit": 20
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 6604,
+     "arguments": {
+      "request": "Total de vendas do dia 17/11/2026 (anteontem), com número de transações aprovadas, divisão por método (crédito, débito, Pix), transações recusadas e qualquer possível cobrança duplicada."
+     }
+    },
+    {
+     "agent": "verifier",
+     "tool": "verify_answer",
+     "status": "ok",
+     "latency_ms": 0,
+     "arguments": {
+      "result": "pass"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": null,
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 6,
+    "input_tokens": 8675,
+    "output_tokens": 1462,
+    "cache_read_tokens": 11267,
+    "web_searches": 0,
+    "cost_usd": 0.02217
+   },
+   "latency_ms": 13792,
+   "request_id": "d6d44ad38b7843d1b9eb7a5088b6bef0"
+  }
+ },
+ {
+  "step": "merchant",
+  "session": "hitl-c39eb2",
+  "message": "Meu cliente foi cobrado duas vezes ontem no mesmo cartão, no valor de R$ 239,90. Quero que estornem uma das vendas.",
+  "response": {
+   "answer": "Encaminhei seu caso para um especialista da Getnet (protocolo H-01026A). A resposta vai aparecer aqui nesta conversa assim que ele responder.",
+   "outcome": "handoff",
+   "session_id": "hitl-c39eb2",
+   "agents_used": [
+    "supervisor",
+    "escalation",
+    "support"
+   ],
+   "trace_id": null,
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 2,
+     "arguments": {
+      "date_from": "2026-11-18",
+      "date_to": "2026-11-18"
+     }
+    },
+    {
+     "agent": "support",
+     "tool": "get_recent_transactions",
+     "status": "ok",
+     "latency_ms": 2,
+     "arguments": {
+      "status": "any",
+      "limit": 20
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 5976,
+     "arguments": {
+      "request": "Listar as vendas de ontem (2026-11-18) no valor de R$ 239,90, com horário, cartão (final/bandeira), status, NSU/ID e forma de pagamento, para verificar possível cobrança duplicada no mesmo cartão."
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "escalate_to_human",
+     "status": "pending",
+     "latency_ms": 0,
+     "arguments": {
+      "reason": "charge_dispute",
+      "priority": "high"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": {
+    "id": "H-01026A",
+    "status": "pending"
+   },
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 5,
+    "input_tokens": 5371,
+    "output_tokens": 1062,
+    "cache_read_tokens": 10647,
+    "web_searches": 0,
+    "cost_usd": 0.02243
+   },
+   "latency_ms": 11434,
+   "request_id": "36eb6d6572c642fd9985b275d638272f"
+  }
+ },
+ {
+  "step": "operator_queue",
+  "response": [
+   {
+    "id": "H-01026A",
+    "tenant": "demo",
+    "merchant_id": "cliente1988",
+    "session_id": "hitl-c39eb2",
+    "reason": "charge_dispute",
+    "priority": "high",
+    "summary": "Lojista cliente1988 pede estorno de uma de duas vendas duplicadas. Verificado: em 18/11/2026, duas vendas aprovadas de R$ 239,90, crédito à vista 1x, Mastercard final 8812, terminal T-1988-02: S-1988-01248 (11:05) e S-1988-01249 (11:06). NSU indisponível. Solicita estorno de uma delas (provavelmente S-1988-01249).",
+    "language": "pt",
+    "status": "pending",
+    "created_at": "2026-11-19T18:57:09+00:00",
+    "operator": null,
+    "operator_action": null,
+    "operator_message": null,
+    "replied_at": null,
+    "final_answer": null,
+    "due_at": "2026-11-19T19:12:09+00:00"
+   }
+  ]
+ },
+ {
+  "step": "operator_reply",
+  "handoff": "H-01026A",
+  "response": {
+   "answer": "Confirmei os dados com o suporte. Há uma cobrança duplicada, e o estorno da segunda venda foi solicitado ao time de cancelamentos. Protocolo: **H-01026A**.\n\n**Vendas de 18/11/2026 confirmadas:**\n- **S-1988-01248**, às 11:05: R$ 239,90, aprovada.\n- **S-1988-01249**, às 11:06: R$ 239,90, aprovada. É a venda do estorno solicitado.\n- As duas foram no crédito à vista (1x), no Mastercard final 8812, no terminal T-1988-02.\n\nO valor volta para a fatura do cliente conforme o prazo do emissor do cartão. Ainda não há data confirmada para o crédito. Para acompanhar o caso, informe o protocolo acima.",
+   "outcome": "handoff_resolved",
+   "session_id": "hitl-c39eb2",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "trace_id": null,
+   "tool_calls": [
+    {
+     "agent": "verifier",
+     "tool": "verify_answer",
+     "status": "unsupported",
+     "latency_ms": 0,
+     "arguments": {
+      "result": "replan"
+     }
+    },
+    {
+     "agent": "support",
+     "tool": "get_recent_transactions",
+     "status": "ok",
+     "latency_ms": 1,
+     "arguments": {
+      "status": "any",
+      "limit": 20
+     }
+    },
+    {
+     "agent": "support",
+     "tool": "get_sales_summary",
+     "status": "ok",
+     "latency_ms": 2,
+     "arguments": {
+      "date_from": "2026-11-18",
+      "date_to": "2026-11-18"
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 4599,
+     "arguments": {
+      "request": "Confirmar os detalhes das vendas de R$ 239,90 de 18/11/2026: IDs, horários, cartão (final/bandeira), forma de pagamento e terminal."
+     }
+    },
+    {
+     "agent": "verifier",
+     "tool": "verify_answer",
+     "status": "ok",
+     "latency_ms": 0,
+     "arguments": {
+      "result": "fixed"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": {
+    "id": "H-01026A",
+    "status": "resolved"
+   },
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 8,
+    "input_tokens": 14656,
+    "output_tokens": 2181,
+    "cache_read_tokens": 13368,
+    "web_searches": 0,
+    "cost_usd": 0.03539
+   },
+   "latency_ms": 20833,
+   "request_id": "a7c0c818146f44dfb380cdc6e643de14"
+  }
+ },
+ {
+  "step": "merchant_sse",
+  "events": "id: 1\nevent: handoff.resolved\ndata: {\"handoff_id\": \"H-01026A\", \"answer\": \"Confirmei os dados com o suporte. Há uma cobrança duplicada, e o estorno da segunda venda foi solicitado ao time de cancelamentos. Protocolo: **H-01026A**.\\n\\n**Vendas de 18/11/2026 confirmadas:**\\n- **S-1988-01248**, às 11:05: R$ 239,90, aprovada.\\n- **S-1988-01249**, às 11:06: R$ 239,90, aprovada. É a venda do estorno solicitado.\\n- As duas foram no crédito à vista (1x), no Mastercard final 8812, no terminal T-1988-02.\\n\\nO valor volta para a fatura do cliente conforme o prazo do emissor do cartão. Ainda não há data confirmada para o crédito. Para acompanhar o caso, informe o protocolo acima.\", \"request_id\": \"a7c0c818146f44dfb380cdc6e643de14\"}\n\n: keep-alive\n\n"
+ },
+ {
+  "step": "handoff_audit",
+  "response": [
+   {
+    "at": "2026-11-19T18:57:09+00:00",
+    "kind": "created",
+    "actor": "assistant",
+    "detail": {
+     "reason": "charge_dispute",
+     "priority": "high"
+    }
+   },
+   {
+    "at": "2026-11-19T18:57:09+00:00",
+    "kind": "notified",
+    "actor": "system",
+    "detail": {
+     "channel": "webhook",
+     "event": "handoff.created",
+     "target": "operator",
+     "delivered": true
+    }
+   },
+   {
+    "at": "2026-11-19T18:57:12+00:00",
+    "kind": "replied",
+    "actor": "ana",
+    "detail": {
+     "action": "instruct",
+     "message": "Confirmei a duplicidade. O estorno da segunda venda foi solicitado ao time de cancelamentos. Explique ao lojista que o valor volta para a fatura do cliente conforme o prazo do emissor e informe o protocolo.",
+     "redacted": []
+    }
+   },
+   {
+    "at": "2026-11-19T18:57:30+00:00",
+    "kind": "resolved",
+    "actor": "assistant",
+    "detail": {
+     "answer_chars": 594,
+     "output_flags": [],
+     "cost_usd": 0.03539
+    }
+   },
+   {
+    "at": "2026-11-19T18:57:30+00:00",
+    "kind": "notified",
+    "actor": "system",
+    "detail": {
+     "channel": "webhook",
+     "event": "handoff.resolved",
+     "target": "merchant",
+     "delivered": true
+    }
+   }
+  ]
+ },
+ {
+  "step": "merchant",
+  "session": "act-62a01a",
+  "message": "Quanto eu receberia hoje se antecipasse os recebíveis de crédito de amanhã até daqui a 60 dias? Só quero simular.",
+  "response": {
+   "answer": "Se você antecipasse hoje, receberia **R$ 27.554,86**.\n\nDetalhes da simulação, para vencimentos de 20/11/2026 a 18/01/2027 (181 recebíveis de crédito):\n- Valor bruto das vendas: R$ 28.841,45\n- Líquido nas datas originais, já sem as taxas de venda: R$ 27.932,86\n- Taxa de antecipação: R$ 378,00. É ilustrativa, de 1,99% ao mês, calculada pro rata pelos dias antecipados.\n- **Líquido recebido hoje: R$ 27.554,86**\n\nOs dados são de demonstração e não são uma oferta real. Nada foi proposto nem contratado. Se quiser seguir, posso preparar uma proposta, que você ainda teria que confirmar no app.",
+   "outcome": "answered",
+   "session_id": "act-62a01a",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "trace_id": null,
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "simulate_anticipation",
+     "status": "ok",
+     "latency_ms": 7,
+     "arguments": {
+      "date_from": "2026-11-20",
+      "date_to": "2027-01-18"
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 4429,
+     "arguments": {
+      "request": "Simular antecipação (apenas simulação, sem propor/confirmar) dos recebíveis de cartão de crédito com vencimento de amanhã (2026-11-20) até daqui a 60 dias (2027-01-18). Quanto o lojista receberia hoje (valor bruto, taxa/desconto e valor líquido)?"
+     }
+    },
+    {
+     "agent": "verifier",
+     "tool": "verify_answer",
+     "status": "ok",
+     "latency_ms": 0,
+     "arguments": {
+      "result": "pass"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": null,
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 6,
+    "input_tokens": 2402,
+    "output_tokens": 1433,
+    "cache_read_tokens": 11267,
+    "web_searches": 0,
+    "cost_usd": 0.01354
+   },
+   "latency_ms": 13655,
+   "request_id": "7c1088a33e944d0f9be30be88162c9a8"
+  }
+ },
+ {
+  "step": "merchant",
+  "session": "act-62a01a",
+  "message": "Ok, pode seguir com essa antecipação.",
+  "response": {
+   "answer": "Criei a proposta de antecipação **A-099714**, mas ela **ainda não foi contratada**. Um \"sim\" aqui no chat não conclui a operação, e você precisa confirmar no app **até as 16:07 de hoje (19/11)**. Isso dá poucos minutos.\n\n- Recebíveis de crédito com vencimento entre 20/11/2026 e 18/01/2027 (181 recebíveis)\n- Valor bruto: R$ 28.841,45\n- Líquido nas datas originais: R$ 27.932,86\n- Taxa de antecipação: R$ 378,00 (1,99% ao mês, proporcional aos dias antecipados)\n- **Líquido hoje: R$ 27.554,86**\n\nOs valores são ilustrativos e não representam uma oferta real. Se o prazo expirar, posso gerar outra proposta.",
+   "outcome": "answered",
+   "session_id": "act-62a01a",
+   "agents_used": [
+    "supervisor",
+    "support"
+   ],
+   "trace_id": null,
+   "tool_calls": [
+    {
+     "agent": "support",
+     "tool": "propose_anticipation",
+     "status": "ok",
+     "latency_ms": 32,
+     "arguments": {
+      "date_from": "2026-11-20",
+      "date_to": "2027-01-18"
+     }
+    },
+    {
+     "agent": "supervisor",
+     "tool": "ask_support",
+     "status": "ok",
+     "latency_ms": 5360,
+     "arguments": {
+      "request": "Preparar uma proposta de antecipação dos recebíveis de crédito com vencimentos de amanhã (20/11/2026) até daqui a 60 dias (18/01/2027), conforme a simulação feita (líquido de R$ 27.554,86 hoje). O lojista confirmará no app."
+     }
+    },
+    {
+     "agent": "verifier",
+     "tool": "verify_answer",
+     "status": "ok",
+     "latency_ms": 0,
+     "arguments": {
+      "result": "pass"
+     }
+    }
+   ],
+   "sources": [],
+   "handoff": null,
+   "guardrails": {
+    "input": {
+     "category": "ok",
+     "redacted": []
+    },
+    "output": {
+     "flags": []
+    }
+   },
+   "usage": {
+    "llm_calls": 6,
+    "input_tokens": 3218,
+    "output_tokens": 1362,
+    "cache_read_tokens": 11267,
+    "web_searches": 0,
+    "cost_usd": 0.01502
+   },
+   "latency_ms": 13026,
+   "request_id": "5dc8ffecad27410aa11e743d8ab240fd"
+  }
+ },
+ {
+  "step": "actions_list",
+  "response": [
+   {
+    "id": "A-099714",
+    "kind": "anticipation",
+    "status": "proposed",
+    "params": {
+     "date_from": "2026-11-20",
+     "date_to": "2027-01-18",
+     "net_now_brl": 27554.86
+    },
+    "quote": {
+     "receivables": 181,
+     "payment_dates": [
+      "2026-11-20",
+      "2027-01-18"
+     ],
+     "gross_brl": 28841.45,
+     "net_on_original_dates_brl": 27932.86,
+     "anticipation_fee_brl": 378.0,
+     "net_now_brl": 27554.86,
+     "monthly_rate": 0.0199,
+     "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+    },
+    "created_at": "2026-11-19T18:57:50+00:00",
+    "expires_at": "2026-11-19T19:07:50+00:00",
+    "confirmed_at": null,
+    "result": null
+   }
+  ]
+ },
+ {
+  "step": "action_confirm",
+  "response": {
+   "id": "A-099714",
+   "kind": "anticipation",
+   "status": "confirmed",
+   "params": {
+    "date_from": "2026-11-20",
+    "date_to": "2027-01-18",
+    "net_now_brl": 27554.86
+   },
+   "quote": {
+    "receivables": 181,
+    "payment_dates": [
+     "2026-11-20",
+     "2027-01-18"
+    ],
+    "gross_brl": 28841.45,
+    "net_on_original_dates_brl": 27932.86,
+    "anticipation_fee_brl": 378.0,
+    "net_now_brl": 27554.86,
+    "monthly_rate": 0.0199,
+    "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+   },
+   "created_at": "2026-11-19T18:57:50+00:00",
+   "expires_at": "2026-11-19T19:07:50+00:00",
+   "confirmed_at": "2026-11-19T18:57:59+00:00",
+   "result": {
+    "anticipated_receivables": 181,
+    "net_now_brl": 27554.86,
+    "credited_to": "settlement account on file",
+    "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+   },
+   "replayed": false
+  }
+ },
+ {
+  "step": "action_confirm_again",
+  "response": {
+   "id": "A-099714",
+   "kind": "anticipation",
+   "status": "confirmed",
+   "params": {
+    "date_from": "2026-11-20",
+    "date_to": "2027-01-18",
+    "net_now_brl": 27554.86
+   },
+   "quote": {
+    "receivables": 181,
+    "payment_dates": [
+     "2026-11-20",
+     "2027-01-18"
+    ],
+    "gross_brl": 28841.45,
+    "net_on_original_dates_brl": 27932.86,
+    "anticipation_fee_brl": 378.0,
+    "net_now_brl": 27554.86,
+    "monthly_rate": 0.0199,
+    "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+   },
+   "created_at": "2026-11-19T18:57:50+00:00",
+   "expires_at": "2026-11-19T19:07:50+00:00",
+   "confirmed_at": "2026-11-19T18:57:59+00:00",
+   "result": {
+    "anticipated_receivables": 181,
+    "net_now_brl": 27554.86,
+    "credited_to": "settlement account on file",
+    "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+   },
+   "replayed": true
+  }
+ },
+ {
+  "step": "action_detail",
+  "response": {
+   "id": "A-099714",
+   "kind": "anticipation",
+   "status": "confirmed",
+   "params": {
+    "date_from": "2026-11-20",
+    "date_to": "2027-01-18",
+    "net_now_brl": 27554.86
+   },
+   "quote": {
+    "receivables": 181,
+    "payment_dates": [
+     "2026-11-20",
+     "2027-01-18"
+    ],
+    "gross_brl": 28841.45,
+    "net_on_original_dates_brl": 27932.86,
+    "anticipation_fee_brl": 378.0,
+    "net_now_brl": 27554.86,
+    "monthly_rate": 0.0199,
+    "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+   },
+   "created_at": "2026-11-19T18:57:50+00:00",
+   "expires_at": "2026-11-19T19:07:50+00:00",
+   "confirmed_at": "2026-11-19T18:57:59+00:00",
+   "result": {
+    "anticipated_receivables": 181,
+    "net_now_brl": 27554.86,
+    "credited_to": "settlement account on file",
+    "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+   },
+   "audit": [
+    {
+     "at": "2026-11-19T18:57:50+00:00",
+     "event": "proposed",
+     "actor": "assistant",
+     "request_id": "5dc8ffecad27410aa11e743d8ab240fd",
+     "before": null,
+     "after": {
+      "receivables": 181,
+      "payment_dates": [
+       "2026-11-20",
+       "2027-01-18"
+      ],
+      "gross_brl": 28841.45,
+      "net_on_original_dates_brl": 27932.86,
+      "anticipation_fee_brl": 378.0,
+      "net_now_brl": 27554.86,
+      "monthly_rate": 0.0199,
+      "disclaimer": "Valores ilustrativos: taxa fictícia de 1,99% ao mês, pro rata pelos dias antecipados (dados de demonstração, não é uma oferta real)."
+     }
+    },
+    {
+     "at": "2026-11-19T18:57:59+00:00",
+     "event": "confirmed",
+     "actor": "cliente1988",
+     "request_id": "efc06a36b6b94393870f790f053c9f93",
+     "before": {
+      "receivables": 181,
+      "status": "previsto"
+     },
+     "after": {
+      "receivables": 181,
+      "status": "antecipado"
+     }
+    }
+   ]
+  }
+ }
+]

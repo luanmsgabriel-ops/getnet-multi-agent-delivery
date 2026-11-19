@@ -5,7 +5,9 @@
 
 Flows: (1) multi-turn memory with a follow-up reference, (2) human handoff for a disputed
 charge: escalation -> signed operator webhook -> operator reply -> supervisor resumes ->
-merchant notified (SSE + webhook). Writes evals/results/<ts>-e2e-flows/transcript.json.
+merchant notified (SSE + webhook), with the case view and audit trail, (3) anticipation:
+simulation -> proposal -> confirmation by the merchant (twice, idempotent) -> audit.
+Writes evals/results/<ts>-e2e-flows/transcript.json.
 """
 
 import argparse
@@ -72,6 +74,36 @@ def main() -> None:
         print(f"operator reply -> {reply.get('outcome')}", flush=True)
         events = client.get(f"/sessions/{handoff_session}/events?wait_s=2", headers=merchant).text
         log.append({"step": "merchant_sse", "events": events})
+        audit = client.get(f"/operator/handoffs/{handoff}/audit", headers=operator).json()
+        log.append({"step": "handoff_audit", "response": audit})
+        print(f"handoff audit -> {[a['kind'] for a in audit]}", flush=True)
+
+    actions = f"act-{uuid.uuid4().hex[:6]}"
+    chat(
+        "Quanto eu receberia hoje se antecipasse os recebíveis de crédito de amanhã até daqui "
+        "a 60 dias? Só quero simular.",
+        actions,
+    )
+    chat("Ok, pode seguir com essa antecipação.", actions)
+    proposals = client.get("/actions", headers=merchant).json()
+    log.append({"step": "actions_list", "response": proposals})
+    pending = [a for a in proposals if a["status"] == "proposed" and a["kind"] == "anticipation"]
+    if pending:
+        pid = pending[0]["id"]
+        key = {**merchant, "Idempotency-Key": f"e2e-{pid}"}
+        first_confirm = client.post(f"/actions/{pid}/confirm", headers=key).json()
+        second_confirm = client.post(f"/actions/{pid}/confirm", headers=key).json()
+        detail = client.get(f"/actions/{pid}", headers=merchant).json()
+        log += [
+            {"step": "action_confirm", "response": first_confirm},
+            {"step": "action_confirm_again", "response": second_confirm},
+            {"step": "action_detail", "response": detail},
+        ]
+        print(
+            f"anticipation {pid}: {first_confirm.get('status')} then replayed="
+            f"{second_confirm.get('replayed')}; audit {[a['event'] for a in detail['audit']]}",
+            flush=True,
+        )
 
     out = ROOT / "results" / f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}-e2e-flows"
     out.mkdir(parents=True, exist_ok=True)

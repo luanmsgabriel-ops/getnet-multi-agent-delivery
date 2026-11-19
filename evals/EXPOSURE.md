@@ -45,3 +45,7 @@ All earlier retrieval and answer holdouts (`retrieval_holdout`, `retrieval_holdo
 ## Judge calibration v4 (2026-11-19)
 
 `labels_v4.csv` (rater 1, 70 items) and `labels_v4_second_rater.csv` (rater 2, the 50-item measurement half). Both are human labels, made independently, without the judge's grades or each other's labels, and without AI assistance (stated by the author). The measurement half is not used to tune the judge; the judge was not changed after these labels.
+
+## External security sets (2026-11-19)
+
+`evals/datasets/external/` (deepset/prompt-injections and Lakera/gandalf_ignore_instructions, test splits, plus a 50-item machine-translated PT sample). First measured in `evals/results/20261119T183914Z-security-external`, with the classifier prompt unchanged since v3. That run is the clean result. From then on the test splits count as **seen**: any classifier change must be chosen on the train/validation splits and reported next to this run, never instead of it.

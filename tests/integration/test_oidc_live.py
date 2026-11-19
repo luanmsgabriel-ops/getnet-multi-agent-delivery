@@ -14,6 +14,7 @@ from app.config import Settings
 from app.main import create_app
 from app.security.auth import OidcVerifier
 from app.security.tokens import _oidc_token
+from tests.fakes import ScriptedLLM
 
 ISSUER = os.environ.get("TEST_OIDC_ISSUER")
 pytestmark = pytest.mark.skipif(not ISSUER, reason="TEST_OIDC_ISSUER not set")
@@ -43,7 +44,8 @@ def settings(tmp_path: Path) -> Settings:
 def client(settings: Settings) -> Iterator[TestClient]:
     assert settings.oidc_issuer
     verifier = OidcVerifier(settings.oidc_issuer, settings.oidc_audience)
-    with TestClient(create_app(settings, verifier=verifier)) as c:
+    llm = ScriptedLLM({})  # operator routes need the agents configured; no model call is made
+    with TestClient(create_app(settings, llm=llm, verifier=verifier)) as c:
         yield c
 
 

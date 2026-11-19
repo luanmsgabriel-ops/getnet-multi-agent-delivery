@@ -95,7 +95,9 @@ def _chat(c: TestClient, tok: str, message: str, session: str = "s1") -> dict[st
 def test_state_lives_in_postgres_across_restarts(
     settings: Settings, pg_url: str, token: Callable[..., str], notify: list[str]
 ) -> None:
-    pg_settings = settings.model_copy(update={"state_database_url": pg_url})
+    pg_settings = settings.model_copy(
+        update={"state_database_url": pg_url, "operator_webhook_url": "http://sink/operator"}
+    )
     llm = ScriptedLLM(
         {
             "supervisor": [
