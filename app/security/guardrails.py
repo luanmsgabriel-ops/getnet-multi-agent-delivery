@@ -146,8 +146,32 @@ class InputDecision:
         return texts.get(self.language, texts["en"])
 
 
+PT_MARKERS = frozenset(
+    "não nao que de do da você voce minha meu como quanto qual quais por para uma um "
+    "vendas venda maquininha está esta são sao tenho pode quando hoje ontem amanhã amanha".split()
+)
+EN_MARKERS = frozenset(
+    "the my what how is are do does can i you your sales machine when today yesterday "
+    "tomorrow which why where much many".split()
+)
+
+
+def detect_language(text: str) -> str:
+    """Cheap pt/en guess for the reply language, so the supervisor does not wait for the
+    classifier. Accents and Portuguese function words decide; English only on clear evidence."""
+    words = re.findall(r"[a-zà-ú]+", text.lower())
+    pt = sum(w in PT_MARKERS for w in words) + 2 * bool(re.search(r"[ãõçáéíóúâêô]", text.lower()))
+    en = sum(w in EN_MARKERS for w in words)
+    return "en" if en > pt else "pt"
+
+
 def check_input(llm: LLMClient, message: str) -> InputDecision:
     clean, found = redact(message)
+    return classify(llm, clean, found)
+
+
+def classify(llm: LLMClient, clean: str, found: list[str]) -> InputDecision:
+    """LLM classification of an already-redacted message."""
     result = llm.create(
         agent="guardrail",
         system=CLASSIFIER_SYSTEM,

@@ -74,6 +74,24 @@ class TraceEvent:
     result_preview: str = ""  # tool output excerpt; only exposed when evaluation mode is on
 
 
+STATUS_TEXT: dict[str, dict[str, str]] = {
+    "analyzing": {"pt": "Analisando sua pergunta", "en": "Reading your question"},
+    "knowledge": {
+        "pt": "Consultando o conteúdo oficial da Getnet",
+        "en": "Checking Getnet's official content",
+    },
+    "support": {"pt": "Consultando os dados da sua conta", "en": "Checking your account data"},
+    "escalation": {
+        "pt": "Encaminhando para um especialista",
+        "en": "Passing your case to a specialist",
+    },
+    "verifying": {
+        "pt": "Conferindo a resposta com as fontes",
+        "en": "Checking the answer against the sources",
+    },
+}
+
+
 @dataclass
 class ToolContext:
     principal: Principal
@@ -84,6 +102,8 @@ class ToolContext:
     language: str = "en"
     # Session services (handoff store, notifier); absent in unit tests of single tools.
     services: dict[str, Any] = field(default_factory=dict)
+    # Progress listener for streaming (POST /chat/stream); None for plain /chat.
+    emit: Callable[[str, dict[str, Any]], None] | None = None
     evidence: list[str] = field(default_factory=list)  # full tool outputs, for grounding checks
     trace: list[TraceEvent] = field(default_factory=list)
     sources: list[Source] = field(default_factory=list)
@@ -102,6 +122,17 @@ class ToolContext:
     def record(self, event: TraceEvent) -> None:
         with self._lock:
             self.trace.append(event)
+
+    def status(self, step: str) -> None:
+        """Tell a streaming client what is happening now (never content, only the step)."""
+        if self.emit is not None:
+            self.emit(
+                "status",
+                {
+                    "step": step,
+                    "text": STATUS_TEXT[step].get(self.language, STATUS_TEXT[step]["en"]),
+                },
+            )
 
 
 @dataclass(frozen=True)

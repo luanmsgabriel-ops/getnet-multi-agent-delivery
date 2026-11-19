@@ -32,7 +32,7 @@ from app.agents.base import (
 )
 from app.agents.knowledge import run_knowledge
 from app.agents.support import run_support
-from app.graph.verify import feedback, strip_unsupported, verify
+from app.graph.verify import feedback, is_high_risk, strip_unsupported, verify
 from app.memory import Category, summarize
 from app.observability import HANDOFFS, VERIFY
 from app.rag.grounding import unsupported_figures
@@ -221,6 +221,24 @@ class State(TypedDict, total=False):
     outcome: str | None
 
 
+class InputBlocked(Exception):
+    """The input classifier (running in parallel) blocked this message."""
+
+
+def _gate(ctx: ToolContext) -> None:
+    """Wait for the input classifier before any tool runs or any answer leaves the graph."""
+    screening = ctx.services.get("screening")
+    if screening is not None and screening.result().blocked:
+        raise InputBlocked
+
+
+STATUS_FOR_TOOL = {
+    "ask_knowledge": "knowledge",
+    "ask_support": "support",
+    "escalate_to_human": "escalation",
+}
+
+
 def _ctx(config: RunnableConfig) -> ToolContext:
     ctx: ToolContext = config["configurable"]["ctx"]
     return ctx
@@ -269,7 +287,14 @@ def supervisor_node(state: State, config: RunnableConfig) -> State:
 
 def specialists_node(state: State, config: RunnableConfig) -> State:
     ctx = _ctx(config)
+    _gate(ctx)
     blocks = state["messages"][-1]["content"]
+    for step in dict.fromkeys(
+        STATUS_FOR_TOOL[b["name"]]
+        for b in blocks
+        if b.get("type") == "tool_use" and b.get("name") in STATUS_FOR_TOOL
+    ):
+        ctx.status(step)
     escalation = next(
         (b for b in blocks if b.get("type") == "tool_use" and b.get("name") == "escalate_to_human"),
         None,
@@ -355,6 +380,7 @@ def await_human_node(state: State) -> State:
 
 
 def finalize_node(state: State, config: RunnableConfig) -> State:
+    _gate(_ctx(config))
     turns = [
         *state.get("turns", []),
         {"user": state["user_message"], "assistant": state.get("answer") or ""},
@@ -393,10 +419,13 @@ def _evidence(state: State, ctx: ToolContext) -> list[str]:
 def verify_node(state: State, config: RunnableConfig) -> State:
     """Check higher-risk claims before sending; one replan, then remove what stays unsupported."""
     ctx = _ctx(config)
+    _gate(ctx)
     model = ctx.services.get("verifier_model")
     answer = str(state.get("answer") or "")
     if not model:
         return {}
+    if is_high_risk(answer):
+        ctx.status("verifying")
     verdict = verify(answer, _evidence(state, ctx), ctx.llm, model)
     attempts = state.get("verify_attempts", 0)
     result = "pass" if verdict.status != "fail" else ("replan" if attempts == 0 else "limited")

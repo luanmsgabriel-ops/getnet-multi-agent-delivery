@@ -1,7 +1,9 @@
 """FastAPI application: routes, authentication, rate limiting and error handling."""
 
+import contextvars
 import json
 import logging
+import queue
 import threading
 import time
 import uuid
@@ -223,6 +225,15 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
     def chat(
         body: ChatRequest, request: Request, p: Annotated[Principal, Depends(rate_limited)]
     ) -> ChatResponse:
+        check_chat(body, p)
+        try:
+            return orch().run(
+                p, body.message, request.state.request_id, body.session_id or "default"
+            )
+        except OrchestratorError as exc:
+            raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    def check_chat(body: ChatRequest, p: Principal) -> None:
         require_scope(p, "chat:use")
         if body.user_id != p.sub:
             raise AuthError(403, "user_mismatch", "user_id does not match the authenticated token.")
@@ -231,12 +242,55 @@ def create_app(settings: Settings | None = None, llm: LLMClient | None = None) -
                 422, "message_too_long", f"message exceeds {settings.max_message_chars} characters."
             )
         ensure_seed(db, settings.today(), settings.tz)
-        try:
-            return orch().run(
-                p, body.message, request.state.request_id, body.session_id or "default"
-            )
-        except OrchestratorError as exc:
-            raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    @app.post("/chat/stream", tags=["chat"])
+    def chat_stream(
+        body: ChatRequest, request: Request, p: Annotated[Principal, Depends(rate_limited)]
+    ) -> StreamingResponse:
+        """Same turn as POST /chat, as server-sent events (docs/adr/013): `status` events while the
+        agents work, then the verified answer in `delta` events and the full JSON in `final`.
+        The answer is sent only after the verifier, so tokens are not streamed before checking."""
+        check_chat(body, p)
+        events: queue.Queue[tuple[str, dict[str, Any]]] = queue.Queue()
+        started = time.monotonic()
+
+        def work() -> None:
+            try:
+                result = orch().run(
+                    p,
+                    body.message,
+                    request.state.request_id,
+                    body.session_id or "default",
+                    emit=lambda kind, data: events.put((kind, data)),
+                )
+                events.put(("final", result.model_dump(mode="json")))
+            except OrchestratorError as exc:
+                events.put(("error", {"code": exc.code, "message": exc.message}))
+            except Exception:  # the stream must always end with an event
+                log.exception("stream_failed")
+                events.put(("error", {"code": "internal_error", "message": "Unexpected error."}))
+
+        threading.Thread(target=contextvars.copy_context().run, args=(work,), daemon=True).start()
+
+        def sse(kind: str, data: dict[str, Any]) -> str:
+            data = {**data, "elapsed_ms": int((time.monotonic() - started) * 1000)}
+            return f"event: {kind}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+        def stream() -> Iterator[str]:
+            while True:
+                kind, data = events.get()
+                if kind == "final":
+                    for part in [x for x in str(data.get("answer", "")).split("\n\n") if x]:
+                        yield sse("delta", {"text": part + "\n\n"})
+                    yield sse("final", data)
+                    return
+                yield sse(kind, data)
+                if kind == "error":
+                    return
+
+        return StreamingResponse(
+            stream(), media_type="text/event-stream", headers={"X-Accel-Buffering": "no"}
+        )
 
     def orch() -> Orchestrator:
         orchestrator: Orchestrator | None = app.state.orchestrator

@@ -73,7 +73,7 @@ def test_claim_unsupported_twice_is_removed_with_a_limitation(
         body = _chat(c, token(), "Qual meu limite diário?")
     assert "5000" not in body["answer"]
     assert "Posso ajudar em algo mais?" in body["answer"]
-    assert "could not be confirmed" in body["answer"]  # guardrail default language is en
+    assert "não puderam ser confirmadas" in body["answer"]  # reply language detected: pt
     assert [e["arguments"]["result"] for e in _verifier_events(body)] == ["replan", "limited"]
 
 

@@ -1,9 +1,12 @@
 """Runs chat turns through the supervisor graph: guardrails, memory, handoff and resume."""
 
+import contextvars
 import logging
 import re
 import sqlite3
 import time
+from collections.abc import Callable
+from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import UTC, datetime
 from typing import Any
 
@@ -13,7 +16,7 @@ from langgraph.types import Command
 from app.agents.base import ToolContext
 from app.config import Settings
 from app.data.db import Database
-from app.graph.supervisor import build_graph
+from app.graph.supervisor import InputBlocked, build_graph
 from app.hitl import notify
 from app.hitl.store import HitlStore
 from app.llm.client import (
@@ -38,7 +41,14 @@ from app.observability import (
 )
 from app.schemas import ChatResponse
 from app.security.auth import Principal
-from app.security.guardrails import InputDecision, OutputDecision, check_input, check_output
+from app.security.guardrails import (
+    InputDecision,
+    OutputDecision,
+    check_output,
+    classify,
+    detect_language,
+    redact,
+)
 
 log = logging.getLogger("getnet.chat")
 _CITATION = re.compile(r"\[(S\d+)\]")
@@ -55,6 +65,10 @@ HANDOFF_WAIT = {
     "en": "Your case (protocol {id}) is with a specialist. I'll continue here as soon as they "
     "reply.",
 }
+
+
+# The input classifier runs alongside the supervisor's first step (docs/adr/013).
+SCREENING = ThreadPoolExecutor(max_workers=8, thread_name_prefix="screen")
 
 
 class TurnLimit(Exception):
@@ -103,7 +117,14 @@ class Orchestrator:
     def thread_id(principal: Principal, session_id: str) -> str:
         return f"{principal.tenant}:{principal.sub}:{session_id}"
 
-    def _context(self, principal: Principal, session_id: str, language: str) -> ToolContext:
+    def _context(
+        self,
+        principal: Principal,
+        session_id: str,
+        language: str,
+        screening: "Future[InputDecision] | None" = None,
+        emit: Callable[[str, dict[str, Any]], None] | None = None,
+    ) -> ToolContext:
         return ToolContext(
             principal=principal,
             db=self.db,
@@ -118,8 +139,19 @@ class Orchestrator:
                 "verifier_model": self.settings.verifier_model
                 if self.settings.verify_answers
                 else None,
+                "screening": screening,
             },
+            emit=emit,
         )
+
+    @staticmethod
+    def _screened(screening: "Future[InputDecision]") -> InputDecision:
+        try:
+            return screening.result(timeout=120)
+        except BudgetExceeded as exc:
+            raise OrchestratorError(503, "budget_exceeded", str(exc)) from exc
+        except LLMUnavailable as exc:
+            raise OrchestratorError(503, "llm_unavailable", str(exc)) from exc
 
     def _invoke(self, payload: Any, ctx: ToolContext, thread: str) -> dict[str, Any]:
         try:
@@ -137,28 +169,32 @@ class Orchestrator:
 
     # -- merchant turn ------------------------------------------------------------------
     def run(
-        self, principal: Principal, message: str, request_id: str, session_id: str = "default"
+        self,
+        principal: Principal,
+        message: str,
+        request_id: str,
+        session_id: str = "default",
+        emit: Callable[[str, dict[str, Any]], None] | None = None,
     ) -> ChatResponse:
         started = time.monotonic()
         tracker = UsageTracker(max_cost_usd=self.settings.max_cost_per_chat_usd)
         token = current_usage.set(tracker)
+        # Redaction is instant and must happen before any model sees the text; the LLM
+        # classifier runs in parallel with the supervisor, gated before tools and answers.
+        clean, found = redact(message)
+        language = detect_language(clean)
+        screening = SCREENING.submit(
+            contextvars.copy_context().run, classify, self.llm, clean, found
+        )
+        ctx = self._context(principal, session_id, language, screening, emit)
+        ctx.status("analyzing")
         try:
-            screened = check_input(self.llm, message)
-            ctx = self._context(principal, session_id, screened.language)
-            if screened.blocked:
-                return self._response(
-                    screened.refusal(),
-                    "blocked",
-                    ctx,
-                    tracker,
-                    started,
-                    request_id,
-                    screened,
-                    OutputDecision(""),
-                )
             waiting = self.hitl.pending_for(principal.sub, session_id)
             if waiting is not None:
-                text = _pick(HANDOFF_WAIT, screened.language).format(id=waiting["id"])
+                screened = self._screened(screening)
+                if screened.blocked:
+                    raise InputBlocked
+                text = _pick(HANDOFF_WAIT, language).format(id=waiting["id"])
                 return self._response(
                     text,
                     "handoff_pending",
@@ -173,15 +209,15 @@ class Orchestrator:
             now = ctx.now
             user_turn = (
                 f"<context>merchant_id={principal.sub}; now={now:%A %Y-%m-%d %H:%M} "
-                f"America/Sao_Paulo; reply_language={screened.language}</context>"
+                f"America/Sao_Paulo; reply_language={language}</context>"
             )
             saved = render(self.memory.get(principal.tenant, principal.sub))
             if saved:
                 user_turn += f"\n{saved}"
-            user_turn += f"\n\n{screened.text}"
+            user_turn += f"\n\n{clean}"
             state = self._invoke(
                 {
-                    "user_message": screened.text,
+                    "user_message": clean,
                     "user_turn": user_turn,
                     "steps": 0,
                     "answer": None,
@@ -194,17 +230,31 @@ class Orchestrator:
                 ctx,
                 self.thread_id(principal, session_id),
             )
+        except InputBlocked:
+            screened = self._screened(screening)
+            return self._response(
+                screened.refusal(),
+                "blocked",
+                ctx,
+                tracker,
+                started,
+                request_id,
+                screened,
+                OutputDecision(""),
+            )
         except TurnLimit:
-            text = _pick(TURN_LIMIT, screened.language)
+            screened = self._screened(screening)
+            text = _pick(TURN_LIMIT, language)
             return self._response(
                 text, "limit", ctx, tracker, started, request_id, screened, OutputDecision("")
             )
         finally:
             current_usage.reset(token)
+        screened = self._screened(screening)
 
         if state.get("__interrupt__"):
             handoff_id = str(state.get("handoff_id"))
-            text = _pick(HANDOFF_ACK, screened.language).format(id=handoff_id)
+            text = _pick(HANDOFF_ACK, language).format(id=handoff_id)
             return self._response(
                 text,
                 "handoff",
@@ -217,7 +267,7 @@ class Orchestrator:
                 handoff={"id": handoff_id, "status": "pending"},
             )
         checked = check_output(
-            str(state.get("answer") or "").strip(), {s.id for s in ctx.sources}, screened.language
+            str(state.get("answer") or "").strip(), {s.id for s in ctx.sources}, language
         )
         outcome = "blocked" if checked.blocked else str(state.get("outcome") or "answered")
         return self._response(
