@@ -55,6 +55,20 @@ The same 40 dev cases were run with a **minimal** supervisor prompt, keeping onl
 - **Judge pass did not separate the two.** Both are within judge noise (3-10 points). The rubric scores are more sensitive than the pass/fail verdict for prompt changes.
 - **Caveats.** One repeat of 40 cases, run once, about US$ 1.10 with the judge. The differences are consistent across metrics, but small samples can mislead.
 
+## Final-answer verifier (v4)
+
+The verifier ([ADR 012](adr/012-final-answer-verifier.md)) was measured on the 40 dev cases with the verifier off and on. It was then tuned on an offline bench that re-checks recorded answers against the judge (`evals/verifier_bench.py`, a few cents per run).
+
+| Dev | Off | **Tuned verifier** |
+|---|---:|---:|
+| Unsupported claims (judge) | 20 | **15 (−25%)** |
+| Groundedness / correctness | 4.72 / 4.85 | **4.79 / 4.90** |
+| Deterministic checks | 95% | **98%** |
+| Latency p50 / p95 | 10.7 s / 18.8 s | 12.8 s / 32.2 s |
+| Cost per case | US$ 0.024 | US$ 0.029 |
+
+On the bench, false alarms on answers the judge found fully supported fell from 10/25 to 2/25 after the tuning. The tail latency comes from the replan path.
+
 ## Judge calibration against a human
 
 A person labelled 30 sampled answers (pass/fail plus a 1-5 correctness score) without seeing the judge's grades. They used the same rules and exactly the same evidence the judge receives (`evals/calibration/labels.csv`, `evals/calibration/calibration.md`).
