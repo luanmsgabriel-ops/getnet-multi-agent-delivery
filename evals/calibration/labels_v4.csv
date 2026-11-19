@@ -1,4 +1,4 @@
-﻿run_dir,case_id,repeat,question,answer,evidence,human_verdict,human_correctness,half,stratum
+﻿run_dir,case_id,repeat,question,answer,evidence,human_verdict,human_correctness,half,stratum,human_comment
 20261119T133301Z-dev-verify-on,D08,1,Como funciona o Get Tap?,"**Get Tap** é um recurso do app Getnet que transforma seu celular em maquininha. Ele aceita pagamentos por aproximação, sem aluguel de aparelho [S1][S5].
 
 **Principais pontos**
@@ -52,7 +52,7 @@ Neste artigo, você vai entender o que é a solução Get Tap, como funciona, pa
 
 ## Qual o limite por transação no Get Tap?
 
-Atualmente, o Get Tap permite receber pagamentos de até R$200,00 por transação.",,,measure,doubtful
+Atualmente, o Get Tap permite receber pagamentos de até R$200,00 por transação.",pass,5,measure,doubtful,
 20261119T125319Z-holdout_answers_v3,H24,1,Tap on phone funciona em qualquer celular?,"Não, o Tap on Phone da Getnet (chamado **Get Tap**) não funciona em qualquer celular.
 
 **Requisitos**
@@ -107,7 +107,7 @@ Quais os requisitos mínimos para ter o Get Tap?
 
 O seu dispositivo precisa ter o sistema operacional a partir do Android 12 e tecnologia NFC. Possuindo esses requisitos, por questões de segurança, faremos uma análise do seu dispositivo e, assim que aprovado, estará disponível para uso.
 
-ver mais",,,measure,clean
+ver mais",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H41,1,Preciso de internet para usar o Get Tap?,"Não encontrei nas fontes oficiais da Getnet nenhuma informação sobre o Get Tap exigir internet ou sobre o tipo de conexão necessária. Por isso não vou afirmar nada sobre isso. Para confirmar, fale com o suporte da Getnet ou consulte o App Getnet.
 
 O que as fontes dizem sobre o aparelho:
@@ -167,7 +167,7 @@ PARA PF E PJ
 
 [site Getnet] Getnet e Comida di Buteco: 10 anos de parceria: ### Get Tap
 
-O Get Tap transforma o celular em uma maquininha de cartão, ideal para bares e restaurantes que buscam mobilidade no atendimento. Sem precisar de equipamentos extras, permite aceitar pagamentos por aproximação direto no smartphone. É uma solução prática, segura e econômica para vendas em mesas, balcões ou eventos externos.",,,measure,fail
+O Get Tap transforma o celular em uma maquininha de cartão, ideal para bares e restaurantes que buscam mobilidade no atendimento. Sem precisar de equipamentos extras, permite aceitar pagamentos por aproximação direto no smartphone. É uma solução prática, segura e econômica para vendas em mesas, balcões ou eventos externos.",fail,2,measure,fail,O FAQ confirma que é necessária uma conexão estável.
 20261119T132916Z-dev-verify-off,D24,1,As vendas no débito de ontem já caíram na conta?,"As vendas no débito de ontem ainda não caíram na conta. O crédito está previsto para hoje (19/11), D+1 útil, e o status ainda é ""previsto"".
 
 - **Vendas de ontem (18/11):** 1 venda aprovada no débito, no Visa final 9561, às 12:44. Total de R$ 71,49.
@@ -176,7 +176,7 @@ O Get Tap transforma o celular em uma maquininha de cartão, ideal para bares e 
 
 O dia ainda não acabou, então o valor pode aparecer como pendente por enquanto. Se ele não cair até o fim do dia, posso abrir um chamado.","[get_sales_summary] {""status"": ""ok"", ""data"": {""period"": [""2026-11-18"", ""2026-11-18""], ""sales_count"": 11, ""approved_amount_brl"": 2063.96, ""by_status_and_method"": {""aprovada:credito"": {""count"": 5, ""amount_brl"": 882.98}, ""aprovada:pix"": {""count"": 4, ""amount_brl"": 1109.49}, ""aprovada:debito"": {""count"": 1, ""amount_brl"": 71.49}, ""recusada:credito"": {""count"": 1, ""amount_brl"": 158.9}}, ""sales"": [{""id"": ""S-1988-00397"", ""sold_at"": ""2026-11-18T09:10:00-03:00"", ""method"": ""credito"", ""brand"": ""Visa"", ""amount_brl"": 20.15, ""installments"": 2, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": ""9447"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00392"", ""sold_at"": ""2026-11-18T10:17:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 29.05, ""installments"": 1, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": ""4306"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00395"", ""sold_at"": ""2026-11-18T10:36:00-03:00"", ""method"": ""pix"", ""brand"": ""Pix"", ""amount_brl"": 399.71, ""installments"": 1, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": null, ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-01248"", ""sold_at"": ""2026-11-18T11:05:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 
 
-[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""sale_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 2024.15, ""schedule"": [{""payment_date"": ""2026-11-18"", ""status"": ""pago"", ""gross_brl"": 1109.49, ""fees_brl"": 10.99, ""net_brl"": 1098.5, ""items"": 4, ""methods"": [""pix""]}, {""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 71.49, ""fees_brl"": 0.98, ""net_brl"": 70.51, ""items"": 1, ""methods"": [""debito""]}, {""payment_date"": ""2026-12-18"", ""status"": ""previsto"", ""gross_brl"": 695.92, ""fees_brl"": 21.94, ""net_brl"": 673.98, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2027-01-18"", ""status"": ""previsto"", ""gross_brl"": 187.06, ""fees_brl"": 5.9, ""net_brl"": 181.16, ""items"": 2, ""methods"": [""credito""]}]}, ""sources"": []}",,,measure,doubtful
+[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""sale_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 2024.15, ""schedule"": [{""payment_date"": ""2026-11-18"", ""status"": ""pago"", ""gross_brl"": 1109.49, ""fees_brl"": 10.99, ""net_brl"": 1098.5, ""items"": 4, ""methods"": [""pix""]}, {""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 71.49, ""fees_brl"": 0.98, ""net_brl"": 70.51, ""items"": 1, ""methods"": [""debito""]}, {""payment_date"": ""2026-12-18"", ""status"": ""previsto"", ""gross_brl"": 695.92, ""fees_brl"": 21.94, ""net_brl"": 673.98, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2027-01-18"", ""status"": ""previsto"", ""gross_brl"": 187.06, ""fees_brl"": 5.9, ""net_brl"": 181.16, ""items"": 2, ""methods"": [""credito""]}]}, ""sources"": []}",pass,5,measure,doubtful,
 20261119T133301Z-dev-verify-on,D32,1,Quanto vendi ontem? E vai chover amanhã em Porto Alegre?,"**Vendas de ontem (18/11):** você vendeu **R$ 2.063,96** em 10 vendas aprovadas.
 - Crédito: 5 vendas, R$ 882,98
 - Pix: 4 vendas, R$ 1.109,49
@@ -190,7 +190,7 @@ O dia ainda não acabou, então o valor pode aparecer como pendente por enquanto
 - Temperatura entre 20,1 °C e 28,0 °C, com vento de até 17 km/h. [S1]
 - Há risco de granizo, então acompanhe os alertas da Defesa Civil. [S1]","[get_sales_summary] {""status"": ""ok"", ""data"": {""period"": [""2026-11-18"", ""2026-11-18""], ""sales_count"": 11, ""approved_amount_brl"": 2063.96, ""by_status_and_method"": {""aprovada:credito"": {""count"": 5, ""amount_brl"": 882.98}, ""aprovada:pix"": {""count"": 4, ""amount_brl"": 1109.49}, ""aprovada:debito"": {""count"": 1, ""amount_brl"": 71.49}, ""recusada:credito"": {""count"": 1, ""amount_brl"": 158.9}}, ""sales"": [{""id"": ""S-1988-00397"", ""sold_at"": ""2026-11-18T09:10:00-03:00"", ""method"": ""credito"", ""brand"": ""Visa"", ""amount_brl"": 20.15, ""installments"": 2, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": ""9447"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00392"", ""sold_at"": ""2026-11-18T10:17:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 29.05, ""installments"": 1, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": ""4306"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00395"", ""sold_at"": ""2026-11-18T10:36:00-03:00"", ""method"": ""pix"", ""brand"": ""Pix"", ""amount_brl"": 399.71, ""installments"": 1, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": null, ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-01248"", ""sold_at"": ""2026-11-18T11:05:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 
 
-[get_weather] {""status"": ""ok"", ""data"": {""city"": ""Porto Alegre"", ""region"": ""Rio Grande do Sul"", ""country"": ""Brasil"", ""date"": ""2026-11-20"", ""summary"": ""thunderstorm with hail"", ""temp_min_c"": 20.1, ""temp_max_c"": 28.0, ""precipitation_probability_pct"": 67, ""precipitation_mm"": 10.7, ""wind_max_kmh"": 17.0}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T10:31-03:00""}]}",,,measure,doubtful
+[get_weather] {""status"": ""ok"", ""data"": {""city"": ""Porto Alegre"", ""region"": ""Rio Grande do Sul"", ""country"": ""Brasil"", ""date"": ""2026-11-20"", ""summary"": ""thunderstorm with hail"", ""temp_min_c"": 20.1, ""temp_max_c"": 28.0, ""precipitation_probability_pct"": 67, ""precipitation_mm"": 10.7, ""wind_max_kmh"": 17.0}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T10:31-03:00""}]}",pass,4,measure,doubtful,Mesmo final não comprova que era o mesmo cartão.
 20261119T125319Z-holdout_answers_v3,H46,1,Como o Checkout Getnet ajuda seu negócio a vender mais?,"O Checkout Getnet ajuda a vender mais porque deixa a etapa final da compra mais simples. Isso aumenta a chance de o cliente concluir o pedido e reduz o abandono de carrinho [S2].
 
 **Benefícios**
@@ -253,7 +253,7 @@ Pagamentos, vendas, reembolsos, antifraude, assinaturas, tokenização e muito m
 
 ### Eficiência nos pagamentos
 
-Menos custos, mais segurança, facilidade nos pagamentos e dados unificados.",,,measure,clean
+Menos custos, mais segurança, facilidade nos pagamentos e dados unificados.",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H22,1,Como usar Pix para vender mais em loja física e online?,"**Como usar o Pix da Getnet para vender mais**
 
 **Loja física**
@@ -356,7 +356,7 @@ Como funciona o Plano Light?
 
 Ao contratar o Plano Light, você pagará 12 parcelas completas e, após este período, terá 100% de desconto;
 
-Nos primeiros meses, o valor das parcelas pode variar conforme o seu faturamento. Caso contrate uma Getnet, nos meses que faturar pelo menos R$ 1,00, pagará apenas R$ 12,90, caso não fature, o valor da parcela será de ",,,measure,clean
+Nos primeiros meses, o valor das parcelas pode variar conforme o seu faturamento. Caso contrate uma Getnet, nos meses que faturar pelo menos R$ 1,00, pagará apenas R$ 12,90, caso não fature, o valor da parcela será de ",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H03,1,Como os hóspedes e inquilinos se beneficiam do link de pagamento?,"Hóspedes e inquilinos ganham praticidade, rapidez e segurança ao pagar por link. [S1]
 
 **Vantagens para quem paga** [S1]
@@ -410,7 +410,7 @@ O link de pagamento pode ser compartilhado por imobiliárias, locatários, hoté
 
 As facilidades dessa modalidade de pagamento para imobiliárias e locatários incluem:
 
-Pagam",,,measure,clean
+Pagam",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H35,1,Como o Link de Pagamento da Getnet ajuda a aumentar as vendas?,"O Link de Pagamento ajuda você a vender mais porque permite cobrar sem maquininha, site ou app. Você envia o link e o cliente paga em poucos cliques. Isso amplia as vendas por WhatsApp, redes sociais, delivery e reservas. [S2][S3][S5]
 
 **Principais benefícios** [S1]
@@ -457,7 +457,7 @@ O link de pagamento da Getnet aceita diversas formas de pagamento, incluindo car
 
 [site Getnet] Getnet e Comida di Buteco: 10 anos de parceria: ### Link de Pagamento Getpay
 
-O link de pagamento da Getnet é uma solução prática para bares e restaurantes que desejam vender online ou por delivery, sem precisar de site ou app. Com ele, o estabelecimento envia um link por WhatsApp ou redes sociais, permitindo que o cliente pague com cartão ou Pix de forma rápida e segura. É ideal para agilizar pedidos, ampliar o alcance e manter o controle das vendas com praticidade.",,,measure,clean
+O link de pagamento da Getnet é uma solução prática para bares e restaurantes que desejam vender online ou por delivery, sem precisar de site ou app. Com ele, o estabelecimento envia um link por WhatsApp ou redes sociais, permitindo que o cliente pague com cartão ou Pix de forma rápida e segura. É ideal para agilizar pedidos, ampliar o alcance e manter o controle das vendas com praticidade.",pass,5,measure,clean,
 20261119T135028Z-dev-verify-on-v2,D25,1,Quais vendas foram recusadas hoje e por quê?,"Hoje (19/11) houve **1 venda recusada**:
 
 - **Horário:** 09:12
@@ -468,7 +468,7 @@ O link de pagamento da Getnet é uma solução prática para bares e restaurante
 
 O cartão não aceita esse tipo de transação, então tentar de novo no mesmo cartão não adianta. Peça ao cliente outra forma de pagamento.","[get_recent_transactions] {""status"": ""ok"", ""data"": {""transactions"": [{""id"": ""S-1988-01247"", ""sold_at"": ""2026-11-19T09:12:00-03:00"", ""method"": ""debito"", ""brand"": ""Elo"", ""amount_brl"": 42.5, ""status"": ""recusada"", ""decline_code"": ""57"", ""card_last4"": ""7310"", ""terminal_id"": ""T-1988-02""}, {""id"": ""S-1988-01246"", ""sold_at"": ""2026-11-18T17:40:00-03:00"", ""method"": ""credito"", ""brand"": ""Elo"", ""amount_brl"": 158.9, ""status"": ""recusada"", ""decline_code"": ""51"", ""card_last4"": ""4421"", ""terminal_id"": ""T-1988-02""}, {""id"": ""S-1988-00391"", ""sold_at"": ""2026-11-17T17:57:00-03:00"", ""method"": ""credito"", ""brand"": ""Visa"", ""amount_brl"": 287.23, ""status"": ""recusada"", ""decline_code"": ""55"", ""card_last4"": ""0897"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00359"", ""sold_at"": ""2026-11-14T18:11:00-03:00"", ""method"": ""credito"", ""brand"": ""Visa"", ""amount_brl"": 356.64, ""status"": ""recusada"", ""decline_code"": ""51"", ""card_last4"": ""1596"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00360"", ""sold_at"": ""2026-11-14T14:19:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 427.0, ""status"": ""recusada"", ""decline_code"": ""91"", ""card_last4"": ""1240"", ""terminal_id"": ""T-1988-02""}, {""id"": ""S-1988-00355"", ""sold_at"": ""2026-11-13T15:53:00-03:00"", ""meth
 
-[lookup_decline_code] {""status"": ""ok"", ""data"": {""code"": ""57"", ""meaning"": ""Transação não permitida para este cartão"", ""merchant_action"": ""O cartão não aceita esse tipo de transação; ofereça outra forma de pagamento."", ""retry_allowed"": false}, ""sources"": []}",,,measure,clean
+[lookup_decline_code] {""status"": ""ok"", ""data"": {""code"": ""57"", ""meaning"": ""Transação não permitida para este cartão"", ""merchant_action"": ""O cartão não aceita esse tipo de transação; ofereça outra forma de pagamento."", ""retry_allowed"": false}, ""sources"": []}",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H16,1,Quais ferramentas da Getnet ajudam MEIs a vender mais?,"As ferramentas da Getnet que ajudam MEIs a vender mais são estas:
 
 **Vendas presenciais**
@@ -623,7 +623,7 @@ Leia também: Link de pagamento: a chave para ampliar suas vendas!
 
 Maquininha GetSmart: Aceite cartões, Pix e outras formas de pagamento com rapidez e segurança. Ideal para quem vende presencialmente.
 
-Get Tap: Transforme seu celular em uma maquininha e aceite pagamentos por aproximação (NFC), sem precis",,,measure,clean
+Get Tap: Transforme seu celular em uma maquininha e aceite pagamentos por aproximação (NFC), sem precis",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H13,1,O que é a solução de gestão de vendas da Getnet?,"**Gestão de Vendas Getnet** é uma ferramenta digital para acompanhar o desempenho do seu negócio em tempo real. Ela reúne as principais informações em um só lugar [S1][S2].
 
 **O que ela faz**
@@ -689,7 +689,7 @@ Quais são os riscos de fazer a gestão de forma manual?
 
 A gestão manual pode gerar perda de informações, dificuldade na análise de resultados e maior chance de erros operacionais.
 
-Posso",,,measure,clean
+Posso",pass,5,measure,clean,
 20261119T124817Z-original,O01,1,What's the difference between the Get Clássica and the Get Smart?,"**Get Clássica vs. Get Smart**
 
 | | Get Clássica | Get Smart |
@@ -724,8 +724,8 @@ The sources don't give weight, screen size or per-model rates. They also don't c
 
 A Get Smart é uma maquininha portátil da Getnet, ideal para bares e restaurantes que precisam de mobilidade no atendimento. Com conexão Wi-Fi e 4G, ela aceita diversas formas de pagamento e permite controlar vendas e relatórios direto no equipamento. Além disso, é compatível com aplicativos como comanda eletrônica, tornando a operação mais ágil e eficiente.
 
-[site Getnet] Get Smart: caracteristicas tecnicas, manual pagina 3: Manual Get Smart, pagina 3, edicao Junho/2025. Especificacoes somente da Get Smart; nao descreve a Get Classica. Manual Get Smart 3 Índice«Principais informações 01 Principais informações O que vem na caixa O que significa cada ícone Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos ■ Tela touchscreen; ■ Leitor de chip; ■ Leitor de terja magnética; ■ Leitor integrado sem-contato (NFC); ■ Comunicação 4G, Wi-Fi e Bluetooth. Principais características da Get Smart 1. Sua maquininha é bivolt; 2. Use apenas o carregador original; 3. Não use nenhum tipo de produto de limpeza, apenas um pano seco e limpo; 4. Evite exposiçã",,,measure,clean
-20261119T125319Z-holdout_answers_v3,H45,1,Por que essa etapa influencia tanto nas vendas?,"Poderia me dizer a qual etapa você se refere? (por exemplo: cadastro, checkout/pagamento, aprovação da transação, recebimento…)",,,,measure,clean
+[site Getnet] Get Smart: caracteristicas tecnicas, manual pagina 3: Manual Get Smart, pagina 3, edicao Junho/2025. Especificacoes somente da Get Smart; nao descreve a Get Classica. Manual Get Smart 3 Índice«Principais informações 01 Principais informações O que vem na caixa O que significa cada ícone Get Smart Maquininha de cartão Getnet Carregador Carregador bivolt original da maquininha Chip 4G Com plano de dados gratuitos ■ Tela touchscreen; ■ Leitor de chip; ■ Leitor de terja magnética; ■ Leitor integrado sem-contato (NFC); ■ Comunicação 4G, Wi-Fi e Bluetooth. Principais características da Get Smart 1. Sua maquininha é bivolt; 2. Use apenas o carregador original; 3. Não use nenhum tipo de produto de limpeza, apenas um pano seco e limpo; 4. Evite exposiçã",pass,3,measure,clean,"Os limites batem, mas faltam condições do aluguel grátis."
+20261119T125319Z-holdout_answers_v3,H45,1,Por que essa etapa influencia tanto nas vendas?,"Poderia me dizer a qual etapa você se refere? (por exemplo: cadastro, checkout/pagamento, aprovação da transação, recebimento…)",,pass,5,measure,clean,
 20261119T135028Z-dev-verify-on-v2,D26,1,Minha Get Smart está online?,"Sua Get Smart (T-1988-01) aparece **offline**, conectada por Wi-Fi, com firmware 5.2.1. Não consegui ver o motivo da queda. O horário de última conexão veio inconsistente, então não dá para confiar nele.
 
 O que você pode tentar:
@@ -733,7 +733,7 @@ O que você pode tentar:
 2. Reinicie a maquininha e reconecte à rede.
 3. Se continuar offline, posso abrir um chamado de conectividade. Quer que eu abra?
 
-Sua Get Clássica (T-1988-02, chip 4G) aparece online. O horário de última conexão dela também veio inconsistente, então esse status pode não estar correto.","[get_terminal_status] {""status"": ""ok"", ""data"": {""terminals"": [{""id"": ""T-1988-01"", ""merchant_id"": ""cliente1988"", ""model"": ""Get Smart"", ""connection"": ""wifi"", ""status"": ""offline"", ""last_seen_at"": ""2026-11-19T12:00:00-03:00"", ""firmware"": ""5.2.1""}, {""id"": ""T-1988-02"", ""merchant_id"": ""cliente1988"", ""model"": ""Get Clássica"", ""connection"": ""chip_4g"", ""status"": ""online"", ""last_seen_at"": ""2026-11-19T15:00:00-03:00"", ""firmware"": ""3.8.0""}], ""checked_at"": ""2026-11-19T10:48:57.643496-03:00""}, ""sources"": []}",,,measure,clean
+Sua Get Clássica (T-1988-02, chip 4G) aparece online. O horário de última conexão dela também veio inconsistente, então esse status pode não estar correto.","[get_terminal_status] {""status"": ""ok"", ""data"": {""terminals"": [{""id"": ""T-1988-01"", ""merchant_id"": ""cliente1988"", ""model"": ""Get Smart"", ""connection"": ""wifi"", ""status"": ""offline"", ""last_seen_at"": ""2026-11-19T12:00:00-03:00"", ""firmware"": ""5.2.1""}, {""id"": ""T-1988-02"", ""merchant_id"": ""cliente1988"", ""model"": ""Get Clássica"", ""connection"": ""chip_4g"", ""status"": ""online"", ""last_seen_at"": ""2026-11-19T15:00:00-03:00"", ""firmware"": ""3.8.0""}], ""checked_at"": ""2026-11-19T10:48:57.643496-03:00""}, ""sources"": []}",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H50,1,O Checkout Getnet pode ser integrado à operação do e-commerce?,"Sim, o Checkout Getnet pode ser integrado ao seu e-commerce. [S1] Essa integração ajuda a acompanhar vendas e pedidos e a conciliar o financeiro.
 
 **Formas de integração**
@@ -876,7 +876,7 @@ Cancelamento e Estorno
 
 Callback transacional de crédito, boleto e Pix
 
-Confirmação Tardia",,,measure,doubtful
+Confirmação Tardia",pass,5,measure,doubtful,
 20261119T135028Z-dev-verify-on-v2,D33,1,Minha maquininha parou de conectar; ela está offline? Como configuro o Wi-Fi?,"Sim, a Get Smart (T-1988-01), que usa Wi-Fi, aparece **offline**. A Get Clássica (T-1988-02), que usa chip 4G, aparece online. Não consegui confirmar o horário da última conexão das maquininhas. Também não há chamado aberto para elas.
 
 **Como configurar o Wi-Fi na Get Smart [S7]:**
@@ -953,7 +953,7 @@ Dica: Certifique-se de que o Wi-Fi está funcionando corretamente e que a senha 
 
 Pronto para configurar sua maquininha? Siga o tutorial e aproveite a praticidade que o Wi-Fi proporciona às suas transações com a Getnet!
 
-[site Getnet] Get Classica: botoes e conectividade, manual paginas 3, 4 e 9: 6. Como configurar o wi-fi na minha Get? Sua maquininha já vem com um chip 3G sem custo e com plano de dados gratuitos. Contudo, se prefir, é possível configurá-la para usar o Wi-Fi do seu estabelecimento. Passo 1 Clique em WI-FI ou Suporte. Passo 2 Selecione Habilitar Wi-Fi. Passo 3 Selecione Procurar Redes. Passo 4 Selecione sua rede de Wi-Fi. Passo 5 Se necessário, insira a senha. Pronto! A maquininha já está conectada. Caso sua senha contenha letras ou caracteres especiais, você pode incluí-los usando o próprio teclado da maquininha. Cada tecla possui um número e três letras. Para selecionar, aperte e segure a tecla até que apareçam no visor os caracteres ocultos.",,,measure,fail
+[site Getnet] Get Classica: botoes e conectividade, manual paginas 3, 4 e 9: 6. Como configurar o wi-fi na minha Get? Sua maquininha já vem com um chip 3G sem custo e com plano de dados gratuitos. Contudo, se prefir, é possível configurá-la para usar o Wi-Fi do seu estabelecimento. Passo 1 Clique em WI-FI ou Suporte. Passo 2 Selecione Habilitar Wi-Fi. Passo 3 Selecione Procurar Redes. Passo 4 Selecione sua rede de Wi-Fi. Passo 5 Se necessário, insira a senha. Pronto! A maquininha já está conectada. Caso sua senha contenha letras ou caracteres especiais, você pode incluí-los usando o próprio teclado da maquininha. Cada tecla possui um número e três letras. Para selecionar, aperte e segure a tecla até que apareçam no visor os caracteres ocultos.",fail,3,measure,fail,Faltam etapas essenciais para configurar o Wi-Fi.
 20261119T125319Z-holdout_answers_v3,H01,1,Como funciona o link de pagamento?,"O link de pagamento da Getnet (produto Get Pay) permite cobrar o cliente sem maquininha e sem loja virtual [S3][S6].
 
 **Como criar**
@@ -1018,7 +1018,7 @@ Após clicar no link, o consumidor é direcionado a uma página segura, onde pod
 
 [site Getnet] Link de pagamento: a chave para ampliar suas vendas!: ## O que é link de pagamento?
 
-O link de pagamento é uma ferramenta prática e segura que permite ao empreendedor vender online sem precisar de loja virtual ou maquininha. Com ele, é possível gerar um link personalizado e enviá-lo por WhatsApp, e-mail, redes sociais ou qualquer outro canal digital. Ao clicar, o cliente é direcionado para uma página de pagamento onde pode concluir a compra com cartão de crédito, débito ou Pix. É a solução ideal para quem busca agilidade nas vendas, mais conversão e menos burocracia, tudo com a segurança das transações digitais.",,,measure,clean
+O link de pagamento é uma ferramenta prática e segura que permite ao empreendedor vender online sem precisar de loja virtual ou maquininha. Com ele, é possível gerar um link personalizado e enviá-lo por WhatsApp, e-mail, redes sociais ou qualquer outro canal digital. Ao clicar, o cliente é direcionado para uma página de pagamento onde pode concluir a compra com cartão de crédito, débito ou Pix. É a solução ideal para quem busca agilidade nas vendas, mais conversão e menos burocracia, tudo com a segurança das transações digitais.",pass,5,measure,clean,
 20261119T135028Z-dev-verify-on-v2,D27,1,Quanto tenho a receber das vendas no crédito nos próximos 30 dias?,"Entre 19/11 e 19/12/2026, você tem a receber de **R$ 23.002,58 a R$ 24.648,51** das vendas no crédito. Esses valores são líquidos, já descontadas as taxas. Não consegui confirmar o total exato.
 
 - **De 20/11 a 18/12:** os pagamentos são só de crédito e somam R$ 23.002,58 líquidos (R$ 23.750,80 brutos). Isso já está confirmado.
@@ -1029,7 +1029,7 @@ Todos os valores estão como ""previsto"" e serão creditados na Conta Getnet �
 
 Se quiser, posso consultar as vendas de 19/11 para tentar separar a parte de crédito.","[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""payment_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 24648.51, ""schedule"": [{""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 1698.14, ""fees_brl"": 52.21, ""net_brl"": 1645.93, ""items"": 8, ""methods"": [""credito"", ""debito""]}, {""payment_date"": ""2026-11-20"", ""status"": ""previsto"", ""gross_brl"": 1830.03, ""fees_brl"": 57.65, ""net_brl"": 1772.38, ""items"": 7, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-23"", ""status"": ""previsto"", ""gross_brl"": 2919.39, ""fees_brl"": 91.96, ""net_brl"": 2827.43, ""items"": 17, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-24"", ""status"": ""previsto"", ""gross_brl"": 206.63, ""fees_brl"": 6.51, ""net_brl"": 200.12, ""items"": 2, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-25"", ""status"": ""previsto"", ""gross_brl"": 775.98, ""fees_brl"": 24.45, ""net_brl"": 751.53, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-26"", ""status"": ""previsto"", ""gross_brl"": 423.87, ""fees_brl"": 13.35, ""net_brl"": 410.52, ""items"": 1, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-27"", ""status"": ""previsto
 
-[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""payment_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 24648.51, ""schedule"": [{""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 1698.14, ""fees_brl"": 52.21, ""net_brl"": 1645.93, ""items"": 8, ""methods"": [""credito"", ""debito""]}, {""payment_date"": ""2026-11-20"", ""status"": ""previsto"", ""gross_brl"": 1830.03, ""fees_brl"": 57.65, ""net_brl"": 1772.38, ""items"": 7, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-23"", ""status"": ""previsto"", ""gross_brl"": 2919.39, ""fees_brl"": 91.96, ""net_brl"": 2827.43, ""items"": 17, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-24"", ""status"": ""previsto"", ""gross_brl"": 206.63, ""fees_brl"": 6.51, ""net_brl"": 200.12, ""items"": 2, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-25"", ""status"": ""previsto"", ""gross_brl"": 775.98, ""fees_brl"": 24.45, ""net_brl"": 751.53, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-26"", ""status"": ""previsto"", ""gross_brl"": 423.87, ""fees_brl"": 13.35, ""net_brl"": 410.52, ""items"": 1, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-27"", ""status"": ""previsto",,,measure,clean
+[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""payment_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 24648.51, ""schedule"": [{""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 1698.14, ""fees_brl"": 52.21, ""net_brl"": 1645.93, ""items"": 8, ""methods"": [""credito"", ""debito""]}, {""payment_date"": ""2026-11-20"", ""status"": ""previsto"", ""gross_brl"": 1830.03, ""fees_brl"": 57.65, ""net_brl"": 1772.38, ""items"": 7, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-23"", ""status"": ""previsto"", ""gross_brl"": 2919.39, ""fees_brl"": 91.96, ""net_brl"": 2827.43, ""items"": 17, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-24"", ""status"": ""previsto"", ""gross_brl"": 206.63, ""fees_brl"": 6.51, ""net_brl"": 200.12, ""items"": 2, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-25"", ""status"": ""previsto"", ""gross_brl"": 775.98, ""fees_brl"": 24.45, ""net_brl"": 751.53, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-26"", ""status"": ""previsto"", ""gross_brl"": 423.87, ""fees_brl"": 13.35, ""net_brl"": 410.52, ""items"": 1, ""methods"": [""credito""]}, {""payment_date"": ""2026-11-27"", ""status"": ""previsto",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H48,1,Quais formas de pagamento o Checkout Getnet oferece?,"O Checkout Getnet oferece estas formas de pagamento:
 
 - Cartão de crédito [S1]
@@ -1070,7 +1070,7 @@ O Checkout Getnet foi desenvolvido para tornar o pagamento uma etapa simples par
 
 Pagamento mais rápido e intuitivo: por meio de um fluxo simples, o Checkout Getnet reduz etapas e facilita a finalização da compra. Isso ajuda o cliente a concluir o pedido com mais agilidade, inclusive pelo celular.
 
-Mais opções para o cliente pagar: o lojista pode oferecer alternativas como cartão de crédito, débito, Pix e boleto. Com mais flexibilidade,",,,measure,clean
+Mais opções para o cliente pagar: o lojista pode oferecer alternativas como cartão de crédito, débito, Pix e boleto. Com mais flexibilidade,",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H53,1,O Pix é uma boa opção para feirantes?,"Sim, o Pix costuma funcionar bem para feirantes. Ele não exige um aparelho extra, porque o cliente paga lendo o QR Code no app do banco dele.
 
 **Por que vale a pena**
@@ -1214,7 +1214,7 @@ VER OFERTAS
 
 ## Aceite pagamentos com Pix, QR Code, aproximação
 
-e mais de 80 bandeiras",,,measure,doubtful
+e mais de 80 bandeiras",pass,4,measure,doubtful,Get Tap sem mensalidade não significa ausência de custo.
 20261119T125319Z-holdout_answers_v3,H32,1,O Getnet Connects inclui capacitação em inteligência artificial?,"Sim. O Getnet Connects inclui capacitação em inteligência artificial. Ela faz parte do pilar de capacitação, com conteúdos práticos sobre IA aplicada aos negócios, para ganhar eficiência e competitividade.
 
 **O que é o programa:** é o Programa de Parcerias da Getnet. Ele é voltado a ISVs, plataformas e empresas de tecnologia, revendedores, parceiros comerciais, PayFacs e orquestradores de pagamento.
@@ -1309,7 +1309,7 @@ Publicado por Getnet
 
 A Getnet lançou o Getnet Connects, seu novo Programa de Parcerias, criado para fortalecer o relacionamento com aliados estratégicos e ampliar oportunidades de crescimento em um ecossistema mais integrado e colaborativo.
 
-Voltado para ISVs (Independent Software Vendors), parceiros comerciais, revendedores, plataformas e empresas do ecossistema de tecnologia e pagamentos, o programa apoia negócios que buscam ",,,measure,clean
+Voltado para ISVs (Independent Software Vendors), parceiros comerciais, revendedores, plataformas e empresas do ecossistema de tecnologia e pagamentos, o programa apoia negócios que buscam ",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H38,1,Leia também: O que é o Get Tap e como funciona?,"**Get Tap** é a solução Tap on Phone da Getnet. Ela transforma o celular em maquininha e aceita pagamento por aproximação, sem aluguel nem dispositivo extra [S4][S2]. Funciona dentro do app Getnet e recebe cartões, carteiras digitais e outros aparelhos com NFC [S6].
 
 **Características**
@@ -1378,7 +1378,7 @@ Disponivel para android 12 ou superior
 
 *voucher disponível conforme elegibilidade e ativação
 
-PARA PF E PJ",,,measure,clean
+PARA PF E PJ",pass,5,measure,clean,
 20261119T135028Z-dev-verify-on-v2,D05,1,Quando vale a pena antecipar as vendas no cartão?,"Vale a pena antecipar quando o dinheiro agora rende mais, ou evita mais custo, do que o desconto da antecipação. Essa regra é minha análise e não vem das fontes da Getnet.
 
 **Quando costuma compensar**
@@ -1511,8 +1511,8 @@ Débito:
 
 6. Faça simulação da antecipação, conferindo os valores, bandeiras e taxas. Clique em confirmar.
 
-7. Verifique o valor final e cliqu",,,measure,doubtful
-20261119T135028Z-dev-verify-on-v2,D38,1,Quanto está a cotação hoje?,"Qual cotação você quer saber? Por exemplo: dólar, euro ou outra moeda.",,,,measure,clean
+7. Verifique o valor final e cliqu",pass,5,measure,doubtful,
+20261119T135028Z-dev-verify-on-v2,D38,1,Quanto está a cotação hoje?,"Qual cotação você quer saber? Por exemplo: dólar, euro ou outra moeda.",,pass,5,measure,clean,
 20261119T124817Z-original,O09,1,How many installments can I split a sale into with the crediário?,"You can split a sale into up to 48 installments with the Crediário. [S1]
 
 - **48x is a ceiling.** Each card issuer sets its own maximum number of installments and the interest rate, based on its credit policies. [S1][S2]
@@ -1591,14 +1591,14 @@ Você oferece mais comodidade e poder de compra.
 
 As informações de pagamento podem ser consultadas no Aplicativo Getnet (Vendas) e/ou no Portal do Cliente.
 
-Todas as vendas realizadas na modalidade Crediário são pagas em até 2 dias úteis após a captura da transação, de uma única vez, independente da quantidade de parcelas escolhida pelo portador. Lembrando que do valor da transação original é subtraído o valor da taxa de desconto.",,,measure,clean
+Todas as vendas realizadas na modalidade Crediário são pagas em até 2 dias úteis após a captura da transação, de uma única vez, independente da quantidade de parcelas escolhida pelo portador. Lembrando que do valor da transação original é subtraído o valor da taxa de desconto.",pass,4,measure,clean,A impressão da simulação exige maquininha com bobina.
 20261119T124817Z-original,O02,1,What's the weather forecast in Porto Alegre tomorrow?,"Tomorrow (Friday, 11/20) in Porto Alegre, expect thunderstorms [S1].
 
 - **Temperature:** low of 20.4 °C, high of 28.1 °C
 - **Rain:** 67% chance, about 12.9 mm
 - **Wind:** gusts up to 16.6 km/h
 
-Take an umbrella and watch for possible heavy storms. Source: Open-Meteo [S1].","[get_weather] {""status"": ""ok"", ""data"": {""city"": ""Porto Alegre"", ""region"": ""Rio Grande do Sul"", ""country"": ""Brasil"", ""date"": ""2026-11-20"", ""summary"": ""thunderstorm"", ""temp_min_c"": 20.4, ""temp_max_c"": 28.1, ""precipitation_probability_pct"": 67, ""precipitation_mm"": 12.9, ""wind_max_kmh"": 16.6}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T09:47-03:00""}]}",,,measure,clean
+Take an umbrella and watch for possible heavy storms. Source: Open-Meteo [S1].","[get_weather] {""status"": ""ok"", ""data"": {""city"": ""Porto Alegre"", ""region"": ""Rio Grande do Sul"", ""country"": ""Brasil"", ""date"": ""2026-11-20"", ""summary"": ""thunderstorm"", ""temp_min_c"": 20.4, ""temp_max_c"": 28.1, ""precipitation_probability_pct"": 67, ""precipitation_mm"": 12.9, ""wind_max_kmh"": 16.6}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T09:47-03:00""}]}",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H21,1,Como aproveitar o 13º salário para aumentar as vendas?,"O 13º é um dos períodos de maior consumo do ano. Segundo pesquisa CNDL/SPC citada pela Getnet, 33,8 milhões de brasileiros destinam 50% do 13º a presentes, comemorações e compras adiadas [S1]. Dá para aproveitar assim:
 
 1. **Planeje o estoque.** Use o histórico de vendas e priorize o que mais sai. O Gestão de Vendas da Getnet mostra os produtos mais procurados [S1].
@@ -1670,7 +1670,7 @@ Oferecer praticidade na finalização da compra é essencial para aumentar as co
 
 Além disso, o link de pagamento é uma solução ágil e eficiente para vendas via WhatsApp, Instagram, Facebook ou e-mail. Com ele, basta criar um link com o nome e valor do produto ou serviço e compartilhá-lo com o cliente.
 
-Independentemente da forma de pagamento, disponibilize a opção de parcelamento, especialmente para itens de maior valor.",,,measure,clean
+Independentemente da forma de pagamento, disponibilize a opção de parcelamento, especialmente para itens de maior valor.",pass,5,measure,clean,
 20261119T135028Z-dev-verify-on-v2,D06,1,Ainda dá para receber pagamentos dentro do WhatsApp?,"Dentro do WhatsApp em si, não. O pagamento nativo (WhatsApp Pay / WhatsApp Business) foi descontinuado. Você ainda pode receber pelo WhatsApp enviando um link de pagamento da Getnet.
 
 **O que mudou**
@@ -1718,7 +1718,7 @@ Ao migrar para o link de pagamento, você conta com:
 
 O link de pagamento é uma solução que permite realizar transações financeiras de forma simples e rápida. Ele pode ser enviado por WhatsApp ou pelas redes sociais, ou ser gerado pelo cliente diretamente no site do estabelecimento.
 
-Após clicar no link, o consumidor é direcionado a uma página segura, onde poderá escolher a modalidade de pagamento de sua preferência: cartões de crédito e débito, Pix e carteiras digitais. Essa solução facilita o recebimento, além de aprimorar a experiência do consumidor.",,,measure,doubtful
+Após clicar no link, o consumidor é direcionado a uma página segura, onde poderá escolher a modalidade de pagamento de sua preferência: cartões de crédito e débito, Pix e carteiras digitais. Essa solução facilita o recebimento, além de aprimorar a experiência do consumidor.",fail,2,measure,doubtful,R$ 1 por link é condição do pacote da migração.
 20261119T125319Z-holdout_answers_v3,H54,1,Preciso ter CNPJ para adquirir uma maquininha da Getnet?,"**Não, o CNPJ não é obrigatório.** Você pode contratar uma maquininha da Getnet como pessoa física (CPF) ou como pessoa jurídica (CNPJ). [S2]
 
 - Ao contratar, você escolhe o tipo de cadastro: Pessoa Física ou Pessoa Jurídica. [S2]
@@ -1804,7 +1804,7 @@ Aproximação, QR Code e PIX
 
 Garanta Maquininha grátis com as melhores taxas*
 
-*Mediante contratação de Get Conta, fa",,,measure,clean
+*Mediante contratação de Get Conta, fa",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H47,1,Por que um checkout influencia as vendas?,"**O checkout influencia as vendas porque é a última etapa antes de a compra ser concluída.** [S7]
 
 - **Conversão:** quanto mais simples e intuitivo o pagamento, maior a chance de o cliente finalizar a compra. Com menos esforço do consumidor, mais visitantes viram clientes. [S6][S7]
@@ -1879,7 +1879,7 @@ Entenda como o processo de finalização da compra impacta diretamente a convers
 
 O checkout de pagamento é uma das etapas mais decisivas na jornada de compra online. É nesse momento que o cliente finaliza a transação, insere seus dados e escolhe o método de pagamento. Um processo de checkout eficiente pode aumentar a conversão, reduzir o abandono de carrinho e melhorar a experiência do consumidor.
 
-Neste artigo, você vai entender o que é o checkout de pagamento, por que ele é tão importante e como otimizá-lo para o seu negó",,,measure,clean
+Neste artigo, você vai entender o que é o checkout de pagamento, por que ele é tão importante e como otimizá-lo para o seu negó",pass,5,measure,clean,
 20261119T124817Z-original,O04,1,Do I need a bank account to receive my sales via Pix?,"Yes, you need a receiving account to get Pix sales. It doesn't have to be a traditional bank account, though.
 
 - **Your own bank account (domicílio bancário):** You register a Pix key linked to that account. Do this in the Minha Conta portal or the Getnet app, using the same key registered at that bank. It only works if your bank is already integrated with Getnet, so confirm that with Getnet's Central de Atendimento.
@@ -1939,7 +1939,7 @@ Receba no mesmo dia
 
 Importante:
 
-Algumas transações poderão ser submetidas ",,,measure,clean
+Algumas transações poderão ser submetidas ",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H20,1,Por que a Getnet?,"**Por que a Getnet?** Segundo o conteúdo oficial, estes são os principais motivos:
 
 - **Plataforma completa:** a Getnet acompanha você da venda até o uso do dinheiro. Atende comércios, ISVs, PayFacs e plataformas, com experiência multicanal [S5][S2].
@@ -2004,7 +2004,7 @@ Com bobina Touchscreen Nota fiscal Vender com PIX Aproximação Chip de dados gr
 
 Cancelar Filtrar
 
-PARA PF E PJ",,,measure,clean
+PARA PF E PJ",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H40,1,O Tap on Phone aceita pagamentos de qualquer cartão?,"Não dá para dizer que aceita ""qualquer cartão"". As fontes da Getnet não listam as bandeiras aceitas, como Visa, Mastercard ou Elo. Para saber isso, consulte a Getnet ou o app. O Tap on Phone da Getnet se chama Get Tap.
 
 **O que ele aceita**
@@ -2073,7 +2073,7 @@ Sem mensalidade: você só paga pelas transações realizadas.
 
 Mobilidade total: transforme seu celular em uma maquininha e venda em qualquer lugar.
 
-Aceita várias formas de pagamento: débito, crédito (à vista e parcelado) e carteiras digit",,,measure,clean
+Aceita várias formas de pagamento: débito, crédito (à vista e parcelado) e carteiras digit",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H28,1,Como funciona o Getnet Connects?,"O Getnet Connects é o Programa de Parcerias da Getnet. Ele fortalece a integração com parceiros estratégicos por meio de capacitação, ações de marketing, desenvolvimento conjunto de soluções, incentivos comerciais e iniciativas de relacionamento. [S1]
 
 **Para quem serve** [S1]
@@ -2140,7 +2140,7 @@ Desenvolvimento de soluções e integrações exclusivas
 
 Apoio à expansão para novos mercados na América Latina
 
-Além de fortalecer operações locais, o programa também acelera a expansão de ISVs, conectando-os à presença regional e global da Getnet e simplificando a entrada em novos mercados.",,,measure,clean
+Além de fortalecer operações locais, o programa também acelera a expansão de ISVs, conectando-os à presença regional e global da Getnet e simplificando a entrada em novos mercados.",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H57,1,1. O que é o Conversor de Moedas da Getnet?,"O Conversor de Moedas da Getnet permite vender para clientes estrangeiros em mais de 30 moedas, como dólar, euro e libra. Você recebe normalmente em reais [S1].
 
 **Como funciona**
@@ -2193,7 +2193,7 @@ BAIXAR APP
 
 Mantenha o seu Aplicativo Getnet Brasil sempre atualizado
 
-Aponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.",,,measure,clean
+Aponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H18,1,Como funciona o Link de Pagamentos GetPay?,"**Link de Pagamentos GetPay**
 
 É um link que você envia ao cliente para ele pagar sem precisar da maquininha. Também funciona sem loja virtual [S3][S6].
@@ -2258,7 +2258,7 @@ Após clicar no link, o consumidor é direcionado a uma página segura, onde pod
 
 [site Getnet] Link de pagamento: a chave para ampliar suas vendas!: ## O que é link de pagamento?
 
-O link de pagamento é uma ferramenta prática e segura que permite ao empreendedor vender online sem precisar de loja virtual ou maquininha. Com ele, é possível gerar um link personalizado e enviá-lo por WhatsApp, e-mail, redes sociais ou qualquer outro canal digital. Ao clicar, o cliente é direcionado para uma página de pagamento onde pode concluir a compra com cartão de crédito, débito ou Pix. É a solução ideal para quem busca agilidade nas vendas, mais conversão e menos burocracia, tudo com a segurança das transações digitais.",,,measure,clean
+O link de pagamento é uma ferramenta prática e segura que permite ao empreendedor vender online sem precisar de loja virtual ou maquininha. Com ele, é possível gerar um link personalizado e enviá-lo por WhatsApp, e-mail, redes sociais ou qualquer outro canal digital. Ao clicar, o cliente é direcionado para uma página de pagamento onde pode concluir a compra com cartão de crédito, débito ou Pix. É a solução ideal para quem busca agilidade nas vendas, mais conversão e menos burocracia, tudo com a segurança das transações digitais.",pass,5,measure,clean,
 20261119T133301Z-dev-verify-on,D19,1,Quanto está a libra esterlina hoje?,"A cotação mais recente da libra esterlina (GBP) é a PTAX do Banco Central, do boletim de fechamento de quarta-feira, 18/11/2026 [S1]:
 
 - **Compra:** R$ 7,6373
@@ -2272,13 +2272,13 @@ Algumas informações não puderam ser confirmadas nas fontes consultadas e fora
 
 [get_exchange_rate] {""status"": ""error"", ""error"": {""code"": ""invalid_argument"", ""message"": ""Input should be a valid date or datetime, input is too short"", ""retryable"": false}, ""sources"": []}
 
-[get_exchange_rate] {""status"": ""ok"", ""data"": {""currency"": ""GBP"", ""against"": ""BRL"", ""buy_brl"": 7.6373, ""sell_brl"": 7.6398, ""bulletin"": ""Fechamento"", ""quoted_at"": ""2026-11-18 13:08:44.271245"", ""is_requested_day"": false, ""note"": ""PTAX is the Central Bank reference rate, not the rate applied by card machines (DCC) or banks.""}, ""sources"": [{""id"": ""S1"", ""title"": ""Banco Central do Brasil - PTAX"", ""url"": ""https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"", ""retrieved_at"": ""2026-11-19T10:30-03:00""}]}",,,measure,doubtful
+[get_exchange_rate] {""status"": ""ok"", ""data"": {""currency"": ""GBP"", ""against"": ""BRL"", ""buy_brl"": 7.6373, ""sell_brl"": 7.6398, ""bulletin"": ""Fechamento"", ""quoted_at"": ""2026-11-18 13:08:44.271245"", ""is_requested_day"": false, ""note"": ""PTAX is the Central Bank reference rate, not the rate applied by card machines (DCC) or banks.""}, ""sources"": [{""id"": ""S1"", ""title"": ""Banco Central do Brasil - PTAX"", ""url"": ""https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"", ""retrieved_at"": ""2026-11-19T10:30-03:00""}]}",pass,5,measure,doubtful,
 20261119T135028Z-dev-verify-on-v2,D20,1,What was the euro PTAX rate last Friday?,"The euro PTAX for last Friday, 13/11/2026, from the closing bulletin [S1]:
 
 - **Buy:** R$ 6.2321
 - **Sell:** R$ 6.2334
 
-This is the Banco Central reference rate. It isn't the rate that card machines (DCC) or banks apply.","[get_exchange_rate] {""status"": ""ok"", ""data"": {""currency"": ""EUR"", ""against"": ""BRL"", ""buy_brl"": 6.2321, ""sell_brl"": 6.2334, ""bulletin"": ""Fechamento"", ""quoted_at"": ""2026-11-13 13:03:27.375047"", ""is_requested_day"": true, ""note"": ""PTAX is the Central Bank reference rate, not the rate applied by card machines (DCC) or banks.""}, ""sources"": [{""id"": ""S1"", ""title"": ""Banco Central do Brasil - PTAX"", ""url"": ""https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"", ""retrieved_at"": ""2026-11-19T10:48-03:00""}]}",,,measure,clean
+This is the Banco Central reference rate. It isn't the rate that card machines (DCC) or banks apply.","[get_exchange_rate] {""status"": ""ok"", ""data"": {""currency"": ""EUR"", ""against"": ""BRL"", ""buy_brl"": 6.2321, ""sell_brl"": 6.2334, ""bulletin"": ""Fechamento"", ""quoted_at"": ""2026-11-13 13:03:27.375047"", ""is_requested_day"": true, ""note"": ""PTAX is the Central Bank reference rate, not the rate applied by card machines (DCC) or banks.""}, ""sources"": [{""id"": ""S1"", ""title"": ""Banco Central do Brasil - PTAX"", ""url"": ""https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"", ""retrieved_at"": ""2026-11-19T10:48-03:00""}]}",pass,5,measure,clean,
 20261119T132916Z-dev-verify-off,D12,1,How does a chargeback work at Getnet?,"A chargeback happens when a cardholder disputes a purchase with their card issuer. [S1]
 
 **Common reasons** [S1]
@@ -2354,7 +2354,7 @@ Verifique o detalhamento do débito no Portal Minha Conta, no menu lateral esque
 
 ## Fiz uma venda por Link de pagamento e o cliente contestou. O que faço?
 
-Vendas por Link de pagamento costumam exigir atenção redobrada, porque muitas vezes não há senha presencial e nem cartão físico. Para se defender, o lojista precisa comprovar que a venda foi feita para aquele cliente e que o produto ou serviço foi entregue.",,,measure,doubtful
+Vendas por Link de pagamento costumam exigir atenção redobrada, porque muitas vezes não há senha presencial e nem cartão físico. Para se defender, o lojista precisa comprovar que a venda foi feita para aquele cliente e que o produto ou serviço foi entregue.",pass,5,measure,doubtful,
 20261119T125319Z-holdout_answers_v3,H56,1,O que é o Conversor de Moedas da Getnet?,"O Conversor de Moedas é uma funcionalidade da Getnet para vender a clientes estrangeiros em mais de 30 moedas, como dólar, euro e libra. Você continua recebendo em reais [S1].
 
 **Como funciona**
@@ -2406,7 +2406,7 @@ BAIXAR APP
 
 Mantenha o seu Aplicativo Getnet Brasil sempre atualizado
 
-Aponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.",,,measure,clean
+Aponte a câmera do seu celular para o QR code ao lado ou clique nos botões abaixo, e baixe agora mesmo.",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H30,1,Quem pode participar do Getnet Connects?,"O Getnet Connects é voltado a empresas que já fazem parte do ecossistema de pagamentos e tecnologia da Getnet ou que querem entrar nele. Elas precisam buscar crescer de forma estruturada, escalável e integrada. Os perfis indicados são [S1]:
 
 - **ISVs** (desenvolvedoras de software) que querem integrar soluções de pagamento aos seus sistemas.
@@ -2450,7 +2450,7 @@ Segundo Caio Costa, Vice-Presidente de Partners Brasil da Getnet:
 
 ### O que é o Getnet Connects?
 
-O Getnet Connects é o Programa de Parcerias da Getnet criado para fortalecer a integração com parceiros estratégicos, oferecendo capacitação, ações de marketing, desenvolvimento conjunto de soluções, incentivos comerciais e iniciativas de relacionamento.",,,measure,clean
+O Getnet Connects é o Programa de Parcerias da Getnet criado para fortalecer a integração com parceiros estratégicos, oferecendo capacitação, ações de marketing, desenvolvimento conjunto de soluções, incentivos comerciais e iniciativas de relacionamento.",pass,4,measure,clean,Perfis corretos; o trecho não confirma o formulário citado.
 20261119T125319Z-holdout_answers_v3,H11,1,3. Como agilizar os pagamentos durante um festival?,"**Como agilizar os pagamentos em um festival**
 
 1. **Use a maquininha com várias formas de pagamento.** Ela aceita débito, crédito, Pix e aproximação (NFC), e o cliente escolhe como pagar.
@@ -2556,7 +2556,7 @@ Saiba mais sobre o Get Ta
 
 [site Getnet] 5 dicas essenciais para modernizar e acelerar as vendas na feira: ### Como a Getnet pode ajudar quem vende em feiras?
 
-Quem trabalha em feiras precisa de soluçõ",,,measure,doubtful
+Quem trabalha em feiras precisa de soluçõ",pass,4,measure,doubtful,"O link é recomendado à distância, não proibido no balcão."
 20261119T133301Z-dev-verify-on,D31,1,Quanto paguei de taxa nas vendas de ontem?,"Conferi com o detalhamento do dia e os totais batem.
 
 | Modalidade | Bruto | Taxa | Líquido |
@@ -2578,7 +2578,7 @@ Algumas informações não puderam ser confirmadas nas fontes consultadas e fora
 
 [get_sales_summary] {""status"": ""ok"", ""data"": {""period"": [""2026-11-18"", ""2026-11-18""], ""sales_count"": 11, ""approved_amount_brl"": 2063.96, ""by_status_and_method"": {""aprovada:credito"": {""count"": 5, ""amount_brl"": 882.98}, ""aprovada:pix"": {""count"": 4, ""amount_brl"": 1109.49}, ""aprovada:debito"": {""count"": 1, ""amount_brl"": 71.49}, ""recusada:credito"": {""count"": 1, ""amount_brl"": 158.9}}, ""sales"": [{""id"": ""S-1988-00397"", ""sold_at"": ""2026-11-18T09:10:00-03:00"", ""method"": ""credito"", ""brand"": ""Visa"", ""amount_brl"": 20.15, ""installments"": 2, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": ""9447"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00392"", ""sold_at"": ""2026-11-18T10:17:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 29.05, ""installments"": 1, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": ""4306"", ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-00395"", ""sold_at"": ""2026-11-18T10:36:00-03:00"", ""method"": ""pix"", ""brand"": ""Pix"", ""amount_brl"": 399.71, ""installments"": 1, ""status"": ""aprovada"", ""decline_code"": null, ""card_last4"": null, ""terminal_id"": ""T-1988-01""}, {""id"": ""S-1988-01248"", ""sold_at"": ""2026-11-18T11:05:00-03:00"", ""method"": ""credito"", ""brand"": ""Mastercard"", ""amount_brl"": 
 
-[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""sale_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 2024.15, ""schedule"": [{""payment_date"": ""2026-11-18"", ""status"": ""pago"", ""gross_brl"": 1109.49, ""fees_brl"": 10.99, ""net_brl"": 1098.5, ""items"": 4, ""methods"": [""pix""]}, {""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 71.49, ""fees_brl"": 0.98, ""net_brl"": 70.51, ""items"": 1, ""methods"": [""debito""]}, {""payment_date"": ""2026-12-18"", ""status"": ""previsto"", ""gross_brl"": 695.92, ""fees_brl"": 21.94, ""net_brl"": 673.98, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2027-01-18"", ""status"": ""previsto"", ""gross_brl"": 187.06, ""fees_brl"": 5.9, ""net_brl"": 181.16, ""items"": 2, ""methods"": [""credito""]}]}, ""sources"": []}",,,measure,fail
+[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""sale_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 2024.15, ""schedule"": [{""payment_date"": ""2026-11-18"", ""status"": ""pago"", ""gross_brl"": 1109.49, ""fees_brl"": 10.99, ""net_brl"": 1098.5, ""items"": 4, ""methods"": [""pix""]}, {""payment_date"": ""2026-11-19"", ""status"": ""previsto"", ""gross_brl"": 71.49, ""fees_brl"": 0.98, ""net_brl"": 70.51, ""items"": 1, ""methods"": [""debito""]}, {""payment_date"": ""2026-12-18"", ""status"": ""previsto"", ""gross_brl"": 695.92, ""fees_brl"": 21.94, ""net_brl"": 673.98, ""items"": 5, ""methods"": [""credito""]}, {""payment_date"": ""2027-01-18"", ""status"": ""previsto"", ""gross_brl"": 187.06, ""fees_brl"": 5.9, ""net_brl"": 181.16, ""items"": 2, ""methods"": [""credito""]}]}, ""sources"": []}",fail,3,measure,fail,"Faltam crédito (R$ 27,84) e taxa total (R$ 39,81)."
 20261119T135028Z-dev-verify-on-v2,D11,1,How do I enable Pix sales in the Getnet portal?,"To enable Pix, use the Minha Conta portal or the Getnet Brasil app. The sources don't give the exact menu names in the portal.
 
 **Steps**
@@ -2662,7 +2662,7 @@ ver mais
 
 5. Aguarde a tela de sucesso;
 
-6. Pronto! Receba o comprovante da venda!",,,measure,doubtful
+6. Pronto! Receba o comprovante da venda!",pass,5,measure,doubtful,
 20261119T125319Z-holdout_answers_v3,H42,1,Como o Conversor de Moedas da Getnet realiza as conversões?,"O Conversor de Moedas da Getnet é o DCC (Dynamic Currency Conversion). Ele funciona assim:
 
 - **Detecção automática:** a tela aparece sozinha na maquininha quando é detectado um cartão internacional Visa ou Mastercard elegível. O conversor atende mais de 30 moedas, como dólar, euro e libra [S4].
@@ -2741,7 +2741,7 @@ E tem mais! A solução também inclui o benefício inédito de cashback, que de
 
 De acordo com o Ministério do Turismo, projeções indicam que o país deve receber 7 milhões de turistas em 2025. No ano passado, apenas de janeiro a novembro, os gastos de turistas internacionais no Brasil atingiram US$ 6,62 bilhões, segundo o Banco Central.
 
-Diante desses números, é fundamental pre",,,measure,clean
+Diante desses números, é fundamental pre",pass,5,measure,clean,
 20261119T125319Z-holdout_answers_v3,H10,1,2. Quais meios de pagamento oferecer em um festival?,"**Meios de pagamento para oferecer em um festival**
 
 - **Pix, crédito e débito:** a Getnet recomenda oferecer os três. O Pix respondeu por 54,7% das transações de pagamento no Brasil no 2º semestre de 2025, e os cartões por 30,4%.
@@ -2854,7 +2854,7 @@ se a equipe sabe operar os equipamentos.
 
 5. Aguarde a tela de sucesso;
 
-6. Pronto! Receba o comprovante da venda!",,,measure,doubtful
+6. Pronto! Receba o comprovante da venda!",pass,5,measure,doubtful,
 20261119T133301Z-dev-verify-on,D23,1,Quanto vou receber amanhã?,"Você deve receber **R$ 1.772,38** amanhã (sexta, 20/11), em valor líquido e previsto.
 
 - Valor bruto: R$ 1.830,03
@@ -2862,7 +2862,7 @@ se a equipe sabe operar os equipamentos.
 - Recebíveis: 7, todos de crédito (parcelas)
 - Conta de depósito: Conta Getnet •••• 1988
 
-Não há débito nem Pix agendados para essa data. Os dados não mostram o detalhamento por adquirente.","[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""payment_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 1772.38, ""schedule"": [{""payment_date"": ""2026-11-20"", ""status"": ""previsto"", ""gross_brl"": 1830.03, ""fees_brl"": 57.65, ""net_brl"": 1772.38, ""items"": 7, ""methods"": [""credito""]}]}, ""sources"": []}",,,measure,doubtful
+Não há débito nem Pix agendados para essa data. Os dados não mostram o detalhamento por adquirente.","[get_receivables] {""status"": ""ok"", ""data"": {""selected_by"": ""payment_date"", ""settlement_account"": ""Conta Getnet •••• 1988"", ""rules"": {""debito"": ""D+1 business day"", ""pix"": ""same day"", ""credito"": ""D+30 per installment""}, ""total_net_brl"": 1772.38, ""schedule"": [{""payment_date"": ""2026-11-20"", ""status"": ""previsto"", ""gross_brl"": 1830.03, ""fees_brl"": 57.65, ""net_brl"": 1772.38, ""items"": 7, ""methods"": [""credito""]}]}, ""sources"": []}",pass,5,measure,doubtful,
 20261119T125319Z-holdout_answers_v3,H34,1,Como facilitar o pagamento e reduzir desistências na hora da compra?,"Para facilitar o pagamento, ofereça mais de uma forma de pagar em cada canal de venda. Assim o cliente paga do jeito que prefere. Os materiais da Getnet não trazem dados sobre taxa de desistência. Abaixo estão as ferramentas que ajudam.
 
 **1. Pix em todos os canais**
@@ -3032,7 +3032,7 @@ No Parcelado Emissor, o seu cliente parcela as compras e assume as despesas rela
 
 O link de pagamento da Getnet é ideal para vendas online e via WhatsApp, sem necessidade de site ou maquininha física. Pode ser criado através do app Getnet Brasil ou Portal do Cliente Getnet, de forma simples e rápida.
 
-Você pode configurar este link, com um ou mais me",,,measure,doubtful
+Você pode configurar este link, com um ou mais me",pass,5,measure,doubtful,
 20261119T125319Z-holdout_answers_v3,H43,1,Posso usar mais de uma solução da Getnet ao mesmo tempo?,"Sim. Pelo conteúdo oficial da Getnet, você pode combinar soluções e vender em vários canais ao mesmo tempo.
 
 - **Soluções que aparecem juntas:** Pix na maquininha, Get Tap (o celular como maquininha), Link de Pagamento e Conversor de Moedas [S8]. Também aparecem maquininhas e Gestão de Vendas [S10].
@@ -3143,7 +3143,7 @@ Pix na maquininha Getnet: reduza o tempo de pagamento, aumente a conversão e ap
 
 Get Tap: transforme seu celular em uma maquininha e venda em qualquer lugar, sem depender de equipamentos adicionais — ideal para quem precisa mobilidade.
 
-Link de Pagamento Getnet: feche vendas pelo WhatsApp ou redes sociais, oferecendo prati",,,measure,clean
+Link de Pagamento Getnet: feche vendas pelo WhatsApp ou redes sociais, oferecendo prati",pass,5,measure,clean,
 20261119T132916Z-dev-verify-off,D14,1,How can I sell online if I don't have a website?,"You can sell online without a website by using Getnet's **Payment Link (Link de Pagamento)**. It needs no online store and no card machine. [S7]
 
 **How it works**
@@ -3229,7 +3229,7 @@ Ao utilizar as soluções da Getnet, você conta com uma análise de risco intel
 
 [site Getnet] Como vender no TikTok Shop: guia para empreendedores: E, para acompanhar essa jornada, contar com soluções de pagamento digitais ajuda a tornar o processo mais simples para quem vende e para quem compra. Com o Link de Pagamento Getnet, seu negócio pode vender pelas redes sociais, WhatsApp, e-mail e outros canais digitais. Já com o Get Checkout, é possível estruturar uma experiência de pagamento integrada ao e-commerce, com praticidade, segurança e recursos para apoiar a operação online.
 
-Quer saber mais? Conheça outras opções da Getnet para vender no físico e no digital e veja como impulsionar",,,tune,doubtful
+Quer saber mais? Conheça outras opções da Getnet para vender no físico e no digital e veja como impulsionar",pass,4,tune,doubtful,O link funciona sem site; a ressalva sobre Checkout é absoluta.
 20261119T125319Z-holdout_answers_v3,H06,1,Como aumentar as vendas no verão sem gastar muito?,"Estas são dicas de baixo custo para vender mais no verão, segundo o conteúdo oficial da Getnet [S12].
 
 **Se você está em região turística**
@@ -3323,7 +3323,7 @@ Planejei Carnaval e ações para o 1º trimestre para manter o fluxo após a alt
 
 [site Getnet] Como aproveitar o verão para impulsionar suas vendas: ## Como lidar com a queda no movimento em regiões menos turísticas (baixa demanda)
 
-Se seu negócio não está em uma região turística e enfrenta uma baixa no movimento neste período, não precisa ficar parado. O verão também pode ser uma oportunidade para atrair clientes e manter o faturamento. Com criatividade e estratégias digitais, é possível ampliar canais de venda, fidelizar clientes e preparar ações para as próximas datas importantes. Confira algumas dicas práticas para transformar esse desafio em resu",,,tune,clean
+Se seu negócio não está em uma região turística e enfrenta uma baixa no movimento neste período, não precisa ficar parado. O verão também pode ser uma oportunidade para atrair clientes e manter o faturamento. Com criatividade e estratégias digitais, é possível ampliar canais de venda, fidelizar clientes e preparar ações para as próximas datas importantes. Confira algumas dicas práticas para transformar esse desafio em resu",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H04,1,Quais formas de pagamento são aceitas através do link de pagamento da Getnet?,"O link de pagamento da Getnet aceita estas formas de pagamento:
 
 - **Cartão de crédito**, à vista e parcelado [S3]
@@ -3349,7 +3349,7 @@ Após clicar no link, o consumidor é direcionado a uma página segura, onde pod
 
 ### Como funciona o link de pagamento?
 
-O link de pagamento é uma solução prática que permite a geração de um link único por parte do proprietário, que pode ser enviado ao cliente pelo WhatsApp ou pelas redes sociais, ou ser gerado pelo cliente no site do estabelecimento. O cliente, ao clicar no link, é direcionado para uma página segura onde pode realizar a transação com o método de pagamento de sua escolha, como cartão de crédito e débito, Pix ou carteiras digitais.",,,tune,clean
+O link de pagamento é uma solução prática que permite a geração de um link único por parte do proprietário, que pode ser enviado ao cliente pelo WhatsApp ou pelas redes sociais, ou ser gerado pelo cliente no site do estabelecimento. O cliente, ao clicar no link, é direcionado para uma página segura onde pode realizar a transação com o método de pagamento de sua escolha, como cartão de crédito e débito, Pix ou carteiras digitais.",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H25,1,O que é o Checkout de pagamento da Getnet e como ele melhora a experiência do cliente?,"**O que é:** o Checkout Getnet (Get Checkout) é uma solução de pagamento online para e-commerce. Ele foi pensado para o pagamento ser uma etapa simples para o consumidor e eficiente para o lojista. [S1] Atende e-commerce, marketplaces, academias, petshops e farmácias. A integração é por API ou Iframe. [S2] Há também plugins para as principais plataformas de e-commerce, que a fonte diz estarem inclusos no pacote. [S2]
 
 **Como melhora a experiência do cliente:**
@@ -3400,7 +3400,7 @@ via soluções API ou Iframe.
 
 ### Meios de pagamento
 
-Checkout completo: cartão de débito, crédito, Pix, carteiras digitais e boleto.",,,tune,doubtful
+Checkout completo: cartão de débito, crédito, Pix, carteiras digitais e boleto.",pass,4,tune,doubtful,Benefícios certos; a página cita prazo em oferta específica.
 20261119T125319Z-holdout_answers_v3,H33,1,Por que o inverno pode ser uma oportunidade para aumentar as vendas?,"O inverno pode aumentar as vendas porque o consumo muda, mas não diminui. Com a queda das temperaturas surgem novas demandas, e dá para atender essas demandas com as estratégias certas [S1].
 
 **O que a Getnet sugere:**
@@ -3432,7 +3432,7 @@ O inverno é o momento ideal para estimular compras maiores. Uma das formas mais
 
 Se você tem um restaurante, por exemplo, pode combinar prato principal, bebida e sobremesa em uma única oferta. Já no varejo, vale criar kits temáticos ou promoções que incentivem a compra de produtos complementares.
 
-Além de facilitar a decisão do cliente, os combos ajudam a aumentar o ticket médio e permitem destacar itens estratégicos do seu catálogo. Para potencializar os resultados, utilize nomes criativos que remetam ao clima da estação, como “Combo Noite de Inverno”, “Kit Para Aquec",,,tune,clean
+Além de facilitar a decisão do cliente, os combos ajudam a aumentar o ticket médio e permitem destacar itens estratégicos do seu catálogo. Para potencializar os resultados, utilize nomes criativos que remetam ao clima da estação, como “Combo Noite de Inverno”, “Kit Para Aquec",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H52,1,Vale a pena aceitar cartão na feira?,"Provavelmente vale a pena, mas a conta final depende do seu ticket médio e do seu volume de vendas. As fontes da Getnet não trazem um estudo de retorno. Elas indicam que aceitar mais formas de pagamento (cartão, Pix, QR Code e carteiras digitais) aumenta a chance de fechar venda em eventos com muita circulação.
 
 **Opções para feira**
@@ -3712,7 +3712,7 @@ Algumas transações poderão ser submetidas
 
 [site Getnet] Dúvidas e Perguntas Frequentes: ## Taxas
 
-Quais são as taxas de adquirência ",,,tune,clean
+Quais são as taxas de adquirência ",pass,3,tune,clean,Prazos reduzidos não abrangem todos os meios citados.
 20261119T135028Z-dev-verify-on-v2,D28,1,Show me my declined transactions from this week.,"You had 3 declined transactions this week (Mon 11/16 to today):
 
 | Date/time | Amount | Brand | Type | Reason |
@@ -3729,7 +3729,7 @@ I left out the period total because I couldn't confirm it separately. The three 
 
 [lookup_decline_code] {""status"": ""ok"", ""data"": {""code"": ""57"", ""meaning"": ""Transação não permitida para este cartão"", ""merchant_action"": ""O cartão não aceita esse tipo de transação; ofereça outra forma de pagamento."", ""retry_allowed"": false}, ""sources"": []}
 
-[lookup_decline_code] {""status"": ""ok"", ""data"": {""code"": ""55"", ""meaning"": ""Senha incorreta"", ""merchant_action"": ""Peça para o portador digitar a senha novamente."", ""retry_allowed"": true}, ""sources"": []}",,,tune,doubtful
+[lookup_decline_code] {""status"": ""ok"", ""data"": {""code"": ""55"", ""meaning"": ""Senha incorreta"", ""merchant_action"": ""Peça para o portador digitar a senha novamente."", ""retry_allowed"": true}, ""sources"": []}",pass,5,tune,doubtful,
 20261119T135028Z-dev-verify-on-v2,D01,1,Qual a diferença entre a Get Smart e a Get Clássica?,"**Resumo:** a Get Smart é a mais completa e portátil. A Get Clássica é a mais simples, com botões físicos e bobina.
 
 **Get Smart**
@@ -3764,7 +3764,7 @@ A Get Smart é uma maquininha portátil da Getnet, ideal para bares e restaurant
 
 [site Getnet] Get Classica: botoes e conectividade, manual paginas 3, 4 e 9: Siga as dicas de conservação • Não derrube, chacoalhe ou tente abrir a maquininha. • Utilize apenas um pano macio, limpo e seco para limpeza. Manutenção Se precisar realizar uma manutenção da sua maquininha, solicite pelo Aplicativo Getnet Brasil. Cuide bem dos acessórios • Utilize apenas os acessórios que vieram com sua Get; • Retire a sua Get da tomada somente quando a bateria estiver carregada. Este hábito aumenta a vida útil da sua maquininha. Proteja sempre sua Get • Ela não é à prova d’água; • Mantenha em ambientes com temperatura moderada.
 
-[site Getnet] Get Classica: botoes e conectividade, manual paginas 3, 4 e 9: 1. O que vem dentro da caixa? Garantia 1 ano de garantia a contar da data de adesão.* Estamos constantemente procurando diminuir nosso impacto am- biental. Por isso, nossas caixas são feitas a partir de materiais re- cicláveis e dentro dela enviamos apenas o necessário para evitar descarte de materiais. Use somente o carregador original Caso contrário, o tempo de carga poderá ser maior. Além disso, você também preserva o tempo de vida da sua bateria. Duração da bateria A sua bateria pode durar entre 4h e 8h, conforme tempo de uso, brilho da tela e intensidade do sinal disponível. *Para o modelo de maquininha Renova Com Bobina a garantia é de 3 meses. Get Clássica Maquininha de cartão Getnet ",,,tune,clean
+[site Getnet] Get Classica: botoes e conectividade, manual paginas 3, 4 e 9: 1. O que vem dentro da caixa? Garantia 1 ano de garantia a contar da data de adesão.* Estamos constantemente procurando diminuir nosso impacto am- biental. Por isso, nossas caixas são feitas a partir de materiais re- cicláveis e dentro dela enviamos apenas o necessário para evitar descarte de materiais. Use somente o carregador original Caso contrário, o tempo de carga poderá ser maior. Além disso, você também preserva o tempo de vida da sua bateria. Duração da bateria A sua bateria pode durar entre 4h e 8h, conforme tempo de uso, brilho da tela e intensidade do sinal disponível. *Para o modelo de maquininha Renova Com Bobina a garantia é de 3 meses. Get Clássica Maquininha de cartão Getnet ",pass,3,tune,clean,Mensalidades são de oferta condicionada à Get Conta.
 20261119T125319Z-holdout_answers_v3,H07,1,Quais meios de pagamento são ideais para a alta temporada?,"Os materiais da Getnet não trazem um ranking de meios de pagamento para a alta temporada. O que eles indicam é aceitar vários meios ao mesmo tempo, na loja física e no online. Segundo o Opinion Box, citado no conteúdo da Getnet, 60% dos consumidores desistem da compra por dificuldade no pagamento.
 
 **Opções da Getnet para o período**
@@ -3832,7 +3832,7 @@ Aprenda a antecipar o fluxo de pagamento para manter o fôlego do seu negócio d
 
 Após as promoções da Black Friday, é preciso se organizar para o recebimento das vendas realizadas a prazo, planejando entradas e saídas para garantir a saúde financeira do negócio. Além disso, está cada vez mais comum clientes que compram em novembro, mas pagam depois, o que exige atenção redobrada no fluxo de caixa.
 
-Esse é o melhor período para impulsionar as vendas, mas é preciso equilibrar as contas para receber o valor nos meses seguintes. Para evitar inadimplência e aprender a controlar os pagame",,,tune,clean
+Esse é o melhor período para impulsionar as vendas, mas é preciso equilibrar as contas para receber o valor nos meses seguintes. Para evitar inadimplência e aprender a controlar os pagame",pass,3,tune,clean,Faltou destacar aproximação e Get Tap para reduzir filas.
 20261119T125319Z-holdout_answers_v3,H08,1,Como a Gestão de Vendas Getnet ajuda no verão?,"A Gestão de Vendas Getnet ajuda no verão porque você acompanha o movimento da alta temporada e ajusta a operação com rapidez [S1].
 
 - **Vendas em tempo real:** você vê as transações e o desempenho do negócio enquanto acontecem [S1][S3].
@@ -3876,7 +3876,7 @@ Pix na maquininha Getnet: reduza o tempo de pagamento, aumente a conversão e ap
 
 Get Tap: transforme seu celular em uma maquininha e venda em qualquer lugar, sem depender de equipamentos adicionais — ideal para quem precisa mobilidade.
 
-Link de Pagamento Getnet: feche vendas pelo WhatsApp ou redes sociais, oferecendo prati",,,tune,clean
+Link de Pagamento Getnet: feche vendas pelo WhatsApp ou redes sociais, oferecendo prati",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H17,1,Preciso ter conta bancária para receber pagamentos?,"Sim. Na prática, você precisa de uma conta bancária ativa para receber, mas as fontes oficiais não afirmam isso de forma explícita. Elas só definem quais contas podem ser usadas [S1].
 
 **Requisitos da conta [S1]**
@@ -3936,7 +3936,7 @@ Crie o hábito de acompanhar a sua situação junto Receita Federal, pois deixan
 
 4. Entre na seção “Dados Bancários”.Aqui, você poderá visualizar as contas bancárias cadastradas.
 
-5. Adicione uma nova conta.Clique em Adicionar Co",,,tune,doubtful
+5. Adicione uma nova conta.Clique em Adicionar Co",pass,4,tune,doubtful,FAQ recomenda conta; não há regra formal de obrigação.
 20261119T125319Z-holdout_answers_v3,H19,1,Como funciona o Get Tap?,"O Get Tap é a tecnologia Tap on Phone da Getnet. Ele transforma o seu celular em maquininha dentro do app Getnet, e você recebe por aproximação. [S3][S4]
 
 **O que aceita**
@@ -4051,7 +4051,7 @@ Acesse o App Getnet, clique em Vender e em Get Tap – Aproximação.
 
 Na tela seguinte informaremos caso o seu aparelho não seja compatível.
 
-Além disso, por questões de segurança, faremos uma a",,,tune,doubtful
+Além disso, por questões de segurança, faremos uma a",pass,5,tune,doubtful,
 20261119T125319Z-holdout_answers_v3,H29,1,Quais são as vantagens do Getnet Connects?,"O Getnet Connects é o Programa de Parcerias da Getnet. Ele é voltado a parceiros como ISVs, vendedores e revendedores, e não ao lojista final [S1]. Não encontrei vantagens diretas para o lojista.
 
 **Vantagens para os parceiros [S1]:**
@@ -4122,7 +4122,7 @@ UMA REDE DE BENEFÍCIOS COMPLETA
 
 Oferecemos soluções de pagamentos que acompanham do pequeno ao grande empreendedor, para vender e fazer gestão, contribuindo para que essas pessoas e negócios prosperem.
 
-A Getnet é a fintech líder em soluções de pagamento na América Latina e na Península Ibérica. Integrando-se de forma fluida aos ecossistemas existentes e entregando tecnologias proprietárias e avançadas.​",,,tune,clean
+A Getnet é a fintech líder em soluções de pagamento na América Latina e na Península Ibérica. Integrando-se de forma fluida aos ecossistemas existentes e entregando tecnologias proprietárias e avançadas.​",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H51,1,Como a Getnet pode ajudar quem vende em feiras?,"A Getnet tem quatro soluções que servem para quem vende em feiras:
 
 **1. Maquininha portátil (ex.: Get Smart)**
@@ -4239,7 +4239,7 @@ A escolha depende do perfil do negócio. Maquininhas portáteis, recebimento por
 
 [site Getnet] 5 dicas essenciais para modernizar e acelerar as vendas na feira: ### Como a Getnet pode ajudar quem vende em feiras?
 
-Quem trabalha em feiras precisa de soluções práticas, rápidas e que acompanhem",,,tune,clean
+Quem trabalha em feiras precisa de soluções práticas, rápidas e que acompanhem",pass,4,tune,clean,O trecho sobre preço é genérico; há valores de outros POS.
 20261119T125319Z-holdout_answers_v3,H44,1,O que é o checkout de pagamento?,"**Checkout de pagamento** é a etapa em que o cliente confirma a compra. Ele revisa os produtos, informa os dados, escolhe a forma de pagamento e finaliza o pedido [S1].
 
 O **Checkout Getnet (Get Checkout)** é a solução da Getnet para essa etapa em lojas online [S1].
@@ -4294,7 +4294,7 @@ Pagamentos, vendas, reembolsos, antifraude, assinaturas, tokenização e muito m
 
 ### Eficiência nos pagamentos
 
-Menos custos, mais segurança, facilidade nos pagamentos e dados unificados.",,,tune,clean
+Menos custos, mais segurança, facilidade nos pagamentos e dados unificados.",pass,4,tune,clean,A página menciona 30 dias em uma oferta específica.
 20261119T132916Z-dev-verify-off,D16,1,Vai chover em São Paulo amanhã?,"Sim, é provável que chova em São Paulo amanhã (sexta, 20/11) [S1].
 
 - **Condição:** garoa, com 70% de chance de chuva.
@@ -4304,14 +4304,14 @@ Menos custos, mais segurança, facilidade nos pagamentos e dados unificados.",,,
 
 Vale levar um guarda-chuva. Esta é uma previsão e pode mudar ao longo do dia.
 
-Fonte: Open-Meteo [S1]","[get_weather] {""status"": ""ok"", ""data"": {""city"": ""São Paulo"", ""region"": ""São Paulo"", ""country"": ""Brasil"", ""date"": ""2026-11-20"", ""summary"": ""drizzle"", ""temp_min_c"": 20.8, ""temp_max_c"": 31.6, ""precipitation_probability_pct"": 70, ""precipitation_mm"": 1.8, ""wind_max_kmh"": 11.5}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T10:27-03:00""}]}",,,tune,doubtful
+Fonte: Open-Meteo [S1]","[get_weather] {""status"": ""ok"", ""data"": {""city"": ""São Paulo"", ""region"": ""São Paulo"", ""country"": ""Brasil"", ""date"": ""2026-11-20"", ""summary"": ""drizzle"", ""temp_min_c"": 20.8, ""temp_max_c"": 31.6, ""precipitation_probability_pct"": 70, ""precipitation_mm"": 1.8, ""wind_max_kmh"": 11.5}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T10:27-03:00""}]}",pass,5,tune,doubtful,
 20261119T135028Z-dev-verify-on-v2,D18,1,Qual a temperatura máxima em Recife depois de amanhã?,"A temperatura máxima prevista para Recife no sábado (21/11/2026) é de **31,1 °C** [S1].
 
 - Mínima: 25,3 °C
 - Condição: garoa fraca, com 25% de chance de chuva (cerca de 0,5 mm)
 - Vento: até 13,8 km/h
 
-Fonte: Open-Meteo [S1]. É uma previsão e pode mudar.","[get_weather] {""status"": ""ok"", ""data"": {""city"": ""Recife"", ""region"": ""Pernambuco"", ""country"": ""Brasil"", ""date"": ""2026-11-21"", ""summary"": ""light drizzle"", ""temp_min_c"": 25.3, ""temp_max_c"": 31.1, ""precipitation_probability_pct"": 25, ""precipitation_mm"": 0.5, ""wind_max_kmh"": 13.8}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T10:48-03:00""}]}",,,tune,clean
+Fonte: Open-Meteo [S1]. É uma previsão e pode mudar.","[get_weather] {""status"": ""ok"", ""data"": {""city"": ""Recife"", ""region"": ""Pernambuco"", ""country"": ""Brasil"", ""date"": ""2026-11-21"", ""summary"": ""light drizzle"", ""temp_min_c"": 25.3, ""temp_max_c"": 31.1, ""precipitation_probability_pct"": 25, ""precipitation_mm"": 0.5, ""wind_max_kmh"": 13.8}, ""sources"": [{""id"": ""S1"", ""title"": ""Open-Meteo forecast API"", ""url"": ""https://open-meteo.com/"", ""retrieved_at"": ""2026-11-19T10:48-03:00""}]}",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H39,1,Vender na rua com maquininha é seguro?,"Sim, segundo a Getnet, vender na rua com a maquininha é seguro, desde que você siga algumas boas práticas. [S2]
 
 **Proteções da Getnet**
@@ -4397,7 +4397,7 @@ Não! A maquininha já vem equipada com um chip exclusivo e um plano de dados pr
 
 Pessoa Física: MasterCard, Visa, Elo, Amex e Hipercard.
 
-Pessoa Jurídica: Além das bandeiras acima, aceitamos vouchers Alelo, Pluxee, Ticket e VR.",,,tune,clean
+Pessoa Jurídica: Além das bandeiras acima, aceitamos vouchers Alelo, Pluxee, Ticket e VR.",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H23,1,Link de Pagamento ajuda nas redes sociais?,"Sim. O Link de Pagamento foi feito para quem vende por WhatsApp, Instagram e outros canais digitais.
 
 **Como funciona**
@@ -4450,7 +4450,7 @@ Ao utilizar as soluções da Getnet, você conta com uma análise de risco intel
 
 [site Getnet] Link de pagamento: a chave para ampliar suas vendas!: ## O que é link de pagamento?
 
-O link de pagamento é uma ferramenta prática e segura que permite ao empreendedor vender online sem precisar de loja virtual ou maquininha. Com ele, é possível gerar um link personalizado e enviá-lo por WhatsApp, e-mail, redes sociais ou qualquer outro canal digital. Ao clicar, o cliente é direcionado para uma página de pagamento onde pode concluir a compra com cartão de crédito, débito ou Pix. É a solução ideal para quem busca agilidade nas vendas, mais conversão e menos burocracia, tudo com a segurança das transações digitais.",,,tune,clean
+O link de pagamento é uma ferramenta prática e segura que permite ao empreendedor vender online sem precisar de loja virtual ou maquininha. Com ele, é possível gerar um link personalizado e enviá-lo por WhatsApp, e-mail, redes sociais ou qualquer outro canal digital. Ao clicar, o cliente é direcionado para uma página de pagamento onde pode concluir a compra com cartão de crédito, débito ou Pix. É a solução ideal para quem busca agilidade nas vendas, mais conversão e menos burocracia, tudo com a segurança das transações digitais.",pass,5,tune,clean,
 20261119T125319Z-holdout_answers_v3,H59,1,E por que utilizar o Conversor de Moeda na maquininha neste momento?,"Não encontrei nada que torne ""este momento"" especialmente bom para usar o Conversor de Moeda. As fontes só trazem vantagens gerais, listadas abaixo.
 
 **O que é:** o Conversor de Moedas (DCC) deixa o cliente estrangeiro pagar na moeda do país dele. Você recebe em reais [S3]. Ele aparece sozinho na maquininha quando detecta um cartão estrangeiro elegível [S2].
@@ -4498,4 +4498,4 @@ De acordo com o Ministério do Turismo, projeções indicam que o país deve rec
 
 Diante desses números, é fundamental pre
 
-[get_exchange_rate] {""status"": ""ok"", ""data"": {""currency"": ""USD"", ""against"": ""BRL"", ""buy_brl"": 5.8096, ""sell_brl"": 5.8102, ""bulletin"": ""Fechamento"", ""quoted_at"": ""2026-11-18 13:08:44.271245"", ""is_requested_day"": false, ""note"": ""PTAX is the Central Bank reference rate, not the rate applied by card machines (DCC) or banks.""}, ""sources"": [{""id"": ""S4"", ""title"": ""Banco Central do Brasil - PTAX"", ""url"": ""https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"", ""retrieved_at"": ""2026-11-19T09:53-03:00""}]}",,,tune,fail
+[get_exchange_rate] {""status"": ""ok"", ""data"": {""currency"": ""USD"", ""against"": ""BRL"", ""buy_brl"": 5.8096, ""sell_brl"": 5.8102, ""bulletin"": ""Fechamento"", ""quoted_at"": ""2026-11-18 13:08:44.271245"", ""is_requested_day"": false, ""note"": ""PTAX is the Central Bank reference rate, not the rate applied by card machines (DCC) or banks.""}, ""sources"": [{""id"": ""S4"", ""title"": ""Banco Central do Brasil - PTAX"", ""url"": ""https://www.bcb.gov.br/estabilidadefinanceira/historicocotacoes"", ""retrieved_at"": ""2026-11-19T09:53-03:00""}]}",pass,3,tune,fail,"Faltou contexto de turismo, sem tratar 2025 como atual."

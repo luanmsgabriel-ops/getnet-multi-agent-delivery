@@ -41,3 +41,7 @@ The first retrieval and answer holdouts became dev sets once used. Q&A-aware chu
 ## v4 retrieval work (2026-11-19)
 
 All earlier retrieval and answer holdouts (`retrieval_holdout`, `retrieval_holdout_v2`, `holdout_answers`, `holdout_answers_v2`) are now **dev** sets. The reranker, the context prefix and the query-rewrite ablation are chosen on them. The v3 holdouts above were committed before any of that code existed and are run once at the end.
+
+## Judge calibration v4 (2026-11-19)
+
+`labels_v4.csv` (rater 1, 70 items) and `labels_v4_second_rater.csv` (rater 2, the 50-item measurement half). Both are human labels, made independently, without the judge's grades or each other's labels, and without AI assistance (stated by the author). The measurement half is not used to tune the judge; the judge was not changed after these labels.

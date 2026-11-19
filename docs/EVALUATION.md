@@ -69,7 +69,30 @@ The verifier ([ADR 012](adr/012-final-answer-verifier.md)) was measured on the 4
 
 Measured cleanly, the judge sees no change on dev. On the bench, the verifier catches errors in the merchant's figures and dates, and its false alarms on answers the judge found fully supported fell from 10/25 to 2/25 after tuning.
 
-## Judge calibration against a human
+## Judge calibration against two humans (v4)
+
+**Setup** (`evals/calibration.py`, `evals/calibration/calibration_v4.md`):
+- 70 new answers from v4 runs. Questions already labelled in v3 were excluded.
+- The sample is stratified: every judge failure, the judge passes that were doubtful (correctness 4 or below, or unsupported claims listed) and clean passes. v4 answers rarely fail, and a nearly constant label makes kappa unstable.
+- Rater 1 labelled all 70 items. A second person labelled the 50 items of the **measurement half**, independently, without seeing either the judge's grades or rater 1's labels, and without AI help (stated by the author).
+- The measurement half was never used to tune the judge.
+- 95% intervals come from a bootstrap with 2,000 resamples.
+
+| Pair (measurement half, 50 items) | Agreement | Cohen's kappa (95% CI) | Gwet's AC1 (95% CI) |
+|---|---:|---:|---:|
+| Judge vs rater 1 | 98% | 0.85 (0.00 to 1.00) | **0.98 (0.92 to 1.00)** |
+| Judge vs rater 2 | **100%** | 1.00 | 1.00 |
+| Rater 1 vs rater 2 | 98% | 0.85 (0.00 to 1.00) | 0.98 (0.92 to 1.00) |
+
+**Reading.**
+- The judge agrees with each human about as well as the two humans agree with each other: rater 1 vs rater 2 is the ceiling.
+- Correctness scores from the judge and rater 1 fall within 1 point of each other on 96% of items.
+- Only 3 or 4 of the 50 answers fail, so a single item moves kappa a lot. Its interval runs from 0 to 1, while AC1, which is robust to a rare class, stays between 0.92 and 1.00.
+- The one disagreement in the measurement half (D06, a R$ 1 fee condition) has the judge and rater 2 passing and rater 1 failing.
+
+**As a deploy gate,** the judge is reliable for pass/fail on answers like these. The thresholds in `evals/gates.json` sit well below the measured levels, and deterministic checks run alongside it.
+
+## Judge calibration against a human (v3)
 
 A person labelled 30 sampled answers (pass/fail plus a 1-5 correctness score) without seeing the judge's grades. They used the same rules and exactly the same evidence the judge receives (`evals/calibration/labels.csv`, `evals/calibration/calibration.md`).
 

@@ -204,6 +204,104 @@ def export_v4(run_dirs: list[Path], n: int = 70, measure: int = 50, seed: int = 
     print(f"wrote labels_v4.csv: {len(out)} items; strata per half: {counts}")
 
 
+def ac1(a: list[str], b: list[str]) -> float:
+    """Gwet's AC1 for two raters and two classes: stable when one class is rare."""
+    n = len(a)
+    observed = sum(x == y for x, y in zip(a, b, strict=True)) / n
+    pi = (a.count("fail") + b.count("fail")) / (2 * n)
+    expected = 2 * pi * (1 - pi)
+    return 1.0 if expected == 1 else (observed - expected) / (1 - expected)
+
+
+def _boot(a: list[str], b: list[str], stat: Any, reps: int = 2000) -> tuple[float, float]:
+    rng = random.Random(7)
+    n, values = len(a), []
+    for _ in range(reps):
+        idx = [rng.randrange(n) for _ in range(n)]
+        x, y = [a[i] for i in idx], [b[i] for i in idx]
+        if len(set(x) | set(y)) > 1:
+            values.append(stat(x, y))
+    values.sort()
+    return values[int(0.025 * len(values))], values[int(0.975 * len(values)) - 1]
+
+
+def score_v4() -> None:
+    """Judge vs two human raters on the v4 measurement half; vs one rater on the tuning half."""
+    rows = list(csv.DictReader((ROOT / "labels_v4.csv").open(encoding="utf-8-sig")))
+    second = {
+        (r["run_dir"], r["case_id"], r["repeat"]): r
+        for r in csv.DictReader((ROOT / "labels_v4_second_rater.csv").open(encoding="utf-8-sig"))
+    }
+    results = Path(__file__).resolve().parent / "results"
+    judge: list[str] = []
+    for row in rows:
+        lines = (results / row["run_dir"] / "judge.jsonl").read_text("utf-8").splitlines()
+        g = next(
+            json.loads(x)
+            for x in lines
+            if x
+            and json.loads(x)["case_id"] == row["case_id"]
+            and str(json.loads(x)["repeat"]) == row["repeat"]
+        )
+        judge.append(g["verdict"])
+    human = [r["human_verdict"] for r in rows]
+    measure = [i for i, r in enumerate(rows) if r["half"] == "measure"]
+    tune = [i for i, r in enumerate(rows) if r["half"] == "tune"]
+    rater2 = [
+        second[(rows[i]["run_dir"], rows[i]["case_id"], rows[i]["repeat"])]["verdict"]
+        for i in measure
+    ]
+
+    def line(name: str, a: list[str], b: list[str]) -> str:
+        agree = sum(x == y for x, y in zip(a, b, strict=True)) / len(a)
+        k_lo, k_hi = _boot(a, b, kappa)
+        a_lo, a_hi = _boot(a, b, ac1)
+        return (
+            f"| {name} | {len(a)} | {agree:.0%} | {kappa(a, b):.2f} ({k_lo:.2f} to {k_hi:.2f}) | "
+            f"{ac1(a, b):.2f} ({a_lo:.2f} to {a_hi:.2f}) | {a.count('fail')} / {b.count('fail')} |"
+        )
+
+    lines = [
+        "# Judge calibration v4",
+        "",
+        f"Generated {datetime.now(UTC):%Y-%m-%d %H:%M} UTC. Labels: `labels_v4.csv` (rater 1, 70 "
+        "items) and `labels_v4_second_rater.csv` (rater 2, the 50 measurement items). Both raters "
+        "are people, labelled independently, without the judge's grades or each other's labels, "
+        "and without AI help (stated by the author). The measurement half was never used to tune "
+        "the judge. 95% intervals: bootstrap, 2,000 resamples.",
+        "",
+        "| Pair | n | Agreement | Cohen's kappa (95% CI) | Gwet's AC1 (95% CI) | Fails (a / b) |",
+        "|---|---:|---:|---:|---:|---:|",
+        line(
+            "Judge vs rater 1 (measurement)",
+            [judge[i] for i in measure],
+            [human[i] for i in measure],
+        ),
+        line("Judge vs rater 2 (measurement)", [judge[i] for i in measure], rater2),
+        line("Rater 1 vs rater 2 (measurement)", [human[i] for i in measure], rater2),
+        line("Judge vs rater 1 (tuning half)", [judge[i] for i in tune], [human[i] for i in tune]),
+        "",
+        "Disagreements:",
+        "",
+    ]
+    for i, row in enumerate(rows):
+        r2 = second.get((row["run_dir"], row["case_id"], row["repeat"]))
+        verdicts = {judge[i], human[i]} | ({r2["verdict"]} if r2 else set())
+        if len(verdicts) > 1:
+            lines.append(
+                f"- item {i + 1} ({row['case_id']}, {row['half']}): judge {judge[i]}, "
+                f"rater 1 {human[i]}"
+                + (f", rater 2 {r2['verdict']}" if r2 else "")
+                + (
+                    f" — rater 1: {row.get('human_comment', '')}"
+                    if row.get("human_comment")
+                    else ""
+                )
+            )
+    (ROOT / "calibration_v4.md").write_text("\n".join(lines) + "\n", "utf-8")
+    print("\n".join(lines))
+
+
 def import_answers(text_file: Path) -> None:
     """Parse lines like '7 F 2 comment' into labels.csv (row order = item number)."""
     rows = list(csv.DictReader((ROOT / "labels.csv").open(encoding="utf-8-sig")))
@@ -281,6 +379,7 @@ def main() -> None:
     v4 = sub.add_parser("export-v4")
     v4.add_argument("run_dirs", nargs="+", type=Path)
     sub.add_parser("score")
+    sub.add_parser("score-v4")
     imp = sub.add_parser("import")
     imp.add_argument("text_file", type=Path)
     args = parser.parse_args()
@@ -288,6 +387,8 @@ def main() -> None:
         export(args.run_dirs, args.n)
     elif args.cmd == "export-v4":
         export_v4(args.run_dirs)
+    elif args.cmd == "score-v4":
+        score_v4()
     elif args.cmd == "import":
         import_answers(args.text_file)
     else:
