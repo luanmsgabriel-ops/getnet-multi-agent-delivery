@@ -1,0 +1,6 @@
+id: 2
+event: handoff.resolved
+data: {"handoff_id": "H-4373CB", "answer": "Reconferi os dados das vendas e eles batem com o que informei antes.\n\n- **Vendas:** em 18/11 houve duas vendas aprovadas de R$ 239,90, no crédito à vista, com o mesmo Mastercard final 8812 e o mesmo terminal (T-1988-02).\n  - S-1988-01248, às 11:05.\n  - S-1988-01249, às 11:06.\n- **Duplicidade:** um especialista da Getnet confirmou que a cobrança foi duplicada. O protocolo é **H-4373CB**.\n- **Estorno:** o especialista informou que pediu ao time de cancelamentos o estorno da segunda venda. Ele não citou o ID dessa venda. Presumo que seja a S-1988-01249, mas isso não foi confirmado.\n- **Prazo:** o valor volta na fatura do cliente conforme o prazo do emissor do cartão. Não tenho um prazo exato.\n\nSe precisar acompanhar o estorno, use o protocolo H-4373CB.", "request_id": "tg-d12f108780aa"}
+
+: keep-alive
+

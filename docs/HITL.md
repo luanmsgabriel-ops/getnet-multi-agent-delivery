@@ -47,6 +47,18 @@ Set `TELEGRAM_BOT_TOKEN` (from @BotFather) and `TELEGRAM_OPERATOR_CHAT_IDS` in `
 - Messages from chats not in the allow-list are ignored. Their chat id is logged (`telegram_unknown_chat`), which is how a new operator chat is registered: send `/start` to the bot, read the id in the logs, add it to the list.
 - Updates come by long polling, so no public URL is needed. With several replicas, keep `TELEGRAM_POLLING=true` on one of them only.
 
+**Real run (2026-11-19):**
+- A temporary bot was used on the full compose stack with the real model.
+- The dispute handoff H-4373CB reached the operator's Telegram.
+- The operator answered with `/reply` from the phone; the assistant resumed and the merchant was notified.
+- Evidence and audit trail: `evals/results/20261119T214657Z-e2e-telegram/`.
+
+| Handoff notified on Telegram | `/reply` from the phone and the merchant's answer |
+|---|---|
+| ![notified](hitl/telegram-handoff-notified.jpg) | ![resolved](hitl/telegram-reply-resolved.jpg) |
+
+In this run the bot showed the answer's Markdown bold markers as literal `**`. Telegram messages are now sent as plain text without them (test in `tests/integration/test_operator.py`).
+
 ## Deadlines
 
 | Priority when opened | Deadline | On breach |

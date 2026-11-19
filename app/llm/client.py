@@ -8,6 +8,7 @@ Responses are converted to plain dicts so agent state stays serializable and tes
 """
 
 import contextvars
+import logging
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -30,6 +31,8 @@ from app.observability import (
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 # Claude Haiku 5.5 has no server-side refusal fallback: sending the parameter would fail.
+log = logging.getLogger("getnet.llm")
+
 NO_SERVER_FALLBACK = ("claude-haiku",)
 RESERVE_USD = 0.05  # headroom kept before each call so a single call cannot overshoot
 
@@ -264,6 +267,22 @@ class AnthropicLLM:
                 }
             response = self._client.beta.messages.create(**request)
         except anthropic.APIStatusError as exc:
+            # The provider's own error text (type and message), never the request content.
+            body: dict[str, Any] = exc.body if isinstance(exc.body, dict) else {}
+            found = body.get("error")
+            error: dict[str, Any] = found if isinstance(found, dict) else {}
+            log.warning(
+                "llm_provider_error",
+                extra={
+                    "fields": {
+                        "agent": agent,
+                        "model": model,
+                        "status": exc.status_code,
+                        "type": error.get("type"),
+                        "message": str(error.get("message", ""))[:300],
+                    }
+                },
+            )
             raise LLMUnavailable(f"provider_error_{exc.status_code}") from exc
         except anthropic.APIConnectionError as exc:
             raise LLMUnavailable("provider_unreachable") from exc

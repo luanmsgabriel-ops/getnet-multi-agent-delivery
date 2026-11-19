@@ -43,6 +43,11 @@ HELP = (
 )
 
 
+def plain(text: str) -> str:
+    """Messages go out as plain text: drop Markdown bold markers the answers carry."""
+    return re.sub(r"\*\*(.+?)\*\*", r"\1", text, flags=re.DOTALL)
+
+
 def _summary(text: str, limit: int = 300) -> str:
     clean, _ = redact(text)
     return clean if len(clean) <= limit else clean[: limit - 1] + "…"
@@ -91,7 +96,7 @@ class TelegramBot:
 
     def send(self, chat_id: int, text: str) -> bool:
         try:
-            self._api("sendMessage", {"chat_id": chat_id, "text": text[:4000]})
+            self._api("sendMessage", {"chat_id": chat_id, "text": plain(text)[:4000]})
             return True
         except (httpx.HTTPError, RuntimeError, ValueError) as exc:
             log.warning("telegram_send_failed", extra={"fields": {"error": str(exc)[:200]}})

@@ -105,6 +105,26 @@ Measured cleanly, the judge sees no change on dev. On the bench, the verifier ca
 
 Run `evals/results/20261119T163642Z-tools`: Claude Sonnet 5.5, one run, US$ 0.27. The one miss was ambiguous wording ("the next 60 days, starting tomorrow" read as tomorrow + 60); the case was kept as written. With 4 cases per tool, these are smoke-level numbers per tool, not tight estimates.
 
+## Final v4 regression (2026-11-19)
+
+The final code was run on five sets with the real model, then judged. `uv run python -m evals.stats` gives the 95% intervals.
+
+| Run | n | Checks pass | Judge pass | Correctness | Groundedness | Unsupported | Latency p50 (s) | Latency p95 (s) | Cost/run (US$) |
+|---|---:|---|---|---|---|---:|---|---|---|
+| `20261119T202349Z-original-final` | 30 | 100% [89-100] | 100% [89-100] | 4.87 [4.73-4.97] | 4.83 [4.70-4.97] | 11 | 15.9 [14.7-17.2] | 33.0 [19.7-34.3] | 0.031 [0.025-0.037] |
+| `20261119T202936Z-handoff-final` | 48 | 90% [78-95] | 100% [92-100] | 4.91 [4.81-4.98] | 4.88 [4.77-4.98] | 8 | 13.8 [10.8-16.9] | 23.9 [20.5-24.4] | 0.025 [0.020-0.032] |
+| `20261119T203415Z-multi_turn-final` | 12 | 83% [55-95] | 100% [76-100] | 4.92 [4.75-5.00] | 4.75 [4.50-4.92] | 6 | 12.5 [9.3-15.2] | 23.4 [15.2-23.4] | 0.043 [0.030-0.056] |
+| `20261119T203912Z-dev-final` | 40 | 98% [87-100] | 98% [87-100] | 4.67 [4.50-4.83] | 4.56 [4.33-4.75] | 23 | 14.7 [11.5-15.9] | 26.4 [19.8-35.7] | 0.024 [0.020-0.029] |
+| `20261119T204749Z-holdout_answers_v3-final` | 60 | 98% [91-100] | 97% [89-99] | 4.75 [4.60-4.88] | 4.71 [4.56-4.85] | 20 | 14.8 [13.2-16.8] | 22.6 [21.8-25.2] | 0.032 [0.030-0.035] |
+
+Brackets: 95% intervals (Wilson for rates; bootstrap, 2,000 resamples, for means and percentiles).
+
+Notes:
+- **Handoff, 90% checks.** All five failures are HTTP 400 errors from the model provider, on two cases that must *not* escalate (H15 ×2, H16 ×3). A rerun of both passed. The client did not log the provider's error text then; it does now (`llm_provider_error`). The run is reported as it was.
+- **Multi-turn, 83% checks.** One of the two misses was the checker: the answer wrote "Wi-Fi" with a non-breaking hyphen (U+2011). The checker now normalizes Unicode dashes and spaces, which makes the same answers 11/12 (92%). The other miss is real: an answer about decline code 57 without routing to the Support Agent.
+- **Real misses elsewhere.** D29 explained decline code 05 from general knowledge instead of calling the decline-code tool. H45 (holdout) asked a clarifying question on an ambiguous official question ("which step?").
+- **Latency.** These are in-process runs with three conversations in parallel. Latency under concurrent load is in the next section.
+
 ## Load and latency (v4)
 
 `make load` runs 10 concurrent merchants for 5 minutes over `/chat/stream` against the full compose stack (Postgres, Redis, OIDC) with the real model. The conversations come from the 10 scenarios and the 40 dev cases, with 5 s between turns.
@@ -155,4 +175,8 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Human calibration | The judge did not know the assistant's scope or the caller | Scope and caller added to the judge packet |
 | v4 regression run | The judge rebuilt 5 passages per search while the agent had received 8 since late v3, so it flagged supported facts (fees on the rental page) as invented | The judge uses the agent's `KB_PASSAGES`. Re-judged: original 90% → 100%, holdout v3 95% → 97%. v3 runs judged after the switch to 8 passages were slightly understated. |
 | v4 calibration export | The judge packet listed the verifier's own verdict (`verify_answer`) as evidence, which flattered the verifier (15 unsupported claims instead of 19) | The verdict is excluded from the packet and the labelling evidence; verifier runs re-judged |
+| v4 load test | Uvicorn's 5 s keep-alive reset reused client connections (6.4% of turns failed before reaching the server) | Keep-alive 75 s, longer than a load balancer's idle timeout |
+| v4 load test | Turns with a verifier replan had p95 72 s | Replan only while the turn is under 12 s; otherwise trim unsupported sentences (ADR 018) |
+| v4 final regression | The checker missed "Wi-Fi" written with a non-breaking hyphen | Unicode dashes and spaces normalized; unit test |
+| v4 final regression | A provider HTTP 400 gave no reason in the logs | The provider's error type and message are logged (no request content) |
 | Regression gate run after the memory change | The figure check read the JSON value `6.372` as 6372, so a correct exchange rate was withheld | Numbers compared by value, with both readings of a 3-digit group |

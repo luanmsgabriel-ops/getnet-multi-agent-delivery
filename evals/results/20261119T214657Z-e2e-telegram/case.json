@@ -1,0 +1,98 @@
+{
+ "id": "H-4373CB",
+ "tenant": "demo",
+ "merchant_id": "cliente1988",
+ "session_id": "tg-live-1",
+ "reason": "charge_dispute",
+ "priority": "high",
+ "summary": "Lojista cliente1988 relata cobrança duplicada e pede contestação e estorno de uma venda. Verificado: em 18/11/2026 há duas vendas aprovadas de R$ 239,90, Mastercard crédito final 8812, 1x, terminal T-1988-02: S-1988-01248 (11:05) e S-1988-01249 (11:06). NSU indisponível. Não foi confirmado se há duplicidade indevida ou duas compras legítimas. Solicita análise e estorno de uma delas.",
+ "language": "pt",
+ "status": "resolved",
+ "created_at": "2026-11-19T21:42:50+00:00",
+ "operator": "telegram:<operator>",
+ "operator_action": "reply",
+ "operator_message": "confirmei a cobrança duplicada. O estorno da segunda venda foi solicitado ao time de cancelamentos; o valor volta na fatura do cliente conforme o prazo do emissor",
+ "replied_at": "2026-11-19T21:45:44+00:00",
+ "final_answer": "Reconferi os dados das vendas e eles batem com o que informei antes.\n\n- **Vendas:** em 18/11 houve duas vendas aprovadas de R$ 239,90, no crédito à vista, com o mesmo Mastercard final 8812 e o mesmo terminal (T-1988-02).\n  - S-1988-01248, às 11:05.\n  - S-1988-01249, às 11:06.\n- **Duplicidade:** um especialista da Getnet confirmou que a cobrança foi duplicada. O protocolo é **H-4373CB**.\n- **Estorno:** o especialista informou que pediu ao time de cancelamentos o estorno da segunda venda. Ele não citou o ID dessa venda. Presumo que seja a S-1988-01249, mas isso não foi confirmado.\n- **Prazo:** o valor volta na fatura do cliente conforme o prazo do emissor do cartão. Não tenho um prazo exato.\n\nSe precisar acompanhar o estorno, use o protocolo H-4373CB.",
+ "due_at": "2026-11-19T21:57:50+00:00",
+ "conversation": [
+  {
+   "merchant": "Meu cliente foi cobrado duas vezes ontem no mesmo cartão, R$ 239,90 cada. Quero contestar e estornar uma das vendas.",
+   "assistant": "Reconferi os dados das vendas e eles batem com o que informei antes.\n\n- **Vendas:** em 18/11 houve duas vendas aprovadas de R$ 239,90, no crédito à vista, com o mesmo Mastercard final 8812 e o mesmo terminal (T-1988-02).\n  - S-1988-01248, às 11:05.\n  - S-1988-01249, às 11:06.\n- **Duplicidade:** um especialista da Getnet confirmou que a cobrança foi duplicada. O protocolo é **H-4373CB**.\n- **Estorno:** o especialista informou que pediu ao time de cancelamentos o estorno da segunda venda. Ele não citou o ID dessa venda. Presumo que seja a S-1988-01249, mas isso não foi confirmado.\n- **Prazo:** o valor volta na fatura do cliente conforme o prazo do emissor do cartão. Não tenho um prazo exato.\n\nSe precisar acompanhar o estorno, use o protocolo H-4373CB."
+  }
+ ],
+ "facts": [
+  {
+   "tool": "ask_support",
+   "result": "Sim. Ontem (18/11/2026) há duas vendas de R$ 239,90 com o mesmo cartão, com 1 minuto de diferença:\n\n| ID da venda | Horário | Valor | Cartão | Status | Terminal |\n|---|---|---|---|---|---|\n| S-1988-01248 | 11:05 | R$ 239,90 | Mastercard crédito final 8812, 1x | aprovada | T-1988-02 |\n| S-1988-01249 | 11:06 | R$ 239,90 | Mastercard crédito final 8812, 1x | aprovada | T-1988-02 |\n\n- As duas foram aprovadas, então o cliente pode ter sido cobrado duas vezes (R$ 479,80 no total).\n- Os dados disponíveis só trazem o ID da venda. O NSU não aparece, então não consigo informá-lo.\n- Não consigo dizer se foi cobrança duplicada indevida ou duas compras legítimas. Confirme com o cliente.\n- Se foi duplicidade, posso abrir um chamado para a análise e o estorno de uma das vendas. Quer que eu abra?"
+  },
+  {
+   "tool": "ask_support",
+   "result": "Em 18/11/2026 houve 2 vendas de R$ 239,90. As duas foram no crédito à vista, com Mastercard final 8812.\n\n| ID | Horário | Cartão (final) | Status | Terminal |\n|---|---|---|---|---|\n| S-1988-01248 | 11:05 | 8812 | Aprovada | T-1988-02 |\n| S-1988-01249 | 11:06 | 8812 | Aprovada | T-1988-02 |\n\nAs duas vendas têm o mesmo valor, o mesmo cartão e o mesmo terminal, com 1 minuto de diferença. Pode ser uma cobrança duplicada. Se o cliente confirmar que pagou só uma vez, posso abrir um chamado para analisar. É só pedir."
+  }
+ ],
+ "audit": [
+  {
+   "at": "2026-11-19T21:42:51+00:00",
+   "kind": "created",
+   "actor": "assistant",
+   "detail": {
+    "reason": "charge_dispute",
+    "priority": "high"
+   }
+  },
+  {
+   "at": "2026-11-19T21:42:54+00:00",
+   "kind": "notified",
+   "actor": "system",
+   "detail": {
+    "channel": "webhook",
+    "event": "handoff.created",
+    "target": "operator",
+    "delivered": true
+   }
+  },
+  {
+   "at": "2026-11-19T21:42:54+00:00",
+   "kind": "notified",
+   "actor": "system",
+   "detail": {
+    "channel": "telegram",
+    "event": "handoff.created",
+    "target": "operator",
+    "delivered": true
+   }
+  },
+  {
+   "at": "2026-11-19T21:45:44+00:00",
+   "kind": "replied",
+   "actor": "telegram:<operator>",
+   "detail": {
+    "action": "reply",
+    "message": "confirmei a cobrança duplicada. O estorno da segunda venda foi solicitado ao time de cancelamentos; o valor volta na fatura do cliente conforme o prazo do emissor",
+    "redacted": []
+   }
+  },
+  {
+   "at": "2026-11-19T21:46:04+00:00",
+   "kind": "resolved",
+   "actor": "assistant",
+   "detail": {
+    "answer_chars": 759,
+    "output_flags": [],
+    "cost_usd": 0.03723
+   }
+  },
+  {
+   "at": "2026-11-19T21:46:04+00:00",
+   "kind": "notified",
+   "actor": "system",
+   "detail": {
+    "channel": "webhook",
+    "event": "handoff.resolved",
+    "target": "merchant",
+    "delivered": true
+   }
+  }
+ ]
+}

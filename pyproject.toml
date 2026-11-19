@@ -1,6 +1,6 @@
 [project]
 name = "getnet-agents"
-version = "3.0.0"
+version = "4.0.0"
 description = "Multi-agent support system for Getnet merchants (Router/Supervisor, Knowledge, Support, Escalation)."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

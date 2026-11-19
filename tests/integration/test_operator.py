@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 from pydantic import SecretStr
 
 from app.config import Settings
-from app.hitl.telegram import TelegramBot, format_event
+from app.hitl.telegram import TelegramBot, format_event, plain
 from app.main import create_app
 from app.orchestrator import Orchestrator
 from tests.conftest import auth
@@ -282,3 +282,7 @@ def test_telegram_blocked_message_and_help(
     assert replies[1].startswith("Comandos:") or replies[1].startswith("Uso:")
     assert replies[2].startswith("Comandos:")
     assert o.hitl.handoff(hid)["status"] == "pending"  # type: ignore[index]
+
+
+def test_telegram_messages_are_plain_text() -> None:
+    assert plain("- **Vendas:** duas de **R$ 239,90**") == "- Vendas: duas de R$ 239,90"
