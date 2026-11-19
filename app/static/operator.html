@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Console do operador · Getnet</title>
+  <link rel="stylesheet" href="/operator/assets/console.css">
+  <script src="/operator/assets/console.js" defer></script>
+</head>
+<body>
+  <header>
+    <div class="brand"><span class="dot"></span> Console do operador</div>
+    <div id="who" class="muted"></div>
+    <button id="logout" class="ghost" hidden>Sair</button>
+  </header>
+
+  <section id="login" class="card narrow">
+    <h1>Entrar</h1>
+    <p class="muted">Cole um token com o escopo <code>operator</code> (<code>make operator-token</code>).
+      Ele fica só nesta aba.</p>
+    <form id="login-form">
+      <label for="token">Token</label>
+      <textarea id="token" rows="4" autocomplete="off" spellcheck="false" required></textarea>
+      <button type="submit">Entrar</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+  </section>
+
+  <main id="app" hidden>
+    <section class="queue card">
+      <div class="row">
+        <h2>Fila</h2>
+        <select id="status" aria-label="Situação">
+          <option value="pending">Pendentes</option>
+          <option value="resolved">Resolvidos</option>
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <p id="queue-empty" class="muted" hidden>Nenhum transbordo.</p>
+      <ul id="queue" aria-label="Transbordos"></ul>
+      <p class="muted small">Atualiza a cada 10 s.</p>
+    </section>
+
+    <section class="case card" id="case" aria-live="polite">
+      <p id="case-empty" class="muted">Escolha um transbordo na fila.</p>
+      <div id="case-body" hidden>
+        <div class="row">
+          <h2 id="case-title"></h2>
+          <span id="case-priority" class="badge"></span>
+        </div>
+        <p id="case-meta" class="muted"></p>
+
+        <h3>Resumo do assistente</h3>
+        <p id="case-summary" class="summary"></p>
+
+        <h3>Fatos já checados</h3>
+        <p id="facts-empty" class="muted small" hidden>Nenhuma consulta feita antes do transbordo.</p>
+        <ul id="facts" class="facts"></ul>
+
+        <h3>Conversa</h3>
+        <ol id="conversation" class="conversation"></ol>
+
+        <div id="reply-box">
+          <h3>Responder</h3>
+          <form id="reply-form">
+            <div class="row">
+              <label for="action">Ação</label>
+              <select id="action">
+                <option value="reply">Resposta para o lojista</option>
+                <option value="instruct">Orientação para o assistente</option>
+                <option value="close">Encerrar com nota final</option>
+              </select>
+            </div>
+            <textarea id="message" rows="4" maxlength="4000" required
+              placeholder="O texto passa pelo mesmo filtro de segurança do lojista."></textarea>
+            <button type="submit" id="send">Enviar</button>
+            <p id="reply-result" role="status"></p>
+          </form>
+        </div>
+
+        <h3>Final</h3>
+        <p id="case-final" class="summary muted"></p>
+
+        <h3>Auditoria</h3>
+        <ol id="audit" class="audit"></ol>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -29,6 +29,7 @@ Datasets: `original` (the 10 challenge questions), `dev` (40: PT/EN knowledge, p
 | handoff (must / must not escalate) | 48 | **100%** | 100% | 100% | 4.88 | 4.88 | 13 s | US$ 0.024 |
 | **holdout: official FAQ** (once) | 20 | 90% | n/a | 80% | 4.25 | 4.44 | 14 s | US$ 0.024 |
 | **holdout v2: Q&A inside help and product pages** (once, after the RAG changes) | 20 | 100% | n/a | 90% | 4.55 | 4.50 | 12 s | US$ 0.031 |
+| **holdout v3: product Q&A from blog posts and manuals** (once, v4 retrieval) | 60 | 98% | n/a | **97%** | 4.85 | 4.78 | n/a | US$ 0.03 |
 | original on **Claude Opus 5.5** | 30 | 97% | 90% | 93% | 4.62 | 4.52 | 23 s | US$ 0.107 |
 
 Correctness and groundedness are means on a 1-5 scale. The judge found zero policy violations (refund or deadline promises, other merchants' data) in the final runs.
@@ -54,7 +55,89 @@ The same 40 dev cases were run with a **minimal** supervisor prompt, keeping onl
 - **Judge pass did not separate the two.** Both are within judge noise (3-10 points). The rubric scores are more sensitive than the pass/fail verdict for prompt changes.
 - **Caveats.** One repeat of 40 cases, run once, about US$ 1.10 with the judge. The differences are consistent across metrics, but small samples can mislead.
 
-## Judge calibration against a human
+## Final-answer verifier (v4)
+
+The verifier ([ADR 012](adr/012-final-answer-verifier.md)) was measured on the 40 dev cases with the verifier off and on. It was then tuned on an offline bench that re-checks recorded answers against the judge (`evals/verifier_bench.py`, a few cents per run).
+
+| Dev | Off | Tuned verifier |
+|---|---:|---:|
+| Unsupported claims (judge) | 20 | 19 |
+| Groundedness / correctness | 4.72 / 4.85 | 4.67 / 4.85 |
+| Deterministic checks | 95% | **98%** |
+| Latency p50 / p95 | 10.7 s / 18.8 s | 12.8 s / 32.2 s |
+| Cost per case | US$ 0.024 | US$ 0.029 |
+
+Measured cleanly, the judge sees no change on dev. On the bench, the verifier catches errors in the merchant's figures and dates, and its false alarms on answers the judge found fully supported fell from 10/25 to 2/25 after tuning.
+
+## Judge calibration against two humans (v4)
+
+**Setup** (`evals/calibration.py`, `evals/calibration/calibration_v4.md`):
+- 70 new answers from v4 runs. Questions already labelled in v3 were excluded.
+- The sample is stratified: every judge failure, the judge passes that were doubtful (correctness 4 or below, or unsupported claims listed) and clean passes. v4 answers rarely fail, and a nearly constant label makes kappa unstable.
+- Rater 1 labelled all 70 items. A second person labelled the 50 items of the **measurement half**, independently, without seeing either the judge's grades or rater 1's labels, and without AI help (stated by the author).
+- The measurement half was never used to tune the judge.
+- 95% intervals come from a bootstrap with 2,000 resamples.
+
+| Pair (measurement half, 50 items) | Agreement | Cohen's kappa (95% CI) | Gwet's AC1 (95% CI) |
+|---|---:|---:|---:|
+| Judge vs rater 1 | 98% | 0.85 (0.00 to 1.00) | **0.98 (0.92 to 1.00)** |
+| Judge vs rater 2 | **100%** | 1.00 | 1.00 |
+| Rater 1 vs rater 2 | 98% | 0.85 (0.00 to 1.00) | 0.98 (0.92 to 1.00) |
+
+**Reading.**
+- The judge agrees with each human about as well as the two humans agree with each other: rater 1 vs rater 2 is the ceiling.
+- Correctness scores from the judge and rater 1 fall within 1 point of each other on 96% of items.
+- Only 3 or 4 of the 50 answers fail, so a single item moves kappa a lot. Its interval runs from 0 to 1, while AC1, which is robust to a rare class, stays between 0.92 and 1.00.
+- The one disagreement in the measurement half (D06, a R$ 1 fee condition) has the judge and rater 2 passing and rater 1 failing.
+
+**As a deploy gate,** the judge is reliable for pass/fail on answers like these. The thresholds in `evals/gates.json` sit well below the measured levels, and deterministic checks run alongside it.
+
+## Tool accuracy per tool (v4)
+
+`uv run python -m evals.tools` sends 40 merchant requests (`evals/datasets/tools.jsonl`, 4 per tool, Portuguese and English) to the Customer Support Agent with the real model. A case passes **selection** when the expected tool is called and no forbidden tool is (a simulation must not create a proposal). It passes **arguments** when that call's arguments match, with relative dates resolved against today.
+
+| Tool | Selection | Arguments |
+|---|---:|---:|
+| sales, receivables, terminals, recent transactions, decline codes, tickets (8 tools) | 100% | 100% |
+| `propose_anticipation`, `propose_terminal_service` | 100% | 100% |
+| `simulate_anticipation` | 100% | 75% (3/4) |
+| **All (40)** | **100%** | **98%** |
+
+Run `evals/results/20261119T163642Z-tools`: Claude Sonnet 5.5, one run, US$ 0.27. The one miss was ambiguous wording ("the next 60 days, starting tomorrow" read as tomorrow + 60); the case was kept as written. With 4 cases per tool, these are smoke-level numbers per tool, not tight estimates.
+
+## Final v4 regression (2026-11-19)
+
+The final code was run on five sets with the real model, then judged. `uv run python -m evals.stats` gives the 95% intervals.
+
+| Run | n | Checks pass | Judge pass | Correctness | Groundedness | Unsupported | Latency p50 (s) | Latency p95 (s) | Cost/run (US$) |
+|---|---:|---|---|---|---|---:|---|---|---|
+| `20261119T202349Z-original-final` | 30 | 100% [89-100] | 100% [89-100] | 4.87 [4.73-4.97] | 4.83 [4.70-4.97] | 11 | 15.9 [14.7-17.2] | 33.0 [19.7-34.3] | 0.031 [0.025-0.037] |
+| `20261119T202936Z-handoff-final` | 48 | 90% [78-95] | 100% [92-100] | 4.91 [4.81-4.98] | 4.88 [4.77-4.98] | 8 | 13.8 [10.8-16.9] | 23.9 [20.5-24.4] | 0.025 [0.020-0.032] |
+| `20261119T203415Z-multi_turn-final` | 12 | 83% [55-95] | 100% [76-100] | 4.92 [4.75-5.00] | 4.75 [4.50-4.92] | 6 | 12.5 [9.3-15.2] | 23.4 [15.2-23.4] | 0.043 [0.030-0.056] |
+| `20261119T203912Z-dev-final` | 40 | 98% [87-100] | 98% [87-100] | 4.67 [4.50-4.83] | 4.56 [4.33-4.75] | 23 | 14.7 [11.5-15.9] | 26.4 [19.8-35.7] | 0.024 [0.020-0.029] |
+| `20261119T204749Z-holdout_answers_v3-final` | 60 | 98% [91-100] | 97% [89-99] | 4.75 [4.60-4.88] | 4.71 [4.56-4.85] | 20 | 14.8 [13.2-16.8] | 22.6 [21.8-25.2] | 0.032 [0.030-0.035] |
+
+Brackets: 95% intervals (Wilson for rates; bootstrap, 2,000 resamples, for means and percentiles).
+
+Notes:
+- **Handoff, 90% checks.** All five failures are HTTP 400 errors from the model provider, on two cases that must *not* escalate (H15 ×2, H16 ×3). A rerun of both passed. The client did not log the provider's error text then; it does now (`llm_provider_error`). The run is reported as it was.
+- **Multi-turn, 83% checks.** One of the two misses was the checker: the answer wrote "Wi-Fi" with a non-breaking hyphen (U+2011). The checker now normalizes Unicode dashes and spaces, which makes the same answers 11/12 (92%). The other miss is real: an answer about decline code 57 without routing to the Support Agent.
+- **Real misses elsewhere.** D29 explained decline code 05 from general knowledge instead of calling the decline-code tool. H45 (holdout) asked a clarifying question on an ambiguous official question ("which step?").
+- **Latency.** These are in-process runs with three conversations in parallel. Latency under concurrent load is in the next section.
+
+## Load and latency (v4)
+
+`make load` runs 10 concurrent merchants for 5 minutes over `/chat/stream` against the full compose stack (Postgres, Redis, OIDC) with the real model. The conversations come from the 10 scenarios and the 40 dev cases, with 5 s between turns.
+
+| Run | Change | Availability | p95 | First specialist p95 | Cost/turn |
+|---|---|---:|---:|---:|---:|
+| `20261119T191921Z-load-10` | baseline | 93.6% | 33.5 s | 5.3 s | US$ 0.026 |
+| `20261119T194315Z-load-10-infra` | + 4 CPUs, keep-alive 75 s | 100% | 44.0 s | 11.0 s | US$ 0.027 |
+| `20261119T200036Z-load-10-replan-deadline` | + replan deadline 12 s | 100% | **27.3 s** | 7.9 s | US$ 0.026 |
+
+How each lever was found and measured, and the quality check behind the replan deadline, are in [ADR 018](adr/018-latency-levers-under-load.md). SLO targets and alerts are in [SLO.md](SLO.md). Screenshots from the first run are in `docs/observability/`.
+
+## Judge calibration against a human (v3)
 
 A person labelled 30 sampled answers (pass/fail plus a 1-5 correctness score) without seeing the judge's grades. They used the same rules and exactly the same evidence the judge receives (`evals/calibration/labels.csv`, `evals/calibration/calibration.md`).
 
@@ -90,4 +173,10 @@ The 4 remaining disagreements all go the same way: **the judge is more lenient t
 | Smoke run | Mock sales for "today" were generated in the future | Today's mock sales are mornings only |
 | Concurrent run with observability | The API was OOM-killed when concurrent requests loaded the embedding model | One locked warm-up at startup; readiness waits for it |
 | Human calibration | The judge did not know the assistant's scope or the caller | Scope and caller added to the judge packet |
+| v4 regression run | The judge rebuilt 5 passages per search while the agent had received 8 since late v3, so it flagged supported facts (fees on the rental page) as invented | The judge uses the agent's `KB_PASSAGES`. Re-judged: original 90% → 100%, holdout v3 95% → 97%. v3 runs judged after the switch to 8 passages were slightly understated. |
+| v4 calibration export | The judge packet listed the verifier's own verdict (`verify_answer`) as evidence, which flattered the verifier (15 unsupported claims instead of 19) | The verdict is excluded from the packet and the labelling evidence; verifier runs re-judged |
+| v4 load test | Uvicorn's 5 s keep-alive reset reused client connections (6.4% of turns failed before reaching the server) | Keep-alive 75 s, longer than a load balancer's idle timeout |
+| v4 load test | Turns with a verifier replan had p95 72 s | Replan only while the turn is under 12 s; otherwise trim unsupported sentences (ADR 018) |
+| v4 final regression | The checker missed "Wi-Fi" written with a non-breaking hyphen | Unicode dashes and spaces normalized; unit test |
+| v4 final regression | A provider HTTP 400 gave no reason in the logs | The provider's error type and message are logged (no request content) |
 | Regression gate run after the memory change | The figure check read the JSON value `6.372` as 6372, so a correct exchange rate was withheld | Numbers compared by value, with both readings of a 3-digit group |

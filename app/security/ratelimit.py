@@ -1,13 +1,22 @@
-"""In-process token-bucket rate limiting, per subject and global.
+"""Rate limiting per subject and global: in-process token buckets, or Redis when configured.
 
-Single-process by design (one uvicorn worker). A multi-replica deployment would move
-the buckets to Redis; the interface stays the same.
+The in-process limiter suits one replica; with REDIS_URL the counters are shared by all
+replicas. Both expose check(subject) -> None (allowed) or seconds to wait.
 """
 
+import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import Lock
+from typing import TYPE_CHECKING, Protocol
+
+import redis
+
+if TYPE_CHECKING:
+    from app.config import Settings
+
+log = logging.getLogger("getnet.ratelimit")
 
 
 @dataclass
@@ -52,3 +61,59 @@ class RateLimiter:
             if wait is not None:
                 return wait
             return self._bucket(subject, self.per_subject_per_minute, now).take(now)
+
+
+class RedisRateLimiter:
+    """Fixed one-minute windows in Redis, shared by every API replica (docs/adr/014).
+
+    If Redis is unreachable the request is checked by an in-process limiter instead: limits stay
+    enforced per replica rather than disappearing.
+    """
+
+    def __init__(
+        self,
+        client: "redis.Redis",
+        per_subject_per_minute: int,
+        global_per_minute: int,
+        clock: Callable[[], float] = time.time,
+    ) -> None:
+        self.client = client
+        self.per_subject, self.global_limit, self.clock = (
+            per_subject_per_minute,
+            global_per_minute,
+            clock,
+        )
+        self.fallback = RateLimiter(per_subject_per_minute, global_per_minute)
+
+    def check(self, subject: str) -> float | None:
+        now = self.clock()
+        window = int(now // 60)
+        retry = 60 - (now % 60)
+        g_key, s_key = f"rl:g:{window}", f"rl:s:{subject}:{window}"
+        try:
+            pipe = self.client.pipeline()
+            pipe.incr(g_key)
+            pipe.expire(g_key, 70)
+            pipe.incr(s_key)
+            pipe.expire(s_key, 70)
+            g_count, _, s_count, _ = pipe.execute()
+        except redis.RedisError:
+            log.warning("redis unavailable; using the in-process rate limiter")
+            return self.fallback.check(subject)
+        if int(g_count) > self.global_limit or int(s_count) > self.per_subject:
+            return retry
+        return None
+
+
+class Limiter(Protocol):
+    def check(self, subject: str) -> float | None: ...
+
+
+def make_limiter(settings: "Settings") -> Limiter:
+    if settings.redis_url:
+        return RedisRateLimiter(
+            redis.Redis.from_url(settings.redis_url, socket_timeout=0.5),
+            settings.rate_limit_per_minute,
+            settings.rate_limit_global_per_minute,
+        )
+    return RateLimiter(settings.rate_limit_per_minute, settings.rate_limit_global_per_minute)

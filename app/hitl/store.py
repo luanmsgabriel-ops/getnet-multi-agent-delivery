@@ -1,4 +1,5 @@
-"""Persistence for human handoffs, ticket proposals and merchant-facing session events."""
+"""Persistence for human handoffs (queue, deadlines, audit trail), ticket proposals and
+merchant-facing session events."""
 
 import json
 import secrets
@@ -19,6 +20,11 @@ CREATE TABLE IF NOT EXISTS session_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT, merchant_id TEXT NOT NULL, session_id TEXT NOT NULL,
     type TEXT NOT NULL, payload TEXT NOT NULL, created_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS handoff_audit (
+    id INTEGER PRIMARY KEY AUTOINCREMENT, handoff_id TEXT NOT NULL, at TEXT NOT NULL,
+    kind TEXT NOT NULL, actor TEXT NOT NULL, detail TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS handoff_audit_by_handoff ON handoff_audit (handoff_id, id);
 CREATE TABLE IF NOT EXISTS tickets (
     id TEXT PRIMARY KEY, merchant_id TEXT NOT NULL, topic TEXT NOT NULL, summary TEXT NOT NULL,
     status TEXT NOT NULL, created_at TEXT NOT NULL, expires_at TEXT NOT NULL,
@@ -27,8 +33,23 @@ CREATE TABLE IF NOT EXISTS tickets (
 """
 
 
+# Minutes an operator has to answer, by the priority the handoff was opened with (DECISIONS.md).
+# A breach raises the priority to "urgent" once and sends a reminder.
+SLA_MINUTES = {"high": 15, "normal": 60}
+PRIORITY_RANK = {"urgent": 0, "high": 1, "normal": 2}
+
+
 def _now() -> str:
     return datetime.now(UTC).isoformat(timespec="seconds")
+
+
+def due_at(handoff: dict[str, Any]) -> str | None:
+    """Answer deadline; None once the handoff was raised to urgent (its deadline has passed)."""
+    minutes = SLA_MINUTES.get(handoff["priority"])
+    if minutes is None:
+        return None
+    opened = datetime.fromisoformat(handoff["created_at"])
+    return (opened + timedelta(minutes=minutes)).isoformat(timespec="seconds")
 
 
 class HitlStore:
@@ -55,11 +76,52 @@ class HitlStore:
         return None if row is None else dict(row)
 
     def handoffs(self, status: str | None = None) -> list[dict[str, Any]]:
+        """The queue: most urgent first, then oldest first."""
         sql, args = "SELECT * FROM handoffs", tuple[str, ...]()
         if status:
             sql, args = sql + " WHERE status = ?", (status,)
         with self.db.connect() as conn:
-            return [dict(r) for r in conn.execute(sql + " ORDER BY created_at", args)]
+            rows = [dict(r) for r in conn.execute(sql + " ORDER BY created_at", args)]
+        rows.sort(key=lambda h: PRIORITY_RANK.get(h["priority"], 9))  # stable: keeps age order
+        return rows
+
+    def overdue(self, now: datetime) -> list[dict[str, Any]]:
+        """Pending handoffs past their deadline that have not been escalated yet."""
+        late = []
+        for h in self.handoffs("pending"):
+            due = due_at(h)
+            if due is not None and datetime.fromisoformat(due) < now:
+                late.append(h)
+        return late
+
+    def mark_breached(self, handoff_id: str) -> bool:
+        """Raise to urgent; True only for the caller that did it (one reminder per handoff,
+        even with several replicas sweeping)."""
+        with self.db.connect() as conn:
+            cur = conn.execute(
+                "UPDATE handoffs SET priority = 'urgent' WHERE id = ? AND status = 'pending' "
+                "AND priority != 'urgent'",
+                (handoff_id,),
+            )
+        return bool(cur.rowcount == 1)
+
+    # -- audit trail ---------------------------------------------------------------------
+    def audit(self, handoff_id: str, kind: str, actor: str, **detail: Any) -> None:
+        with self.db.connect() as conn:
+            conn.execute(
+                "INSERT INTO handoff_audit (handoff_id, at, kind, actor, detail) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (handoff_id, _now(), kind, actor, json.dumps(detail, ensure_ascii=False)),
+            )
+
+    def audit_trail(self, handoff_id: str) -> list[dict[str, Any]]:
+        with self.db.connect() as conn:
+            rows = conn.execute(
+                "SELECT at, kind, actor, detail FROM handoff_audit WHERE handoff_id = ? "
+                "ORDER BY id",
+                (handoff_id,),
+            ).fetchall()
+        return [{**dict(r), "detail": json.loads(r["detail"])} for r in rows]
 
     def pending_for(self, merchant_id: str, session_id: str) -> dict[str, Any] | None:
         with self.db.connect() as conn:
@@ -78,7 +140,7 @@ class HitlStore:
                 "operator_message = ?, replied_at = ? WHERE id = ? AND status = 'pending'",
                 (operator, action, message, _now(), handoff_id),
             )
-        return cur.rowcount == 1
+        return bool(cur.rowcount == 1)
 
     def resolve(self, handoff_id: str, final_answer: str, status: str = "resolved") -> None:
         with self.db.connect() as conn:
@@ -100,12 +162,12 @@ class HitlStore:
         self, merchant_id: str, session_id: str, kind: str, payload: dict[str, Any]
     ) -> int:
         with self.db.connect() as conn:
-            cur = conn.execute(
+            row = conn.execute(
                 "INSERT INTO session_events (merchant_id, session_id, type, payload, created_at) "
-                "VALUES (?, ?, ?, ?, ?)",
+                "VALUES (?, ?, ?, ?, ?) RETURNING id",
                 (merchant_id, session_id, kind, json.dumps(payload, ensure_ascii=False), _now()),
-            )
-        return int(cur.lastrowid or 0)
+            ).fetchone()
+        return int(row["id"])
 
     def events_after(self, merchant_id: str, session_id: str, after: int) -> list[dict[str, Any]]:
         with self.db.connect() as conn:

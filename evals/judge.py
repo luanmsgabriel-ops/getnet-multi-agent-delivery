@@ -77,9 +77,11 @@ SCHEMA: dict[str, Any] = {
 
 
 def _passages(arguments: dict[str, Any]) -> str:
+    from app.agents.knowledge import KB_PASSAGES
     from app.rag.store import default_retriever
 
-    hits = default_retriever().search(str(arguments.get("query", "")), k=5)
+    # Same number of passages the agent received (was a hard-coded 5 while the agent got 8).
+    hits = default_retriever().search(str(arguments.get("query", "")), k=KB_PASSAGES)
     return "\n".join(f"  <{h.chunk.doc_url}> {h.chunk.title}: {h.chunk.text}" for h in hits)
 
 
@@ -102,6 +104,8 @@ def packet(record: dict[str, Any], reference: str | None) -> str:
                     f"- escalate_to_human({args}) -> handoff created by the system, "
                     "status pending; the protocol id is the one in the reply"
                 )
+            elif call["tool"] == "verify_answer":
+                continue  # the system's own verdict on its answer is not evidence (blind packet)
             elif call.get("result") and not call["tool"].startswith("ask_"):
                 evidence.append(f"- {call['tool']}({args}) -> {call['result'][:6000]}")
     cited = [

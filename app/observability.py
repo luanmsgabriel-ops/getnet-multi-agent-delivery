@@ -22,6 +22,10 @@ LATENCY_BUCKETS = (0.25, 0.5, 1, 2, 5, 10, 15, 20, 30, 45, 60, 90)
 
 HTTP_REQUESTS = Counter("http_requests_total", "HTTP requests", ["route", "status"])
 CHAT_TURNS = Counter("chat_turns_total", "Chat turns by outcome", ["outcome"])
+# Turns that failed on our side (5xx on /chat, an error event on /chat/stream): the SLO's bad
+# events (docs/SLO.md). Client errors (4xx) are not counted.
+CHAT_ERRORS = Counter("chat_turn_errors_total", "Chat turns that failed server-side", ["code"])
+VERIFY = Counter("answer_verifications_total", "Final-answer checks", ["result", "checked_by"])
 CHAT_LATENCY = Histogram(
     "chat_turn_seconds", "End-to-end chat turn latency", ["outcome"], buckets=LATENCY_BUCKETS
 )
@@ -53,6 +57,14 @@ FEEDBACK = Counter("feedback_total", "Merchant feedback on answers", ["rating"])
 BUDGET_SPENT = Gauge("llm_budget_spent_usd", "Total LLM spend recorded in the ledger")
 BUDGET_LIMIT = Gauge("llm_budget_limit_usd", "Configured LLM budget")
 HANDOFFS_PENDING = Gauge("handoffs_pending", "Handoffs waiting for an operator")
+HANDOFF_SLA_BREACHED = Counter(
+    "handoff_sla_breached_total",
+    "Handoffs not answered within their deadline (by original priority)",
+    ["priority"],
+)
+OPERATOR_NOTIFICATIONS = Counter(
+    "operator_notifications_total", "Operator notifications sent", ["channel", "delivered"]
+)
 
 tracer = trace.get_tracer("getnet.agents")
 
@@ -106,6 +118,10 @@ def setup_logging(level: str = "INFO") -> None:
     root = logging.getLogger()
     root.handlers[:] = [handler]
     root.setLevel(level)
+    # HTTP client request lines include full URLs, and some carry secrets (the Telegram bot
+    # token is part of its API path): keep those loggers at WARNING.
+    for name in ("httpx2", "httpx", "httpcore"):
+        logging.getLogger(name).setLevel(logging.WARNING)
 
 
 def log_event(logger: logging.Logger, msg: str, **fields: Any) -> None:

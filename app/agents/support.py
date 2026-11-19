@@ -10,6 +10,7 @@ from typing import Any, Literal
 
 from pydantic import Field
 
+from app.actions import ActionError, AnticipationQuote, quote_anticipation, terminal_for_service
 from app.agents.base import AgentRun, Tool, ToolContext, ToolInput, ToolResult, run_agent
 from app.data.support_repo import SupportRepository
 from app.security.auth import require_scope
@@ -24,6 +25,14 @@ How to work:
 - If the data does not answer the request, say exactly what is missing.
 - Only propose a support ticket when the request asks to open one; a proposal is not a ticket \
 until the merchant confirms it.
+- Anticipation: use simulate_anticipation to show what the merchant would receive now; call \
+propose_anticipation only when the merchant asks to go ahead. Always say the fee is \
+illustrative.
+- Terminal replacement or technician visit: check the terminal first; propose_terminal_service \
+only for the merchant's own terminal that is offline or failing, after basic troubleshooting \
+did not help or when the merchant asks for it.
+- You never confirm anything: proposals are confirmed by the merchant in the app \
+(POST /actions/{id}/confirm). A "yes" in the chat does not confirm.
 
 Reply in the language of the request, concisely, with the concrete numbers (BRL as R$ 1.234,56) \
 and dates (DD/MM/YYYY). Start your reply with one line `STATUS: ok`, `STATUS: partial` or \
@@ -221,6 +230,93 @@ def propose_ticket(ctx: ToolContext, args: TicketInput) -> ToolResult:
     )
 
 
+class AnticipationInput(ToolInput):
+    date_from: date = Field(
+        description="First payment date of the receivables to bring forward, YYYY-MM-DD."
+    )
+    date_to: date = Field(description="Last payment date (inclusive), YYYY-MM-DD.")
+
+
+def _quote(ctx: ToolContext, args: AnticipationInput) -> AnticipationQuote | ToolResult:
+    if (bad := _check_range(args.date_from, args.date_to)) is not None:
+        return bad
+    quote = quote_anticipation(ctx.db, ctx.principal, ctx.now.date(), args.date_from, args.date_to)
+    if not quote.receivable_ids:
+        return ToolResult(
+            status="not_found",
+            data={"message": "No future credit receivables to anticipate in this range."},
+        )
+    return quote
+
+
+def simulate_anticipation(ctx: ToolContext, args: AnticipationInput) -> ToolResult:
+    quote = _quote(ctx, args)
+    if isinstance(quote, ToolResult):
+        return quote
+    return ToolResult(status="ok", data={"simulation": quote.as_dict(), "state": "simulation only"})
+
+
+def propose_anticipation(ctx: ToolContext, args: AnticipationInput) -> ToolResult:
+    quote = _quote(ctx, args)
+    if isinstance(quote, ToolResult):
+        return quote
+    shown = quote.as_dict()
+    proposal = ctx.services["actions"].propose(
+        ctx.principal,
+        "anticipation",
+        {
+            "date_from": args.date_from.isoformat(),
+            "date_to": args.date_to.isoformat(),
+            "receivable_ids": quote.receivable_ids,
+            "net_now_brl": shown["net_now_brl"],
+        },
+        shown,
+        ctx.services.get("request_id"),
+    )
+    return ToolResult(status="ok", data=_proposed(proposal))
+
+
+class TerminalServiceInput(ToolInput):
+    terminal_id: str = Field(description="Terminal id from get_terminal_status, e.g. T-1988-01.")
+    service: Literal["replacement", "technician_visit"] = Field(
+        description="replacement: swap the machine; technician_visit: on-site repair."
+    )
+    reason: str = Field(description="Symptom and what was already tried, in one or two lines.")
+
+
+def propose_terminal_service(ctx: ToolContext, args: TerminalServiceInput) -> ToolResult:
+    try:
+        terminal = terminal_for_service(ctx.db, ctx.principal, args.terminal_id)
+    except ActionError as exc:
+        code = "not_found" if exc.status == 404 else "invalid_argument"
+        return ToolResult.fail(code, exc.message)
+    quote = {
+        "terminal_id": terminal["id"],
+        "model": terminal["model"],
+        "terminal_status": terminal["status"],
+        "service": args.service,
+        "reason": args.reason[:300],
+    }
+    proposal = ctx.services["actions"].propose(
+        ctx.principal,
+        "terminal_service",
+        {"terminal_id": terminal["id"], "service": args.service},
+        quote,
+        ctx.services.get("request_id"),
+    )
+    return ToolResult(status="ok", data=_proposed(proposal))
+
+
+def _proposed(proposal: dict[str, object]) -> dict[str, object]:
+    return {
+        **proposal,
+        "state": "proposed (not executed)",
+        "next_step": f"The merchant must confirm it in the app: POST /actions/"
+        f"{proposal['proposal_id']}/confirm, before {proposal['expires_at']}. A 'yes' in the "
+        "chat does not confirm it.",
+    }
+
+
 class NoInput(ToolInput):
     pass
 
@@ -279,6 +375,27 @@ TOOLS = [
         propose_ticket,
     ),
     Tool(
+        "simulate_anticipation",
+        "Simulate receiving future credit receivables now (anticipation): gross, original net, "
+        "illustrative fee and net now, for receivables paid in a date range. Read-only.",
+        AnticipationInput,
+        simulate_anticipation,
+    ),
+    Tool(
+        "propose_anticipation",
+        "Create an anticipation proposal for the merchant to confirm (two-phase write, expires "
+        "in 10 min). Use only when the merchant asks to go ahead with an anticipation.",
+        AnticipationInput,
+        propose_anticipation,
+    ),
+    Tool(
+        "propose_terminal_service",
+        "Propose a replacement or technician visit for one of the merchant's terminals that is "
+        "offline or failing (two-phase write). Refused for terminals that are online.",
+        TerminalServiceInput,
+        propose_terminal_service,
+    ),
+    Tool(
         "get_tickets",
         "List the merchant's confirmed support tickets and their status.",
         NoInput,
@@ -301,4 +418,5 @@ def run_support(ctx: ToolContext, request: str) -> AgentRun:
         ctx=ctx,
         effort="low",
         max_steps=4,
+        model=ctx.services.get("support_model"),
     )

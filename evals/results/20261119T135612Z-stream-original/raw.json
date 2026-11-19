@@ -1,0 +1,136 @@
+[
+ {
+  "case": "O01",
+  "first_event_ms": 0,
+  "first_work_status_ms": 3281,
+  "first_text_ms": 15937,
+  "total_ms": 15937,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge"
+  ]
+ },
+ {
+  "case": "O02",
+  "first_event_ms": 16,
+  "first_work_status_ms": 2485,
+  "first_text_ms": 12375,
+  "total_ms": 12375,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O03",
+  "first_event_ms": 0,
+  "first_work_status_ms": 1515,
+  "first_text_ms": 14312,
+  "total_ms": 14327,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "support",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O04",
+  "first_event_ms": 0,
+  "first_work_status_ms": 5046,
+  "first_text_ms": 17468,
+  "total_ms": 17468,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O05",
+  "first_event_ms": 14,
+  "first_work_status_ms": 1858,
+  "first_text_ms": 29031,
+  "total_ms": 29031,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "support",
+   "verifying",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O06",
+  "first_event_ms": 0,
+  "first_work_status_ms": 1703,
+  "first_text_ms": 24735,
+  "total_ms": 24750,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "verifying",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O07",
+  "first_event_ms": 0,
+  "first_work_status_ms": 1593,
+  "first_text_ms": 14843,
+  "total_ms": 14860,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O08",
+  "first_event_ms": 0,
+  "first_work_status_ms": 2921,
+  "first_text_ms": 35718,
+  "total_ms": 35718,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "support",
+   "knowledge",
+   "verifying",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O09",
+  "first_event_ms": 0,
+  "first_work_status_ms": 2093,
+  "first_text_ms": 18921,
+  "total_ms": 18921,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "verifying"
+  ]
+ },
+ {
+  "case": "O10",
+  "first_event_ms": 0,
+  "first_work_status_ms": 2266,
+  "first_text_ms": 17766,
+  "total_ms": 17766,
+  "outcome": "answered",
+  "steps": [
+   "analyzing",
+   "knowledge",
+   "verifying"
+  ]
+ }
+]

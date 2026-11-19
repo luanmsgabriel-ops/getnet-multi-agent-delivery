@@ -1,0 +1,22 @@
+{
+  "users": 10,
+  "minutes": 6.0,
+  "turns": 149,
+  "errors": {},
+  "availability": 1.0,
+  "turn_p50_s": 14.7,
+  "turn_p95_s": 27.3,
+  "turn_p99_s": 50.3,
+  "first_event_p50_s": 0.04,
+  "first_event_p95_s": 1.32,
+  "first_work_p50_s": 2.16,
+  "first_work_p95_s": 7.92,
+  "throughput_turns_per_min": 24.8,
+  "cost_usd": 3.7945,
+  "cost_per_turn_usd": 0.0255,
+  "outcomes": {
+    "clarify": 9,
+    "answered": 136,
+    "blocked": 4
+  }
+}

@@ -34,9 +34,50 @@ jobs:
       - name: Tests (offline, full suite)
         run: uv run pytest
 
-  container:
+  state-backends:
+    # App state in Postgres, rate limits in Redis and OIDC tokens, against real services
+    # (docs/adr/014, docs/adr/015).
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: getnet
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test" --health-interval 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 3s --health-retries 20
+      oidc:
+        image: ghcr.io/navikt/mock-oauth2-server:6.1.5
+        ports: ["8080:8080"]
+        env:
+          # same as ops/oidc/config.json
+          JSON_CONFIG: '{"interactiveLogin":false,"tokenCallbacks":[{"issuerId":"getnet","tokenExpiry":3600,"requestMappings":[{"requestParam":"grant_type","match":"client_credentials","claims":{"sub":"${clientId}","aud":["getnet-chat"],"scope":"${scope}","tenant":"demo"}}]}]}'
+    env:
+      TEST_POSTGRES_URL: postgresql://test:test@127.0.0.1:5432/getnet
+      TEST_REDIS_URL: redis://127.0.0.1:6379/0
+      TEST_OIDC_ISSUER: http://127.0.0.1:8080/getnet
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --python 3.12
+      - name: Postgres, Redis and OIDC integration tests
+        run: uv run pytest -rA tests/integration/test_state_backends.py tests/integration/test_oidc_live.py
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     needs: test
     steps:
       - uses: actions/checkout@v5

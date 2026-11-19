@@ -1,0 +1,61 @@
+{
+  "model": "claude-sonnet-5-5",
+  "cases": 40,
+  "repeats": 1,
+  "selection": 1.0,
+  "arguments": 0.975,
+  "per_tool": {
+    "get_receivables": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "get_recent_transactions": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "get_sales_summary": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "get_terminal_status": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "get_tickets": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "lookup_decline_code": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "propose_anticipation": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "propose_terminal_service": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "propose_ticket": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 1.0
+    },
+    "simulate_anticipation": {
+      "n": 4,
+      "selection": 1.0,
+      "arguments": 0.75
+    }
+  },
+  "cost_usd": 0.2713,
+  "date": "2026-11-19"
+}

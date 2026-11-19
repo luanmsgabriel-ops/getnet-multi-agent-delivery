@@ -74,6 +74,24 @@ class TraceEvent:
     result_preview: str = ""  # tool output excerpt; only exposed when evaluation mode is on
 
 
+STATUS_TEXT: dict[str, dict[str, str]] = {
+    "analyzing": {"pt": "Analisando sua pergunta", "en": "Reading your question"},
+    "knowledge": {
+        "pt": "Consultando o conteúdo oficial da Getnet",
+        "en": "Checking Getnet's official content",
+    },
+    "support": {"pt": "Consultando os dados da sua conta", "en": "Checking your account data"},
+    "escalation": {
+        "pt": "Encaminhando para um especialista",
+        "en": "Passing your case to a specialist",
+    },
+    "verifying": {
+        "pt": "Conferindo a resposta com as fontes",
+        "en": "Checking the answer against the sources",
+    },
+}
+
+
 @dataclass
 class ToolContext:
     principal: Principal
@@ -84,9 +102,12 @@ class ToolContext:
     language: str = "en"
     # Session services (handoff store, notifier); absent in unit tests of single tools.
     services: dict[str, Any] = field(default_factory=dict)
+    # Progress listener for streaming (POST /chat/stream); None for plain /chat.
+    emit: Callable[[str, dict[str, Any]], None] | None = None
     evidence: list[str] = field(default_factory=list)  # full tool outputs, for grounding checks
     trace: list[TraceEvent] = field(default_factory=list)
     sources: list[Source] = field(default_factory=list)
+    started: float = field(default_factory=time.monotonic)  # turn start, for time budgets
     _lock: Lock = field(default_factory=Lock)
 
     def add_source(self, source: Source) -> Source:
@@ -102,6 +123,17 @@ class ToolContext:
     def record(self, event: TraceEvent) -> None:
         with self._lock:
             self.trace.append(event)
+
+    def status(self, step: str) -> None:
+        """Tell a streaming client what is happening now (never content, only the step)."""
+        if self.emit is not None:
+            self.emit(
+                "status",
+                {
+                    "step": step,
+                    "text": STATUS_TEXT[step].get(self.language, STATUS_TEXT[step]["en"]),
+                },
+            )
 
 
 @dataclass(frozen=True)
@@ -227,6 +259,20 @@ def web_citations(content: list[dict[str, Any]], retrieved_at: str) -> list[Sour
     return found
 
 
+def cited_evidence(content: list[dict[str, Any]], ctx: "ToolContext") -> None:
+    """Keep the text of each web citation as evidence (web page bodies arrive encrypted, so the
+    cited passages are the only readable proof of a web-sourced claim)."""
+    cited = [
+        f"[web {c.get('url')}] {c['cited_text']}"
+        for b in content
+        for c in (b.get("citations") or [])
+        if c.get("cited_text")
+    ]
+    if cited:
+        with ctx._lock:
+            ctx.evidence.extend(cited)
+
+
 def run_agent(
     *,
     llm: LLMClient,
@@ -238,10 +284,12 @@ def run_agent(
     effort: str,
     max_steps: int = 4,
     server_tools: list[dict[str, Any]] | None = None,
+    model: str | None = None,
 ) -> AgentRun:
-    """Tool-use loop for a specialist: call model, run tools, repeat until it answers."""
+    """Tool-use loop for a specialist: call model, run tools, repeat until it answers.
+    `model` overrides the default model for this agent (None = LLM_MODEL)."""
     with tracer.start_as_current_span(f"agent.{agent}") as span:
-        run = _loop(llm, agent, system, task, tools, ctx, effort, max_steps, server_tools)
+        run = _loop(llm, agent, system, task, tools, ctx, effort, max_steps, server_tools, model)
         span.set_attributes({"agent.steps": run.steps, "agent.stop": run.stop})
         return run
 
@@ -256,6 +304,7 @@ def _loop(
     effort: str,
     max_steps: int,
     server_tools: list[dict[str, Any]] | None,
+    model: str | None = None,
 ) -> AgentRun:
     by_name = {t.name: t for t in tools}
     schemas = [t.schema() for t in tools] + (server_tools or [])
@@ -264,10 +313,16 @@ def _loop(
     retrieved = ctx.now.date().isoformat()
     for step in range(1, max_steps + 1):
         result = llm.create(
-            agent=agent, system=system, messages=messages, tools=schemas, effort=effort
+            agent=agent,
+            system=system,
+            messages=messages,
+            tools=schemas,
+            effort=effort,
+            model=model,
         )
         messages.append({"role": "assistant", "content": result.content})
         web += [s for s in web_citations(result.content, retrieved) if s not in web]
+        cited_evidence(result.content, ctx)
         if result.stop_reason == "pause_turn":
             continue
         if result.stop_reason != "tool_use":
@@ -286,6 +341,8 @@ def _loop(
         tools=schemas,
         effort=effort,
         tool_choice={"type": "none"},
+        model=model,
     )
     web += [s for s in web_citations(final.content, retrieved) if s not in web]
+    cited_evidence(final.content, ctx)
     return AgentRun(text_of(final.content), "max_steps", max_steps, web)

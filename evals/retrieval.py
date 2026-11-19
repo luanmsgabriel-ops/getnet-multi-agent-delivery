@@ -78,19 +78,28 @@ def build_sets(docs: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
         {"query": p["query"], "answer_prefix": norm(p["answer"])[:50]}
         for p in faq_pairs(faq["text"])
     ]
-    return {"dev": dev, "holdout": holdout, "holdout_v2": inpage_pairs(docs)}
+    return {
+        "dev": dev,
+        "holdout": holdout,
+        "holdout_v2": inpage_pairs(docs),
+        "holdout_v3": inpage_pairs(docs, ("blog", "manual")),
+    }
 
 
 SKIP_QUESTIONS = ("dúvidas", "duvidas", "pronto", "já conhece", "ja conhece")
 
 
-def inpage_pairs(docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Official Q&A written inside help-center and product pages (not the /duvidas FAQ).
-    Built after the first holdout was consumed and never used for tuning."""
+def inpage_pairs(
+    docs: list[dict[str, Any]], sections: tuple[str, ...] = ("help_center", "product")
+) -> list[dict[str, Any]]:
+    """Official Q&A written inside pages of the given sections (never the /duvidas FAQ).
+    holdout_v2 = help-center and product pages (built after holdout 1 was consumed).
+    holdout_v3 = blog posts and manuals (built after holdout 2 was consumed, frozen before
+    the v4 retrieval changes; see EXPOSURE.md)."""
     items: list[dict[str, Any]] = []
     seen: set[str] = set()
     for d in docs:
-        if d["section"] not in ("help_center", "product") or d["url"] == FAQ_URL:
+        if d["section"] not in sections or d["url"] == FAQ_URL:
             continue
         lines = [ln.lstrip("# ").strip() for ln in d["text"].split("\n") if ln.strip()]
         for line, answer in itertools.pairwise(lines):
@@ -145,7 +154,9 @@ def evaluate(split: str) -> str:
         )
         chunks = stripped_chunks(docs, [i["query"] for i in items])
     embedder = Embedder()
-    retriever = Retriever(chunks, embedder, embedder.embed([c.indexed_text for c in chunks]))
+    retriever = Retriever(
+        chunks, embedder, embedder.embed_passages([c.indexed_text for c in chunks])
+    )
     rows = []
     for mode in MODES:
         ranks = []
@@ -182,7 +193,9 @@ def evaluate(split: str) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--split", choices=["dev", "xling", "holdout", "holdout_v2"], default="dev")
+    parser.add_argument(
+        "--split", choices=["dev", "xling", "holdout", "holdout_v2", "holdout_v3"], default="dev"
+    )
     args = parser.parse_args()
     report = evaluate(args.split)
     out = ROOT / "results" / f"{datetime.now(UTC):%Y%m%dT%H%M%SZ}-retrieval-{args.split}"

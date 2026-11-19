@@ -12,6 +12,9 @@ services:
     <<: *hardened
     build: .
     image: getnet-agents:local
+    # Same as the image's CMD; repeated so an image built before that change gets it too.
+    command: ["uvicorn", "app.main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000",
+              "--timeout-keep-alive", "75"]
     env_file:
       - path: .env
         required: true
@@ -21,13 +24,75 @@ services:
       MERCHANT_WEBHOOK_URL: http://webhook-sink:9000/merchant
       # Set by `make obs` to export traces to Jaeger; empty means tracing off.
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      # App state (conversations, handoffs, memory, ledger) and rate limits shared by replicas.
+      STATE_DATABASE_URL: postgresql://getnet:${POSTGRES_PASSWORD:?run make setup}@postgres:5432/getnet
+      REDIS_URL: redis://redis:6379/0
+      # Tokens come from the OIDC provider and are checked against its JWKS (docs/adr/015);
+      # local HS256 tokens are switched off here.
+      OIDC_ISSUER: http://oidc:8080/getnet
+      JWT_SECRET: ""
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
       - getnet_state:/state
-    mem_limit: 1536m
-    cpus: 2.0
-    depends_on: [webhook-sink]
+    mem_limit: 2560m
+    # 4 CPUs: query embedding runs on CPU and queued behind other work at 2 (load test, v4).
+    cpus: 4.0
+    depends_on:
+      webhook-sink:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      oidc:
+        condition: service_started
+
+  # Development identity provider (navikt/mock-oauth2-server, MIT). It issues signed RS256
+  # tokens to any client that asks, so it is for local use only: in production OIDC_ISSUER
+  # points at the company's identity provider. `make token` gets tokens from it.
+  oidc:
+    <<: *hardened
+    image: ghcr.io/navikt/mock-oauth2-server:6.1.5
+    environment:
+      JSON_CONFIG_PATH: /config/oidc.json
+      LOG_LEVEL: WARN
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=60
+    volumes:
+      - ./ops/oidc/config.json:/config/oidc.json:ro
+    mem_limit: 384m
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: getnet
+      POSTGRES_DB: getnet
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run make setup}
+    volumes:
+      - getnet_pg:/var/lib/postgresql/data
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U getnet -d getnet"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    # Start as the image's unprivileged redis user: with cap_drop ALL the entrypoint cannot
+    # switch users itself. No persistence: counters are one-minute windows.
+    user: "999:1000"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: [ALL]
+    read_only: true
+    mem_limit: 128m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
 
   # Stands in for the operator's queue tool and the merchant app: logs signed notifications.
   webhook-sink:
@@ -71,4 +136,5 @@ services:
     ports: ["127.0.0.1:16686:16686"]
 
 volumes:
+  getnet_pg:
   getnet_state:

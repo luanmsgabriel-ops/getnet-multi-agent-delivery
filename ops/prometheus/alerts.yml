@@ -56,6 +56,53 @@ groups:
         annotations:
           summary: "More than 5 merchants waiting for a human for 15 minutes"
 
+      # SLO burn-rate alerts (docs/SLO.md): availability 99.5%, so the error budget is 0.5%.
+      - alert: ChatSLOFastBurn
+        expr: |
+          (sum(rate(chat_turn_errors_total[1h]))
+            / (sum(rate(chat_turns_total[1h])) + sum(rate(chat_turn_errors_total[1h])))) > 0.072
+          and
+          (sum(rate(chat_turn_errors_total[5m]))
+            / (sum(rate(chat_turns_total[5m])) + sum(rate(chat_turn_errors_total[5m])))) > 0.072
+        for: 2m
+        labels: {severity: page}
+        annotations:
+          summary: "Chat error budget burning 14x too fast (2% of the month's budget in 1 h)"
+
+      - alert: ChatSLOSlowBurn
+        expr: |
+          (sum(rate(chat_turn_errors_total[6h]))
+            / (sum(rate(chat_turns_total[6h])) + sum(rate(chat_turn_errors_total[6h])))) > 0.03
+          and
+          (sum(rate(chat_turn_errors_total[30m]))
+            / (sum(rate(chat_turns_total[30m])) + sum(rate(chat_turn_errors_total[30m])))) > 0.03
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Chat error budget burning 6x too fast (5% of the month's budget in 6 h)"
+
+      - alert: ChatLatencySLOBreached
+        expr: |
+          1 - sum(rate(chat_turn_seconds_bucket{le="30.0"}[1h])) / sum(rate(chat_turn_seconds_count[1h]))
+            > 0.05
+        for: 15m
+        labels: {severity: ticket}
+        annotations:
+          summary: "More than 5% of chat turns took over 30 s in the last hour (p95 SLO)"
+
+      - alert: HandoffDeadlineMissed
+        expr: sum(increase(handoff_sla_breached_total[15m])) > 0
+        labels: {severity: page}
+        annotations:
+          summary: "A handoff passed its answer deadline (15 min high, 60 min normal)"
+
+      - alert: OperatorNotificationsFailing
+        expr: sum by (channel) (increase(operator_notifications_total{delivered="false"}[15m])) > 0
+        for: 5m
+        labels: {severity: ticket}
+        annotations:
+          summary: "Operator notifications failing on {{ $labels.channel }}"
+
       - alert: GuardrailBlockSpike
         expr: |
           sum(rate(guardrail_decisions_total{stage="input", decision!="ok"}[10m]))

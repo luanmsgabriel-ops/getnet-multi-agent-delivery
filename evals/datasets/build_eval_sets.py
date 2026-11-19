@@ -528,6 +528,67 @@ def holdout_answers_v2(n: int = 20) -> list[dict[str, Any]]:
     return rows
 
 
+# Fixed before any v4 measurement: an answer case must be about Getnet products or payments,
+# so general business advice from the blog (out of the assistant's scope) is left out.
+PRODUCT_TERMS = (
+    "getnet",
+    "maquininha",
+    "maquina",
+    "pix",
+    "link de pagamento",
+    "antecipa",
+    "receb",
+    "taxa",
+    "credito",
+    "debito",
+    "cartao",
+    "parcel",
+    "pagamento",
+    "conta digital",
+    "tap",
+    "qr code",
+    "boleto",
+    "venda",
+    "conciliac",
+    "split",
+    "chargeback",
+    "estorno",
+)
+
+
+def holdout_answers_v3(n: int = 60) -> list[dict[str, Any]]:
+    """Official Q&A from blog posts and manuals (sources never used before), product questions
+    only (PRODUCT_TERMS), evenly sampled. Built and frozen before the v4 retrieval changes."""
+    sys.path.insert(0, str(HERE.parents[1]))
+    from evals.retrieval import inpage_pairs, load_docs, norm
+
+    docs = load_docs()
+    by_url = {d["url"]: d for d in docs}
+    pairs = [
+        p
+        for p in inpage_pairs(docs, ("blog", "manual"))
+        if any(t in norm(p["query"]) for t in PRODUCT_TERMS)
+    ]
+    step = max(1, len(pairs) // n)
+    rows = []
+    for i, p in enumerate(pairs[::step][:n], 1):
+        lines = [
+            ln.lstrip("# ").strip()
+            for ln in by_url[p["source_url"]]["text"].split("\n")
+            if ln.strip()
+        ]
+        start = next(k for k, ln in enumerate(lines) if norm(ln) == norm(p["query"])) + 1
+        answer = []
+        for ln in lines[start:]:
+            if ln.endswith("?") or sum(map(len, answer)) > 700:
+                break
+            answer.append(ln)
+        row = case(f"H{i:02d}", p["query"], K, ["search_kb"], tags=["holdout", "blog"])
+        row["reference"] = " ".join(answer)
+        rows.append(row)
+    return rows
+
+
 def write(name: str, rows: list[dict[str, Any]]) -> None:
     for r in rows:
         r["split"] = name
@@ -543,3 +604,4 @@ if __name__ == "__main__":
     write("handoff", HANDOFF)
     write("holdout_answers", holdout_answers())
     write("holdout_answers_v2", holdout_answers_v2())
+    write("holdout_answers_v3", holdout_answers_v3())

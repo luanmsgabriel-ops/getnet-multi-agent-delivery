@@ -8,7 +8,7 @@ Responses are converted to plain dicts so agent state stays serializable and tes
 """
 
 import contextvars
-import sqlite3
+import logging
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -18,7 +18,7 @@ from typing import Any, Protocol
 import anthropic
 from opentelemetry import trace
 
-from app.data.db import Database
+from app.data.db import DB_ERRORS, Database
 from app.llm.pricing import cost_usd
 from app.observability import (
     LLM_CALLS,
@@ -30,6 +30,10 @@ from app.observability import (
 )
 
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
+# Claude Haiku 5.5 has no server-side refusal fallback: sending the parameter would fail.
+log = logging.getLogger("getnet.llm")
+
+NO_SERVER_FALLBACK = ("claude-haiku",)
 RESERVE_USD = 0.05  # headroom kept before each call so a single call cannot overshoot
 
 
@@ -123,6 +127,7 @@ class LLMClient(Protocol):
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
         output_schema: dict[str, Any] | None = None,
+        model: str | None = None,
     ) -> LLMResult: ...
 
 
@@ -154,7 +159,7 @@ class Ledger:
                     "INSERT INTO llm_ledger VALUES (?, ?, ?, ?)",
                     (datetime.now(UTC).isoformat(), agent, model, cost),
                 )
-        except sqlite3.Error:  # accounting must never break an answer already paid for
+        except DB_ERRORS:  # accounting must never break an answer already paid for
             pass
 
 
@@ -189,7 +194,9 @@ class AnthropicLLM:
         max_tokens: int = 16000,
         tool_choice: dict[str, Any] | None = None,
         output_schema: dict[str, Any] | None = None,
+        model: str | None = None,
     ) -> LLMResult:
+        model = model or self.model
         tracker = current_usage.get()
         self.ledger.check()
         if tracker is not None and tracker.cost_usd + RESERVE_USD > tracker.max_cost_usd:
@@ -198,7 +205,7 @@ class AnthropicLLM:
             span.set_attributes(
                 {
                     "gen_ai.system": "anthropic",
-                    "gen_ai.request.model": self.model,
+                    "gen_ai.request.model": model,
                     "agent": agent,
                     "effort": effort,
                 }
@@ -214,6 +221,7 @@ class AnthropicLLM:
                     tool_choice,
                     output_schema,
                     tracker,
+                    model,
                 )
             except LLMUnavailable as exc:
                 LLM_ERRORS.labels(agent, str(exc)).inc()
@@ -233,20 +241,22 @@ class AnthropicLLM:
         tool_choice: dict[str, Any] | None,
         output_schema: dict[str, Any] | None,
         tracker: "UsageTracker | None",
+        model: str,
     ) -> LLMResult:
         started = time.monotonic()
         try:
             request: dict[str, Any] = {
-                "model": self.model,
+                "model": model,
                 "max_tokens": max_tokens,
                 "system": [
                     {"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}
                 ],
                 "messages": messages,
                 "output_config": {"effort": effort},
-                "betas": [FALLBACK_BETA],
-                "fallbacks": "default",
             }
+            if not model.startswith(NO_SERVER_FALLBACK):
+                request["betas"] = [FALLBACK_BETA]
+                request["fallbacks"] = "default"
             if tools:
                 request["tools"] = tools
                 request["tool_choice"] = tool_choice or {"type": "auto"}
@@ -257,6 +267,22 @@ class AnthropicLLM:
                 }
             response = self._client.beta.messages.create(**request)
         except anthropic.APIStatusError as exc:
+            # The provider's own error text (type and message), never the request content.
+            body: dict[str, Any] = exc.body if isinstance(exc.body, dict) else {}
+            found = body.get("error")
+            error: dict[str, Any] = found if isinstance(found, dict) else {}
+            log.warning(
+                "llm_provider_error",
+                extra={
+                    "fields": {
+                        "agent": agent,
+                        "model": model,
+                        "status": exc.status_code,
+                        "type": error.get("type"),
+                        "message": str(error.get("message", ""))[:300],
+                    }
+                },
+            )
             raise LLMUnavailable(f"provider_error_{exc.status_code}") from exc
         except anthropic.APIConnectionError as exc:
             raise LLMUnavailable("provider_unreachable") from exc

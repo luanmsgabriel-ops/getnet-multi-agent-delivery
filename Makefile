@@ -20,6 +20,9 @@ obs:  ## Start API + Prometheus, Grafana (:3000) and Jaeger (:16686) with tracin
 	OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318 docker compose --profile obs up --build -d
 	@echo "Grafana: http://127.0.0.1:3000  Jaeger: http://127.0.0.1:16686  Prometheus: http://127.0.0.1:9090"
 
+load:  ## 10 concurrent merchants for 5 min against the running stack (real model, about US$ 5)
+	$(UV) run python -m evals.load.run --users 10 --minutes 5
+
 logs:  ## Follow API logs
 	docker compose logs -f api
 
@@ -40,4 +43,4 @@ lint:  ## Ruff + mypy
 test:  ## Run the offline test suite
 	$(UV) run pytest
 
-.PHONY: help setup up down obs logs token operator-token install lint test
+.PHONY: help setup up down obs load logs token operator-token install lint test

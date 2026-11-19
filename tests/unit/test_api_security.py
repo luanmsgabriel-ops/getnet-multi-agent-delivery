@@ -130,6 +130,9 @@ def test_all_non_public_routes_are_protected(client: TestClient) -> None:
         "/docs",
         "/docs/oauth2-redirect",
         "/redoc",
+        # the operator console page and its assets hold no data; every API call needs a token
+        "/operator",
+        "/operator/assets/{name}",
     }
     for route in client.app.routes:  # type: ignore[attr-defined]
         path = getattr(route, "path", "")

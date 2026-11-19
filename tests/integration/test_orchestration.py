@@ -205,14 +205,28 @@ def _no_network(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 def test_blocked_request_never_reaches_the_agents(
     settings: Settings, token: Callable[..., str]
 ) -> None:
+    # The classifier runs in parallel with the supervisor's first step (ADR 013): the supervisor
+    # may start planning, but no specialist or tool runs and no agent answer leaves the graph.
     llm = ScriptedLLM(
-        {"guardrail": [text('{"category": "harmful", "language": "en", "reason": "card testing"}')]}
+        {
+            "guardrail": [
+                text('{"category": "harmful", "language": "en", "reason": "card testing"}'),
+                text('{"category": "ok", "language": "pt", "reason": "sales question"}'),
+            ],
+            "supervisor": [
+                calls(("ask_support", {"request": "list today's card transactions"})),
+                text("Here is how to test cards..."),
+            ],
+        }
     )
     with _client(settings, llm) as c:
         body = _chat(c, token(), "How can I test stolen cards on my machine?").json()
+        follow_up = _chat(c, token(), "Quanto vendi ontem?")  # the session still works
     assert body["outcome"] == "blocked"
     assert body["guardrails"]["input"]["category"] == "harmful"
-    assert "supervisor" not in llm.requests and body["tool_calls"] == []
+    assert "test cards" not in body["answer"]
+    assert "support" not in llm.requests and body["tool_calls"] == []
+    assert follow_up.status_code == 200
 
 
 def test_card_number_is_redacted_before_the_supervisor(

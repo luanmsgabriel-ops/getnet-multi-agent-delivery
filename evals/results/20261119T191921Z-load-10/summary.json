@@ -1,0 +1,25 @@
+{
+  "users": 10,
+  "minutes": 5.6,
+  "turns": 157,
+  "errors": {
+    "http 0": 10
+  },
+  "availability": 0.9363,
+  "turn_p50_s": 14.4,
+  "turn_p95_s": 33.5,
+  "turn_p99_s": 47.1,
+  "first_event_p50_s": 0.04,
+  "first_event_p95_s": 0.41,
+  "first_work_p50_s": 2.12,
+  "first_work_p95_s": 5.29,
+  "throughput_turns_per_min": 28.0,
+  "cost_usd": 4.0169,
+  "cost_per_turn_usd": 0.0256,
+  "outcomes": {
+    "blocked": 8,
+    "answered": 128,
+    "clarify": 11,
+    "None": 10
+  }
+}
