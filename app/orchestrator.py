@@ -15,6 +15,7 @@ from typing import Any
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 
+from app.actions import ActionStore
 from app.agents.base import ToolContext
 from app.config import Settings
 from app.data.db import Database
@@ -140,6 +141,7 @@ class Orchestrator:
         self.settings, self.db, self.llm = settings, db, llm
         state = state_db or db
         self.hitl = HitlStore(state)
+        self.actions = ActionStore(state, db)
         self.memory = MemoryStore(state)
         self.checkpointer = make_checkpointer(settings, state)
         self.graph = build_graph(self.checkpointer)
@@ -280,6 +282,7 @@ class Orchestrator:
         language: str,
         screening: "Future[InputDecision] | None" = None,
         emit: Callable[[str, dict[str, Any]], None] | None = None,
+        request_id: str | None = None,
     ) -> ToolContext:
         return ToolContext(
             principal=principal,
@@ -290,6 +293,8 @@ class Orchestrator:
             language=language,
             services={
                 "hitl": self.hitl,
+                "actions": self.actions,
+                "request_id": request_id,
                 "notify": self.notify,
                 "memory": self.memory,
                 "verifier_model": self.settings.verifier_model
@@ -342,7 +347,7 @@ class Orchestrator:
         screening = SCREENING.submit(
             contextvars.copy_context().run, classify, self.llm, clean, found
         )
-        ctx = self._context(principal, session_id, language, screening, emit)
+        ctx = self._context(principal, session_id, language, screening, emit, request_id)
         ctx.status("analyzing")
         try:
             waiting = self.hitl.pending_for(principal.sub, session_id)
@@ -481,7 +486,9 @@ class Orchestrator:
                 frozenset(handoff["scopes"].split()),
                 jti=f"handoff:{handoff['id']}",
             )
-            ctx = self._context(merchant, handoff["session_id"], handoff["language"])
+            ctx = self._context(
+                merchant, handoff["session_id"], handoff["language"], request_id=request_id
+            )
             try:
                 state = self._invoke(
                     Command(resume={"operator_action": action, "operator_message": message}),

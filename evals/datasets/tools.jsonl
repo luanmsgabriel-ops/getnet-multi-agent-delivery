@@ -1,0 +1,40 @@
+{"id": "t01", "request": "Quanto eu vendi ontem?", "expect": {"tool": "get_sales_summary", "args": {"date_from": "D-1", "date_to": "D-1"}}}
+{"id": "t02", "request": "Quais foram minhas vendas de hoje até agora?", "expect": {"tool": "get_sales_summary", "args": {"date_from": "D0", "date_to": "D0"}}}
+{"id": "t03", "request": "Me mostra o total vendido anteontem, separado por débito, crédito e Pix.", "expect": {"tool": "get_sales_summary", "args": {"date_from": "D-2", "date_to": "D-2"}}}
+{"id": "t04", "request": "How much did I sell over the last 7 days, including today?", "expect": {"tool": "get_sales_summary", "args": {"date_from": "D-6", "date_to": "D0"}}}
+{"id": "t05", "request": "Quando vou receber o dinheiro das vendas de ontem?", "expect": {"tool": "get_receivables", "args": {"by": "sale_date", "date_from": "D-1", "date_to": "D-1"}}}
+{"id": "t06", "request": "Quanto cai na minha conta amanhã?", "expect": {"tool": "get_receivables", "args": {"by": "payment_date", "date_from": "D+1", "date_to": "D+1"}}}
+{"id": "t07", "request": "Quanto vou receber nos próximos 30 dias, contando a partir de amanhã?", "expect": {"tool": "get_receivables", "args": {"by": "payment_date", "date_from": "D+1", "date_to": "D+30"}}}
+{"id": "t08", "request": "When will the sales I made the day before yesterday be paid?", "expect": {"tool": "get_receivables", "args": {"by": "sale_date", "date_from": "D-2", "date_to": "D-2"}}}
+{"id": "t09", "request": "Minha maquininha T-1988-01 não está conectando. Ela está online?", "expect": {"tool": "get_terminal_status", "args": {"terminal_id": "T-1988-01"}}}
+{"id": "t10", "request": "Como estão todas as minhas maquininhas agora?", "expect": {"tool": "get_terminal_status", "args": {"terminal_id": null}}}
+{"id": "t11", "request": "A T-1988-02 está com o firmware atualizado?", "expect": {"tool": "get_terminal_status", "args": {"terminal_id": "T-1988-02"}}}
+{"id": "t12", "request": "Is any of my card machines offline right now?", "expect": {"tool": "get_terminal_status", "args": {"terminal_id": null}}}
+{"id": "t13", "request": "Me mostra as últimas 5 vendas recusadas.", "expect": {"tool": "get_recent_transactions", "args": {"status": "recusada", "limit": 5}}}
+{"id": "t14", "request": "Quais foram as 10 transações mais recentes, aprovadas ou não?", "expect": {"tool": "get_recent_transactions", "args": {"status": "any", "limit": 10}}}
+{"id": "t15", "request": "Acho que passei uma venda duas vezes agora há pouco. Mostra minhas últimas 3 transações aprovadas.", "expect": {"tool": "get_recent_transactions", "args": {"status": "aprovada", "limit": 3}}}
+{"id": "t16", "request": "Show me my last 8 declined transactions.", "expect": {"tool": "get_recent_transactions", "args": {"status": "recusada", "limit": 8}}}
+{"id": "t17", "request": "A maquininha mostrou o código 51. O que significa?", "expect": {"tool": "lookup_decline_code", "args": {"code": "51"}}}
+{"id": "t18", "request": "Apareceu recusa com código 05 no cartão do cliente, o que faço?", "expect": {"tool": "lookup_decline_code", "args": {"code": "05"}}}
+{"id": "t19", "request": "What does decline code 14 mean?", "expect": {"tool": "lookup_decline_code", "args": {"code": "14"}}}
+{"id": "t20", "request": "Deu código 57 numa venda. Posso tentar de novo?", "expect": {"tool": "lookup_decline_code", "args": {"code": "57"}}}
+{"id": "t21", "request": "Abre um chamado: minha maquininha T-1988-01 não imprime o comprovante desde ontem.", "expect": {"tool": "propose_ticket", "args": {"topic": "terminal"}}}
+{"id": "t22", "request": "Quero abrir uma solicitação sobre um recebível que não caiu na conta.", "expect": {"tool": "propose_ticket", "args": {"topic": "receivables"}}}
+{"id": "t23", "request": "Please open a ticket: my 4G machine keeps losing signal.", "expect": {"tool": "propose_ticket", "args": {"topic": ["connectivity", "terminal"]}}}
+{"id": "t24", "request": "Registra um chamado sobre uma venda que apareceu com valor errado no extrato.", "expect": {"tool": "propose_ticket", "args": {"topic": "sales"}}}
+{"id": "t25", "request": "Quais chamados eu tenho abertos?", "expect": {"tool": "get_tickets", "args": {}}}
+{"id": "t26", "request": "Como está o meu chamado de suporte?", "expect": {"tool": "get_tickets", "args": {}}}
+{"id": "t27", "request": "What is the status of my support tickets?", "expect": {"tool": "get_tickets", "args": {}}}
+{"id": "t28", "request": "Tenho algum chamado em andamento com a Getnet?", "expect": {"tool": "get_tickets", "args": {}}}
+{"id": "t29", "request": "Quanto eu receberia hoje se antecipasse os recebíveis de crédito dos próximos 60 dias, a partir de amanhã? Só quero simular.", "expect": {"tool": "simulate_anticipation", "args": {"date_from": "D+1", "date_to": "D+60"}, "forbid": ["propose_anticipation"]}}
+{"id": "t30", "request": "Simula pra mim a antecipação do que eu tenho para receber entre amanhã e daqui a 30 dias.", "expect": {"tool": "simulate_anticipation", "args": {"date_from": "D+1", "date_to": "D+30"}, "forbid": ["propose_anticipation"]}}
+{"id": "t31", "request": "How much would I get now if I anticipated my credit receivables from tomorrow through 90 days from today? Just a simulation.", "expect": {"tool": "simulate_anticipation", "args": {"date_from": "D+1", "date_to": "D+90"}, "forbid": ["propose_anticipation"]}}
+{"id": "t32", "request": "Vale a pena antecipar? Me mostra quanto eu pagaria de taxa para antecipar os próximos 45 dias, começando amanhã.", "expect": {"tool": "simulate_anticipation", "args": {"date_from": "D+1", "date_to": "D+45"}, "forbid": ["propose_anticipation"]}}
+{"id": "t33", "request": "Já vi a simulação. Pode seguir com a antecipação dos recebíveis de amanhã até daqui a 30 dias.", "expect": {"tool": "propose_anticipation", "args": {"date_from": "D+1", "date_to": "D+30"}}}
+{"id": "t34", "request": "Quero antecipar agora tudo o que tenho para receber de amanhã até daqui a 60 dias. Pode fazer.", "expect": {"tool": "propose_anticipation", "args": {"date_from": "D+1", "date_to": "D+60"}}}
+{"id": "t35", "request": "Go ahead and request the anticipation of my receivables from tomorrow to 90 days from today.", "expect": {"tool": "propose_anticipation", "args": {"date_from": "D+1", "date_to": "D+90"}}}
+{"id": "t36", "request": "Fechado, quero fazer a antecipação dos recebíveis entre amanhã e daqui a 45 dias.", "expect": {"tool": "propose_anticipation", "args": {"date_from": "D+1", "date_to": "D+45"}}}
+{"id": "t37", "request": "A T-1988-01 está offline desde cedo. Já reiniciei e troquei a rede Wi-Fi e nada. Quero uma visita técnica.", "expect": {"tool": "propose_terminal_service", "args": {"terminal_id": "T-1988-01", "service": "technician_visit"}}}
+{"id": "t38", "request": "Minha T-1988-01 não liga mais, já tentei tudo. Quero trocar a máquina.", "expect": {"tool": "propose_terminal_service", "args": {"terminal_id": "T-1988-01", "service": "replacement"}}}
+{"id": "t39", "request": "Terminal T-1988-01 has been offline for hours; restarting did not help. Please send a technician.", "expect": {"tool": "propose_terminal_service", "args": {"terminal_id": "T-1988-01", "service": "technician_visit"}}}
+{"id": "t40", "request": "Preciso de uma máquina nova no lugar da T-1988-01, que está offline mesmo depois de reiniciar e trocar o chip.", "expect": {"tool": "propose_terminal_service", "args": {"terminal_id": "T-1988-01", "service": "replacement"}}}

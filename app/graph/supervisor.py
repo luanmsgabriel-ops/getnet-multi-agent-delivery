@@ -52,7 +52,9 @@ You coordinate specialists, exposed as tools:
 - ask_knowledge: Getnet products, services and how-tos (official content), plus general \
 questions such as weather or exchange rates.
 - ask_support: this merchant's own data: sales, receivables and payment dates, card machine \
-status, declined transactions, support tickets.
+status, declined transactions, support tickets; it can also simulate an anticipation of \
+receivables and propose an anticipation or a terminal replacement/technician visit, which the \
+merchant then confirms in the app.
 - ask_user: ask the merchant one short question when information you cannot look up is missing.
 - escalate_to_human: hand the case to a human specialist and wait for their reply.
 - remember: save one lasting fact the merchant states about their business, how they want \
@@ -177,7 +179,8 @@ TOOLS = [
     Tool(
         "ask_support",
         "Delegate to the Customer Support Agent (this merchant's sales, "
-        "receivables, terminals, declined transactions and support tickets).",
+        "receivables, terminals, declined transactions and support tickets; anticipation "
+        "simulations and proposals; terminal service proposals).",
         AskSupport,
         _ask_support,
     ),

@@ -92,6 +92,19 @@ Measured cleanly, the judge sees no change on dev. On the bench, the verifier ca
 
 **As a deploy gate,** the judge is reliable for pass/fail on answers like these. The thresholds in `evals/gates.json` sit well below the measured levels, and deterministic checks run alongside it.
 
+## Tool accuracy per tool (v4)
+
+`uv run python -m evals.tools` sends 40 merchant requests (`evals/datasets/tools.jsonl`, 4 per tool, Portuguese and English) to the Customer Support Agent with the real model. A case passes **selection** when the expected tool is called and no forbidden tool is (a simulation must not create a proposal). It passes **arguments** when that call's arguments match, with relative dates resolved against today.
+
+| Tool | Selection | Arguments |
+|---|---:|---:|
+| sales, receivables, terminals, recent transactions, decline codes, tickets (8 tools) | 100% | 100% |
+| `propose_anticipation`, `propose_terminal_service` | 100% | 100% |
+| `simulate_anticipation` | 100% | 75% (3/4) |
+| **All (40)** | **100%** | **98%** |
+
+Run `evals/results/20261119T163642Z-tools`: Claude Sonnet 5.5, one run, US$ 0.27. The one miss was ambiguous wording ("the next 60 days, starting tomorrow" read as tomorrow + 60); the case was kept as written. With 4 cases per tool, these are smoke-level numbers per tool, not tight estimates.
+
 ## Judge calibration against a human (v3)
 
 A person labelled 30 sampled answers (pass/fail plus a 1-5 correctness score) without seeing the judge's grades. They used the same rules and exactly the same evidence the judge receives (`evals/calibration/labels.csv`, `evals/calibration/calibration.md`).

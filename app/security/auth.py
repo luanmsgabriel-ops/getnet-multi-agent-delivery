@@ -34,6 +34,7 @@ MERCHANT_SCOPES = (
     "terminal:read",
     "tickets:read",
     "tickets:write",
+    "actions:write",  # confirm two-phase actions (anticipation, terminal service)
 )
 OPERATOR_SCOPES = ("operator",)
 KNOWN_SCOPES = frozenset(MERCHANT_SCOPES + OPERATOR_SCOPES)

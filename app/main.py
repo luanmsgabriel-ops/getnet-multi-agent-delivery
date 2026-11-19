@@ -12,13 +12,14 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import Depends, FastAPI, Request, Response
+from fastapi import Depends, FastAPI, Header, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app import __version__
+from app.actions import ActionError
 from app.config import Settings, get_settings
 from app.data.db import Database
 from app.data.seed import ensure_seed
@@ -470,6 +471,35 @@ def create_app(
             )
         except OrchestratorError as exc:
             raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    @app.post("/actions/{proposal_id}/confirm", tags=["actions"])
+    def confirm_action(
+        proposal_id: str,
+        request: Request,
+        p: Annotated[Principal, Depends(principal)],
+        idempotency_key: Annotated[str | None, Header(max_length=128)] = None,
+    ) -> dict[str, Any]:
+        """Second phase of an anticipation or terminal service: only the merchant who owns the
+        proposal confirms it, before it expires. Repeating the call returns the first result."""
+        try:
+            return orch().actions.confirm(p, proposal_id, idempotency_key, request.state.request_id)
+        except ActionError as exc:
+            raise ApiError(exc.status, exc.code, exc.message) from exc
+
+    @app.get("/actions", tags=["actions"])
+    def list_actions(p: Annotated[Principal, Depends(principal)]) -> list[dict[str, Any]]:
+        """The merchant's proposals and their state (proposed, confirmed, expired, failed)."""
+        require_scope(p, "chat:use")
+        return orch().actions.for_merchant(p)
+
+    @app.get("/actions/{proposal_id}", tags=["actions"])
+    def get_action(proposal_id: str, p: Annotated[Principal, Depends(principal)]) -> dict[str, Any]:
+        """One proposal with its audit trail (who proposed, who confirmed, before and after)."""
+        require_scope(p, "chat:use")
+        found = orch().actions.get(p, proposal_id)
+        if found is None:
+            raise ApiError(404, "not_found", "Proposal not found.")
+        return {**found, "audit": orch().actions.audit_trail(p, proposal_id)}
 
     @app.post("/tickets/{ticket_id}/confirm", tags=["tickets"])
     def confirm_ticket(
