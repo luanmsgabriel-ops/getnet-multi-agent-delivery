@@ -97,33 +97,41 @@ To add Prometheus, Grafana (dashboard provisioned) and Jaeger with tracing on, r
 ## Architecture and message flow
 
 ```text
-POST /chat {message, user_id} + Bearer JWT
-  -> auth: identity from the token; user_id must match; scopes; rate limit
-  -> input guardrail: redact card/CPF/secrets, then LLM classifier (injection, fraud, off-topic)
-  -> LangGraph turn (SQLite checkpointer per merchant session):
+POST /chat or /chat/stream (SSE) {message, user_id} + Bearer token from the OIDC issuer (checked against its JWKS)
+  -> auth: identity from the token; user_id must match; scopes; rate limit (Redis, shared by replicas)
+  -> redact card/CPF/secrets; the LLM input classifier (injection, fraud, off-topic) runs in parallel
+     with the supervisor's first step and must allow the turn before any tool runs
+  -> LangGraph turn (checkpointer in Postgres, per tenant:merchant:session):
        prepare (summary + last turns + saved merchant facts) -> SUPERVISOR --tool calls, parallel--> specialists -> SUPERVISOR -> ...
                                    |                                   |
                                    |  ask_knowledge: Knowledge Agent (search_kb, web_search,
                                    |                 get_weather, get_exchange_rate)
                                    |  ask_support:   Support Agent (sales, receivables, terminal,
-                                   |                 transactions, decline codes, tickets)
+                                   |                 transactions, decline codes, tickets,
+                                   |                 anticipation and terminal-service proposals)
                                    |  ask_user:      clarifying question, ends the turn
-                                   '- escalate_to_human: Escalation Agent -> handoff + signed webhook
-                                         -> interrupt() ... operator reply -> resume -> SUPERVISOR
+                                   '- escalate_to_human: Escalation Agent -> handoff -> webhook + Telegram
+                                         -> interrupt() ... operator (console or Telegram, screened) -> resume
+  -> VERIFY: Claude Haiku checks figures, dates and merchant data against the same evidence;
+             one replan while the turn is under 12 s, otherwise unsupported sentences are removed
   -> output guardrail: citations exist, no prompt leak, no refund/deadline promises, redaction
-  -> JSON answer with agents, tool calls, sources, usage, cost and trace_id
+  -> JSON answer (or SSE status/delta/final events) with agents, tool calls, sources, usage, cost and trace_id
 ```
 
 - **Supervisor.** An LLM with five tools (the four specialists above plus `remember`). It identifies every need in the message and calls specialists in parallel when needs are independent. It reads their structured observations (`status`, `coverage`, `answer`), retries a different way when a result is partial, and writes the final answer in the merchant's language with `[S#]` citations. It is bounded by step, per-turn cost and global budget limits. Its prompt holds general principles only (`app/graph/supervisor.py`).
 - **Specialists.** Each specialist is an agent with its own prompt, tools and loop (`app/agents/`). Tools have strict JSON schemas, typed errors (`not_found`, `invalid_argument`, `upstream_timeout`, ...), timeouts and retries, and a circuit breaker on public APIs. No tool takes a merchant id: data access is filtered by the token subject in `app/data/support_repo.py`.
 - **Writes and humans.** Agents never write on their own. A ticket, an anticipation of receivables or a terminal replacement/technician visit is a proposal until the merchant confirms it (`POST /tickets/{id}/confirm`, `POST /actions/{id}/confirm` with `Idempotency-Key`); proposals expire in 10 minutes and every action is audited (`GET /actions/{id}`). The anticipation fee in the demo data is fictitious and labelled as such ([ADR 017](docs/adr/017-two-phase-actions.md)). Disputes, suspected fraud and requests for a person pause the graph and notify an operator through a webhook signed with HMAC. The operator works from a console at `/operator` (queue, case with the facts already checked, reply, audit trail) or from Telegram (`/reply`, `/instruct`, `/close`); both go through `/operator/handoffs/{id}/reply` (`reply`, `instruct` or `close`) and the operator's text passes its own guardrail. Unanswered handoffs are raised to urgent after 15 min (high) or 60 min (normal), with a reminder ([docs/HITL.md](docs/HITL.md)). The supervisor resumes, and the merchant gets the result via SSE (`/sessions/{id}/events`) and a webhook. No deadlines or refunds are ever promised.
-- **Memory.** The conversation is stored per `tenant:merchant:session` with LangGraph's SQLite checkpointer. It survives restarts, including a pending handoff, and `DELETE /sessions/{id}` resets it. Past 8 turns, the oldest are folded into a rolling summary, so long chats keep their facts. Across sessions, the supervisor can `remember` a few allow-listed facts per merchant (business profile, communication preference, recurring context). They are redacted, scoped to the token's merchant, and can be listed or erased with `GET/DELETE /me/memory` ([ADR 009](docs/adr/009-summary-and-merchant-memory.md)).
+- **Memory.** The conversation is stored per `tenant:merchant:session` with LangGraph's checkpointer: Postgres in `docker compose`, shared by replicas, or a local SQLite file when `STATE_DATABASE_URL` is unset (tests, a quick local run, [ADR 014](docs/adr/014-postgres-state-redis-rate-limits.md)). It survives restarts, including a pending handoff, and `DELETE /sessions/{id}` resets it. Past 8 turns, the oldest are folded into a rolling summary, so long chats keep their facts. Across sessions, the supervisor can `remember` a few allow-listed facts per merchant (business profile, communication preference, recurring context). They are redacted, scoped to the token's merchant, and can be listed or erased with `GET/DELETE /me/memory` ([ADR 009](docs/adr/009-summary-and-merchant-memory.md)).
 
 ## RAG pipeline (ingestion -> storage -> retrieval -> generation)
 
 1. **Ingestion** (`app/rag/ingest.py`): a crawler reads the sitemaps of `site.getnet.com.br` (help center, product pages, blog), the product manuals (PDF) and `getnet.net/en`. It strips repeated boilerplate.
 2. **Storage**: 171 snapshots in `corpus/docs/` with URL, capture date and SHA-256, committed so builds are reproducible and offline.
-3. **Retrieval** (`app/rag/store.py`): 1,058 section-aware chunks, BM25 plus local multilingual embeddings (`paraphrase-multilingual-MiniLM-L12-v2`, ONNX, built into the image), fused by reciprocal rank. On English questions over the Portuguese corpus, hybrid recall@5 is 0.90 versus 0.60 for lexical. On the strict official-FAQ holdout it is 0.58 ([docs/RAG.md](docs/RAG.md)).
+3. **Retrieval** (`app/rag/store.py`):
+   - 1,058 section-aware chunks, embedded with `google/embeddinggemma-300m` (local ONNX, built into the image) and ranked by cosine similarity;
+   - each search returns 8 passages, and BM25 stays as the fallback;
+   - recall@5 is 0.73 on the frozen holdout (v3: 0.52), with recall@10 0.81 and MRR 0.52;
+   - cross-encoder rerankers were measured and rejected: 15-50 s per query on CPU ([docs/RAG.md](docs/RAG.md), [ADR 011](docs/adr/011-embedding-model-instead-of-reranker.md)).
 4. **Generation**: the Knowledge Agent answers only from retrieved passages and cites them. If they do not cover the question it reports `not_found`, and the supervisor can use web search.
 
 ## How the LLMs are used
@@ -131,6 +139,8 @@ POST /chat {message, user_id} + Bearer JWT
 All agents use Claude through the official `anthropic` SDK inside LangGraph nodes (`app/llm/client.py`). The calls use tool use, strict schemas, structured outputs (guardrail), prompt caching, a per-agent effort level and server-side fallback on refusals.
 
 The default model is **Claude Sonnet 5.5**. On the same cases it matched Claude Opus 5.5 at about a quarter of the cost and half the latency ([ADR 008](docs/adr/008-model-per-agent-by-measurement.md)). Switch with `LLM_MODEL`.
+
+The answer verifier uses **Claude Haiku 5.5** (`VERIFIER_MODEL`). It checks the higher-risk claims of each answer against the evidence the agents gathered, before the answer leaves ([ADR 012](docs/adr/012-final-answer-verifier.md)). The input classifier and the operator-text classifier use the default model with low effort.
 
 Every call is recorded in a spend ledger with a hard cap (`LLM_BUDGET_USD`).
 
