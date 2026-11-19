@@ -19,6 +19,7 @@
 - Two instances share one Redis rate limit: requests 1 and 2 pass, request 3 gets 429.
 - A Redis outage falls back to the local limit.
 - The live test caught one real bug: memory read rows by position, which SQLite allows and Postgres does not.
+- On the full `docker compose` stack, a real-model chat wrote its checkpoints, memory and ledger rows to Postgres and its rate-limit keys to Redis; after `docker compose restart api` the merchant's memory and the conversation's checkpoints were still there.
 
 **Alternatives.**
 - An ORM or a second set of SQL for Postgres: more code for the same queries.

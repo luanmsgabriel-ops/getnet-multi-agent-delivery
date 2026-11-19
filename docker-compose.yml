@@ -56,6 +56,9 @@ services:
 
   redis:
     image: redis:7-alpine
+    # Start as the image's unprivileged redis user: with cap_drop ALL the entrypoint cannot
+    # switch users itself. No persistence: counters are one-minute windows.
+    user: "999:1000"
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     security_opt: ["no-new-privileges:true"]
     cap_drop: [ALL]
