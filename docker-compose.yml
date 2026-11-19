@@ -25,7 +25,7 @@ services:
       - "127.0.0.1:8000:8000"
     volumes:
       - getnet_state:/state
-    mem_limit: 1536m
+    mem_limit: 2560m
     cpus: 2.0
     depends_on: [webhook-sink]
 

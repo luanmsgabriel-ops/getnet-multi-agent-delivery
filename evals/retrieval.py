@@ -154,7 +154,9 @@ def evaluate(split: str) -> str:
         )
         chunks = stripped_chunks(docs, [i["query"] for i in items])
     embedder = Embedder()
-    retriever = Retriever(chunks, embedder, embedder.embed([c.indexed_text for c in chunks]))
+    retriever = Retriever(
+        chunks, embedder, embedder.embed_passages([c.indexed_text for c in chunks])
+    )
     rows = []
     for mode in MODES:
         ranks = []

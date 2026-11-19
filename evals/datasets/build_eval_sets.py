@@ -531,9 +531,28 @@ def holdout_answers_v2(n: int = 20) -> list[dict[str, Any]]:
 # Fixed before any v4 measurement: an answer case must be about Getnet products or payments,
 # so general business advice from the blog (out of the assistant's scope) is left out.
 PRODUCT_TERMS = (
-    "getnet", "maquininha", "maquina", "pix", "link de pagamento", "antecipa", "receb",
-    "taxa", "credito", "debito", "cartao", "parcel", "pagamento", "conta digital", "tap",
-    "qr code", "boleto", "venda", "conciliac", "split", "chargeback", "estorno",
+    "getnet",
+    "maquininha",
+    "maquina",
+    "pix",
+    "link de pagamento",
+    "antecipa",
+    "receb",
+    "taxa",
+    "credito",
+    "debito",
+    "cartao",
+    "parcel",
+    "pagamento",
+    "conta digital",
+    "tap",
+    "qr code",
+    "boleto",
+    "venda",
+    "conciliac",
+    "split",
+    "chargeback",
+    "estorno",
 )
 
 

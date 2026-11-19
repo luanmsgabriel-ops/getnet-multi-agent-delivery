@@ -14,7 +14,7 @@ once for the reported number and never used to choose prompts, parameters or mod
 | `holdout_answers.jsonl` | answer | 20 official FAQ questions with the official answer (Getnet site) | **no** | 2026-11-17 21:21 UTC, once. Five of six judge failures were "not found in the knowledge base"; that weakness is documented, not tuned on this set. |
 | `retrieval_holdout_v2.jsonl` | retrieval | 121 Q&A pairs written inside help-center and product pages (Getnet site) | **no** | 2026-11-18, once, after the RAG changes below were fixed on dev |
 | `holdout_answers_v2.jsonl` | answer | 20 of those pairs with the official answer | **no** | 2026-11-18 21:09 UTC, once |
-| `retrieval_holdout_v3.jsonl` | retrieval | 261 Q&A pairs written inside blog posts and manuals (Getnet site), sources never used before | **no** | frozen 2026-11-19 before any v4 retrieval change (sha256 `9c58f1e3107e5d2e…`, LF); not run yet |
+| `retrieval_holdout_v3.jsonl` | retrieval | 261 Q&A pairs written inside blog posts and manuals (Getnet site), sources never used before | **no** | frozen 2026-11-19 before any v4 retrieval change (sha256 `9c58f1e3107e5d2e…`, LF); run once 2026-11-19 12:44 UTC after the dev choices (dense R@5 0.73) |
 | `holdout_answers_v3.jsonl` | answer | 60 of those pairs about products and payments (fixed keyword rule `PRODUCT_TERMS`), with the official answer | **no** | frozen 2026-11-19 (sha256 `a4873f7af82115c7…`, LF); not run yet |
 
 ## Retrieval decisions made on dev (before the holdout run)

@@ -28,11 +28,18 @@ ROOT = Path(__file__).resolve().parents[2]
 CORPUS_DIR = ROOT / "corpus" / "docs"
 INDEX_DIR = ROOT / "corpus" / "index"
 MODEL_DIR = Path(os.environ.get("EMBED_MODEL_DIR", ROOT / ".data" / "models"))
-EMBED_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+EMBED_MODEL = "google/embeddinggemma-300m"  # chosen on dev, see docs/adr/011
+# EmbeddingGemma was trained with task prefixes for retrieval queries and documents
+QUERY_PREFIX = "task: search result | query: "
+PASSAGE_PREFIX = "title: none | text: "
 CHUNK_CHARS = 1000
 RRF_K = 60
+LEXICAL_WEIGHT = 1.0  # weight of the BM25 ranking in the fusion (dense = 1.0)
 
 Mode = Literal["lexical", "dense", "hybrid"]
+# Production ranking, chosen on dev (docs/adr/011): dense ranks best on recall@5 and also
+# finds the error-code articles; BM25 stays for comparison and as the fallback.
+DEFAULT_MODE: Mode = "dense"
 
 STOPWORDS = frozenset(
     (
@@ -69,21 +76,34 @@ def tokenize(text: str) -> list[str]:
     return [t for t in re.findall(r"[a-z0-9]+", plain) if t not in STOPWORDS and len(t) > 1]
 
 
-def split_text(text: str, size: int = CHUNK_CHARS) -> list[str]:
-    """Pack paragraphs into chunks; a heading starts a new chunk when the current one is big."""
+def split_text(text: str, size: int = CHUNK_CHARS, heading_prefix: bool = False) -> list[str]:
+    """Pack paragraphs into chunks; a heading starts a new chunk when the current one is big.
+    With heading_prefix, a chunk that does not start with a heading is prefixed with the last
+    heading seen before it, so short passages keep their subject."""
     parts: list[str] = []
-    current = ""
+    current, heading, chunk_heading = "", "", ""
+
+    def close() -> None:
+        body = current.strip()
+        if heading_prefix and chunk_heading and not body.startswith("#"):
+            body = f"{chunk_heading}\n{body}"
+        parts.append(body)
+
     for para in re.split(r"\n\s*\n", text):
         para = para.strip()
         if not para:
             continue
         starts_section = para.startswith("#") and len(current) > size // 3
         if current and (len(current) + len(para) > size or starts_section):
-            parts.append(current.strip())
+            close()
             current = ""
+        if not current:
+            chunk_heading = heading
+        if para.startswith("#"):
+            heading = para.lstrip("# ").strip()
         current += para + "\n\n"
     if current.strip():
-        parts.append(current.strip())
+        close()
     return parts
 
 
@@ -145,9 +165,16 @@ class Embedder:
         self._model = TextEmbedding(model_name=model, cache_dir=str(cache_dir), threads=1)
 
     def embed(self, texts: list[str]) -> np.ndarray:
-        vectors = np.array(list(self._model.embed(texts, batch_size=32)), dtype=np.float32)
+        vectors = np.array(list(self._model.embed(texts, batch_size=16)), dtype=np.float32)
         norms = np.linalg.norm(vectors, axis=1, keepdims=True)
         return vectors / np.maximum(norms, 1e-12)
+
+    def embed_passages(self, texts: list[str]) -> np.ndarray:
+        return self.embed([PASSAGE_PREFIX + t for t in texts])
+
+    def embed_query(self, text: str) -> np.ndarray:
+        vector: np.ndarray = self.embed([QUERY_PREFIX + text])[0]
+        return vector
 
 
 def corpus_fingerprint(chunks: list[Chunk]) -> str:
@@ -160,7 +187,7 @@ def corpus_fingerprint(chunks: list[Chunk]) -> str:
 
 def build_embeddings(chunks: list[Chunk], embedder: Embedder, index_dir: Path = INDEX_DIR) -> None:
     index_dir.mkdir(parents=True, exist_ok=True)
-    vectors = embedder.embed([c.indexed_text for c in chunks])
+    vectors = embedder.embed_passages([c.indexed_text for c in chunks])
     np.save(index_dir / "embeddings.npy", vectors)
     (index_dir / "meta.json").write_text(
         json.dumps(
@@ -193,8 +220,10 @@ class Retriever:
         chunks: list[Chunk],
         embedder: Embedder | None = None,
         embeddings: np.ndarray | None = None,
+        lexical_weight: float = LEXICAL_WEIGHT,
     ) -> None:
         self.chunks = chunks
+        self.lexical_weight = lexical_weight
         self.bm25 = BM25([c.indexed_text for c in chunks])
         self.embedder = embedder
         self.embeddings = embeddings
@@ -210,11 +239,11 @@ class Retriever:
 
     def _rank_dense(self, query: str, depth: int) -> list[tuple[int, float]]:
         assert self.embedder is not None and self.embeddings is not None
-        sims = self.embeddings @ self.embedder.embed([query])[0]
+        sims = self.embeddings @ self.embedder.embed_query(query)
         top = np.argsort(-sims)[:depth]
         return [(int(i), float(sims[i])) for i in top]
 
-    def search(self, query: str, k: int = 5, mode: Mode = "hybrid") -> list[Hit]:
+    def search(self, query: str, k: int = 5, mode: Mode = DEFAULT_MODE) -> list[Hit]:
         if mode != "lexical" and not self.dense_ready:
             mode = "lexical"
         if mode == "lexical":
@@ -223,9 +252,13 @@ class Retriever:
             ranked = self._rank_dense(query, k)
         else:
             fused: dict[int, float] = {}
-            for ranking in (self._rank_lexical(query, 50), self._rank_dense(query, 50)):
+            weighted = (
+                (self.lexical_weight, self._rank_lexical(query, 50)),
+                (1.0, self._rank_dense(query, 50)),
+            )
+            for weight, ranking in weighted:
                 for rank, (i, _) in enumerate(ranking):
-                    fused[i] = fused.get(i, 0.0) + 1.0 / (RRF_K + rank + 1)
+                    fused[i] = fused.get(i, 0.0) + weight / (RRF_K + rank + 1)
             ranked = sorted(fused.items(), key=lambda x: -x[1])[:k]
         return [Hit(self.chunks[i], score) for i, score in ranked]
 

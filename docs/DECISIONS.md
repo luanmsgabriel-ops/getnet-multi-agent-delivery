@@ -12,3 +12,4 @@ Who decided what, and why. The full reasoning for each technical choice is in `d
 | 2026-11-19 | v4 · 1 | Reranker `BAAI/bge-reranker-v2-m3` int8 | `jina-reranker-v2-base-multilingual` | Luan | "light and fits in Docker's memory" |
 | 2026-11-19 | v4 · 1 | Query rewriting only as an ablation | always on; not tested | Luan | "to check whether the number improves" |
 | 2026-11-19 | v4 · 1 | Answer holdout v3 with 60 questions | larger | Luan | "60, and we increase it if needed" |
+| 2026-11-19 | v4 · 1 | Replace the planned reranker with the `google/embeddinggemma-300m` embedding model | `intfloat/multilingual-e5-large` (MIT); keep MiniLM | Luan | "best overall recall@5 on the dev sets and 48 ms per query on the tested CPU, against 159 ms for e5-large" (both rerankers took 15–50 s per query on CPU) |

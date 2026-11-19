@@ -50,8 +50,8 @@ class PrefixedEmbedder:
                 self.cache[t] = v
         return np.stack([self.cache[t] for t in texts])
 
-    def embed(self, texts: list[str]) -> np.ndarray:  # queries (Retriever calls this)
-        return self._embed([self.q + t for t in texts])
+    def embed_query(self, text: str) -> np.ndarray:  # Retriever calls this
+        return self._embed([self.q + text])[0]
 
 
 def items_for(split: str, docs: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -92,7 +92,7 @@ def main(models: list[str]) -> None:
                 )
         q0 = time.time()
         for _ in range(5):
-            emb.embed(["Como antecipar minhas vendas no app da Getnet?"])
+            emb.embed_query("Como antecipar minhas vendas no app da Getnet?")
         rows.append((name, "query_ms", f"{(time.time() - q0) / 5 * 1000:.0f}", 0, 0, 0, 0))
         print(f"{name}: done in {time.time() - t0:.0f}s", flush=True)
     lines = [
